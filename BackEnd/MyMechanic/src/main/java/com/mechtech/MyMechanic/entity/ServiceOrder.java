@@ -83,6 +83,7 @@ public class ServiceOrder extends AbstractEntity implements Serializable, Tenant
   private Invoice invoice;
 
   public enum ServiceOrderStatus {
+    INCOMPLETO,
     PENDENTE,
     EM_PROGRESSO,
     COMPLETO,

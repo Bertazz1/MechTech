@@ -80,11 +80,7 @@ public class ClientService extends AbstractTenantAwareService<Client, Long, Clie
 
     @Transactional(readOnly = true)
     public Client findByVehicleId(Long vehicleId) {
-        // 1. Primeiro, verifica se o veículo existe e se o usuário atual tem permissão para vê-lo.
-        // O findById do vehicleService já contém a validação de tenant.
         vehicleService.findById(vehicleId);
-
-        // 2. Se a verificação acima passar, busca o cliente associado.
         return repository.findByVehicles_Id(vehicleId)
                 .orElseThrow(() -> new EntityNotFoundException(
                         "Cliente não encontrado para o veículo com id: " + vehicleId));
