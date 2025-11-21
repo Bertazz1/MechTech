@@ -1,6 +1,7 @@
 package com.mechtech.MyMechanic.service;
 
 import com.mechtech.MyMechanic.entity.*;
+import com.mechtech.MyMechanic.exception.BusinessRuleException;
 import com.mechtech.MyMechanic.exception.EntityNotFoundException;
 import com.mechtech.MyMechanic.repository.QuotationRepository;
 import com.mechtech.MyMechanic.repository.projection.QuotationProjection;
@@ -125,6 +126,8 @@ public class QuotationService extends AbstractTenantAwareService<Quotation, Long
     public Quotation update(Long id, QuotationUpdateDto dto) {
         Quotation existingQuotation = findById(id); // O findById já carrega os itens
 
+        validateStatusUpdate(existingQuotation.getStatus(), Quotation.QuotationStatus.valueOf(dto.getStatus()));
+
         // Atualiza os campos simples do orçamento
         if (dto.getDescription() != null) {
             existingQuotation.setDescription(dto.getDescription());
@@ -178,6 +181,19 @@ public class QuotationService extends AbstractTenantAwareService<Quotation, Long
     @Transactional(readOnly = true)
     public byte[] getQuotationAsPdf(Long quotationId) {
         Quotation quotation = findById(quotationId);
+        if (quotation.getStatus() == Quotation.QuotationStatus.CANCELED){
+            throw new BusinessRuleException("Orçamento cancelado não pode ser impresso!");
+        }
         return pdfGenerationService.generateQuotationPdf(quotation);
+    }
+
+    public void validateStatusUpdate(Quotation.QuotationStatus oldStatus, Quotation.QuotationStatus newStatus){
+        if (oldStatus == newStatus){
+            return;
+        }
+        if (oldStatus == Quotation.QuotationStatus.CANCELED){
+            throw new BusinessRuleException("Orçamento cancelado não pode ser alterado.");
+
+        }
     }
 }
