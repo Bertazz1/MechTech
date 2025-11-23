@@ -17,8 +17,6 @@ public interface ServiceOrderProjection {
     LocalDateTime getExitDate();
 
     BigDecimal getTotalCost();
-    Long getVehicleId();
     String getVehicleLicensePlate();
-    Long getClientId();
     String getClientName();
 }

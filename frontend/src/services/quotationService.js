@@ -30,7 +30,7 @@ export const quotationService = {
         return response.data;
     },
     convertToServiceOrder: async (id) => {
-        const response = await api.post(`/quotations/${id}/convert`);
+        const response = await api.post(`/service-orders/from-quotation/${id}`);
         return response.data;
     }
 };
