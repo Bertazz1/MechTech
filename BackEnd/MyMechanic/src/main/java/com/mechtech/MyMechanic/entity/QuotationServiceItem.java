@@ -31,6 +31,9 @@ public class QuotationServiceItem extends AbstractEntity implements Serializable
     @JoinColumn(name = "repair_service_id", nullable = false)
     private RepairService repairService;
 
+    @Column(name = "quantity", nullable = false)
+    private Integer quantity;
+
     @Column(name = "service_cost", nullable = false, precision = 10, scale = 2)
     private BigDecimal serviceCost; // Custo do serviço no momento do orçamento
 

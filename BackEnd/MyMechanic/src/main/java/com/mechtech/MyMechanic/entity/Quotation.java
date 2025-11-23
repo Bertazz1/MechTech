@@ -48,10 +48,10 @@ public class Quotation extends AbstractEntity implements Serializable, TenantOwn
     private QuotationStatus status = QuotationStatus.AWAITING_CONVERSION;
 
     @Column(
-            name = "TotalCost", nullable = false,
+            name = "totalCost", nullable = false,
             scale = 2 // casas decimais
     )
-    private BigDecimal TotalCost;
+    private BigDecimal totalCost;
 
     @Column(name = "entry_date", nullable = false)
     private LocalDateTime entryTime;
@@ -94,7 +94,7 @@ public class Quotation extends AbstractEntity implements Serializable, TenantOwn
     private Set<QuotationServiceItem> serviceItems = new HashSet<>();
 
     @Transient
-    public BigDecimal getTotalPartsPrice() {
+    public BigDecimal getTotalPartsCost() {
         if (partItems == null) {
             return BigDecimal.ZERO;
         }
@@ -104,7 +104,7 @@ public class Quotation extends AbstractEntity implements Serializable, TenantOwn
     }
 
     @Transient
-    public BigDecimal getTotalServicesPrice() {
+    public BigDecimal getTotalServicesCost() {
         if (serviceItems == null) {
             return BigDecimal.ZERO;
         }
@@ -134,9 +134,9 @@ public class Quotation extends AbstractEntity implements Serializable, TenantOwn
 
 
     public void calculateTotalCost() {
-        BigDecimal partsTotal = getTotalPartsPrice();
-        BigDecimal servicesTotal = getTotalServicesPrice();
-        this.TotalCost = partsTotal.add(servicesTotal);
+        BigDecimal partsTotal = getTotalPartsCost();
+        BigDecimal servicesTotal = getTotalServicesCost();
+        this.totalCost = partsTotal.add(servicesTotal);
     }
 
 

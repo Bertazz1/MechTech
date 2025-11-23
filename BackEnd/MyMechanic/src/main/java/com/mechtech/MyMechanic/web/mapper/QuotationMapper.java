@@ -40,9 +40,9 @@ public class QuotationMapper {
         dto.setStatus(quotation.getStatus().name());
         dto.setEntryTime(quotation.getEntryTime());
         dto.setExitTime(quotation.getExitTime());
-        dto.setTotalPrice(quotation.getTotalCost());
-        dto.setTotalPartsPrice(quotation.getTotalPartsPrice());
-        dto.setTotalServicesPrice(quotation.getTotalServicesPrice());
+        dto.setTotalCost(quotation.getTotalCost());
+        dto.setTotalPartsCost(quotation.getTotalPartsCost());
+        dto.setTotalServicesCost(quotation.getTotalServicesCost());
 
         if (quotation.getVehicle() != null) {
             dto.setVehicle(vehicleMapper.toDto( quotation.getVehicle()));
@@ -68,9 +68,9 @@ public class QuotationMapper {
 
     private QuotationPartItemResponseDto partItemToDto(QuotationPartItem item) {
         return new QuotationPartItemResponseDto(
+                item.getId(),
                 item.getPart().getId(),
                 item.getPart().getName(),
-                item.getPart().getCode(),
                 item.getQuantity(),
                 item.getUnitPrice()
         );
@@ -78,27 +78,16 @@ public class QuotationMapper {
 
     private QuotationServiceItemResponseDto serviceItemToDto(QuotationServiceItem item) {
         return new QuotationServiceItemResponseDto(
+                item.getId(),
                 item.getRepairService().getId(),
                 item.getRepairService().getName(),
+                item.getQuantity(),
                 item.getServiceCost()
         );
     }
 
 
-    public void updateQuotationFromDto(QuotationUpdateDto dto, Quotation quotation) {
-        if (dto == null || quotation == null) {
-            return;
-        }
-        if (dto.getDescription() != null) {
-            quotation.setDescription(dto.getDescription());
-        }
-        if (dto.getStatus() != null) {
-            quotation.setStatus(Quotation.QuotationStatus.valueOf(dto.getStatus()));
-        }
-        if (dto.getEntryTime() != null) {
-            quotation.setEntryTime(dto.getEntryTime());
-        }
-    }
+
 
     public List<QuotationResponseDto> toListDto(List<Quotation> quotations) {
         if (quotations == null) {

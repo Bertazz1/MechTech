@@ -88,6 +88,7 @@ public class QuotationService extends AbstractTenantAwareService<Quotation, Long
                 QuotationServiceItem serviceItem = new QuotationServiceItem();
                 serviceItem.setQuotation(quotation);
                 serviceItem.setRepairService(service);
+                serviceItem.setQuantity(itemDto.getQuantity());
                 if (itemDto.getUnitCost() != null) {
                     serviceItem.setServiceCost(itemDto.getUnitCost());
                 } else {
@@ -164,6 +165,7 @@ public class QuotationService extends AbstractTenantAwareService<Quotation, Long
                 QuotationServiceItem serviceItem = new QuotationServiceItem();
                 serviceItem.setQuotation(existingQuotation);
                 serviceItem.setRepairService(service);
+                serviceItem.setQuantity(itemDto.getQuantity());
                 serviceItem.setServiceCost(itemDto.getUnitCost() != null ? itemDto.getUnitCost() : service.getCost());
                 existingQuotation.getServiceItems().add(serviceItem);
             }
