@@ -25,12 +25,15 @@ public class UserService extends AbstractTenantAwareService<User, Long, UserRepo
     private final PasswordEncoder passwordEncoder;
     private final UserMapper userMapper;
     private final EmailService emailService;
+    private final UserRepository userRepository;
 
-    public UserService(UserRepository repository, PasswordEncoder passwordEncoder, UserMapper userMapper, EmailService emailService) {
+    public UserService(UserRepository repository, PasswordEncoder passwordEncoder, UserMapper userMapper, EmailService emailService,
+                       UserRepository userRepository) {
         super(repository);
         this.passwordEncoder = passwordEncoder;
         this.userMapper = userMapper;
         this.emailService = emailService;
+        this.userRepository = userRepository;
     }
 
     @Transactional
@@ -39,7 +42,7 @@ public class UserService extends AbstractTenantAwareService<User, Long, UserRepo
             user.setPassword(passwordEncoder.encode(user.getPassword()));
             return repository.save(user);
         } catch (DataIntegrityViolationException ex) {
-            throw new UniqueConstraintViolationException(String.format("Username '%s' já está em uso", user.getUsername()));
+            throw new UniqueConstraintViolationException("Já existe um registro com esses dados.");
         }
     }
 

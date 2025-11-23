@@ -19,12 +19,22 @@ public class UserMapper {
         User user = new User();
         user.setUsername(userCreateDTO.getUsername());
         user.setPassword(userCreateDTO.getPassword());
-        user.setFirstName(userCreateDTO.getFirstName());
-        user.setLastName(userCreateDTO.getLastName());
+        if (userCreateDTO.getFirstName() != null) {
+            user.setFirstName(userCreateDTO.getFirstName());
+        }
+        if (userCreateDTO.getLastName() != null) {
+            user.setLastName(userCreateDTO.getLastName());
+        }
         user.setEmail(userCreateDTO.getEmail());
-        user.setPhone(userCreateDTO.getPhone());
+        if (userCreateDTO.getPhone() != null) {
+            user.setPhone(userCreateDTO.getPhone());
+        }
         user.setTenantId(userCreateDTO.getTenantId());
-        user.setRole(User.Role.valueOf(userCreateDTO.getRole()));
+        if (userCreateDTO.getRole() != null) {
+            user.setRole(User.Role.valueOf(userCreateDTO.getRole()));
+        } else {
+            user.setRole(User.Role.ROLE_CLIENT);
+        }
         return user;
     }
 
@@ -34,14 +44,30 @@ public class UserMapper {
         }
         UserResponseDto dto = new UserResponseDto();
         dto.setId(user.getId());
-        dto.setUsername(user.getUsername());
-        dto.setFirstName(user.getFirstName());
-        dto.setLastName(user.getLastName());
-        dto.setEmail(user.getEmail());
-        dto.setPhone(user.getPhone());
-        dto.setRole(user.getRole().name());
-        dto.setTenantId(user.getTenantId());
-        dto.setStatus(user.getStatus().name());
+        if (user.getUsername() != null) {
+            dto.setUsername(user.getUsername());
+        }
+        if (user.getFirstName() != null) {
+            dto.setFirstName(user.getFirstName());
+        }
+        if (user.getLastName() != null) {
+            dto.setLastName(user.getLastName());
+        }
+        if (user.getEmail() != null) {
+            dto.setEmail(user.getEmail());
+        }
+        if (user.getPhone() != null) {
+            dto.setPhone(user.getPhone());
+        }
+        if (user.getRole() != null) {
+            dto.setRole(user.getRole().name());
+        }
+        if (user.getTenantId() != null) {
+            dto.setTenantId(user.getTenantId());
+        }
+        if (user.getStatus() != null) {
+            dto.setStatus(user.getStatus().name());
+        }
         return dto;
     }
 

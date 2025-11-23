@@ -4,6 +4,8 @@ import com.mechtech.MyMechanic.entity.Address;
 import com.mechtech.MyMechanic.entity.Client;
 import com.mechtech.MyMechanic.entity.Vehicle;
 import com.mechtech.MyMechanic.repository.projection.ClientProjection;
+import com.mechtech.MyMechanic.service.AddressService;
+import com.mechtech.MyMechanic.web.dto.cep.CepResponseDto;
 import com.mechtech.MyMechanic.web.dto.client.ClientCreateDto;
 import com.mechtech.MyMechanic.web.dto.client.ClientProjectionDto;
 import com.mechtech.MyMechanic.web.dto.client.ClientResponseDto;
@@ -18,6 +20,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ClientMapper {
 
+    private final AddressService addressService;
     private final AddressMapper addressMapper;
 
     public Client toClient(ClientCreateDto dto) {
@@ -30,6 +33,7 @@ public class ClientMapper {
         client.setPhone(dto.getPhone());
         client.setAddress(addressMapper.toAddress(dto.getAddress()));
         client.setCpf(dto.getCpf());
+
         return client;
     }
 

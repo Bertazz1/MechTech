@@ -68,7 +68,7 @@ public class ApiExceptionHandler {
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(new ErrorMessage(request,
                         HttpStatus.CONFLICT,
-                        ex.getLocalizedMessage()));
+                        ex.getMessage()));
     }
 
     @ExceptionHandler(EntityNotFoundException.class)
