@@ -32,4 +32,8 @@ public class UserUpdateDto {
 
     @Size(max = 20, message = "Telefone nao pode exceder 20 caracteres")
     private String phone;
+
+
+    private String cep;
 }
+

@@ -15,21 +15,28 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+
 @Service
 public class ClientService extends AbstractTenantAwareService<Client, Long, ClientRepository> {
 
 //    private final AddressService addressService;
     private final VehicleService vehicleService;
+    private final ClientRepository clientRepository;
 
-    public ClientService(ClientRepository repository, AddressService addressService, VehicleService vehicleService) {
+    public ClientService(ClientRepository repository, AddressService addressService, VehicleService vehicleService,
+                         ClientRepository clientRepository) {
         super(repository);
 //        this.addressService = addressService;
         this.vehicleService = vehicleService;
+        this.clientRepository = clientRepository;
     }
+
 
     @Transactional
     public Client createClient(Client client) {
         ValidationUtils.validateCpf(client.getCpf());
+        validateClient(client);
 
         try {
             client.setTenantId(TenantContext.getTenantId());
@@ -59,12 +66,14 @@ public class ClientService extends AbstractTenantAwareService<Client, Long, Clie
         if (clientUpdateData.getCpf() != null) {
             ValidationUtils.validateCpf(clientUpdateData.getCpf());
         }
-
         existingClient.setName(clientUpdateData.getName());
         existingClient.setEmail(clientUpdateData.getEmail());
         existingClient.setPhone(clientUpdateData.getPhone());
         existingClient.setAddress(clientUpdateData.getAddress());
         existingClient.setCpf(clientUpdateData.getCpf());
+
+
+        validateClient(existingClient);
 
         return repository.save(existingClient);
     }
@@ -94,5 +103,22 @@ public class ClientService extends AbstractTenantAwareService<Client, Long, Clie
     @Transactional(readOnly = true)
     public Page<Client> search(String searchTerm, Pageable pageable) {
         return repository.findAll(ClientSpecification.search(searchTerm), pageable);
+    }
+
+    private void validateClient(Client client){
+        Optional<Client> existingCpfClient = clientRepository.findByCpf(client.getCpf());
+        if (existingCpfClient.isPresent() && !existingCpfClient.get().getId().equals(client.getId())){
+            throw new UniqueConstraintViolationException("CPF já cadastrado");
+        }
+
+        Optional<Client> existingEmailClient = clientRepository.findByEmail(client.getEmail());
+        if (existingEmailClient.isPresent() && !existingEmailClient.get().getId().equals(client.getId())){
+            throw new UniqueConstraintViolationException("Email já cadastrado");
+        }
+
+        Optional<Client> existingPhoneClient = clientRepository.findByPhone(client.getPhone());
+        if (existingPhoneClient.isPresent() && !existingPhoneClient.get().getId().equals(client.getId())){
+            throw new UniqueConstraintViolationException("Telefone já cadastrado");
+        }
     }
 }

@@ -12,6 +12,7 @@ import org.springframework.data.jpa.repository.Query;
 import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificationExecutor<User> {
+
     Optional<User> findByUsername(String username);
 
     @Query("SELECT u.role FROM User u WHERE u.username LIKE :username")
