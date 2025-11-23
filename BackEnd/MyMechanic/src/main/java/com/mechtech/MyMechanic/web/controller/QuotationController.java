@@ -90,7 +90,7 @@ public class QuotationController {
     public ResponseEntity<byte[]> getQuotationPdf(@PathVariable Long id) {
         byte[] pdfContents = quotationService.getQuotationAsPdf(id);
 
-        String filename = "orcamento-" + id + ".pdf";
+        String filename = "Orçamento-" + id + ".pdf";
 
         return ResponseEntity.ok()
                 .header("Content-Type", "application/pdf")

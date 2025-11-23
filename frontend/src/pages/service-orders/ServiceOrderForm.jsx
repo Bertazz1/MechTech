@@ -362,15 +362,6 @@ const ServiceOrderForm = () => {
                             <p className="flex justify-between mt-1"><span>Serviços:</span> <span>R$ {totals.servicesTotal.toFixed(2)}</span></p>
                             <p className="flex justify-between mt-1 font-medium border-t pt-1"><span>Subtotal:</span> <span>R$ {totals.subtotal.toFixed(2)}</span></p>
                         </div>
-                        <div>
-                            <Input
-                                label="Desconto (R$)"
-                                type="number"
-                                step="0.01"
-                                value={formData.discount}
-                                onChange={(e) => setFormData({ ...formData, discount: e.target.value })}
-                            />
-                        </div>
                         <div className="bg-gray-50 p-4 rounded-lg text-center">
                             <p className="text-sm text-gray-500 uppercase font-bold tracking-wide">Total Final</p>
                             <p className="text-3xl font-bold text-primary-600">R$ {totals.total.toFixed(2)}</p>

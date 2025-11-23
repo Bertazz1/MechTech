@@ -1,11 +1,11 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { quotationService } from '../../services/quotationService';
-import { vehicleService } from '../../services/vehicleService';
+import { vehicleService } from '../../services/vehicleService'; // O serviço já tem o método search
 import { partService } from '../../services/partService';
 import { repairService } from '../../services/repairService';
 import Select from '../../components/common/Select';
-import AsyncSelect from '../../components/common/AsyncSelect';
+import AsyncSelect from '../../components/common/AsyncSelect'; // Usando o componente dinâmico
 import Button from '../../components/common/Button';
 import Input from '../../components/common/Input';
 import toast from 'react-hot-toast';
@@ -17,19 +17,33 @@ const QuotationForm = () => {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
 
-    const [vehicles, setVehicles] = useState([]);
     const [fieldErrors, setFieldErrors] = useState({});
 
     const [formData, setFormData] = useState({
         vehicleId: '',
-        entryTime: new Date().toISOString().slice(0, 16),
+        entryTime: getLocalDateTime(),
         description: '',
+        status: 'AWAITING_CONVERSION',
         items: [],
     });
 
+    const [selectedVehicle, setSelectedVehicle] = useState(null);
     const [selectedClient, setSelectedClient] = useState(null);
 
-    // Cálculos (Sem Desconto)
+    // Função auxiliar de data
+    function getLocalDateTime() {
+        const now = new Date();
+        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+        return now.toISOString().slice(0, 16);
+    }
+
+    const statusOptions = [
+        { value: 'AWAITING_CONVERSION', label: 'Aguardando Aprovação' },
+        { value: 'CONVERTED_TO_ORDER', label: 'Convertido em OS' },
+        { value: 'CANCELED', label: 'Cancelado' },
+    ];
+
+    // Cálculos
     const totals = useMemo(() => {
         const partsTotal = formData.items
             .filter(i => i.type === 'PART')
@@ -43,20 +57,10 @@ const QuotationForm = () => {
     }, [formData.items]);
 
     useEffect(() => {
-        loadVehicles();
         if (id) {
             loadQuotation();
         }
     }, [id]);
-
-    const loadVehicles = async () => {
-        try {
-            const data = await vehicleService.getAll();
-            setVehicles(Array.isArray(data) ? data : data.content || []);
-        } catch (error) {
-            toast.error('Erro ao carregar veículos');
-        }
-    };
 
     const loadQuotation = async () => {
         try {
@@ -64,14 +68,13 @@ const QuotationForm = () => {
 
             const loadedItems = [];
 
-            // Mapeia Peças (Correção do Undefined e PartId)
+            // Mapeia Peças
             if (data.partItems) {
                 data.partItems.forEach(item => {
                     loadedItems.push({
                         type: 'PART',
                         selectedOption: {
                             value: item.partId || item.part?.id,
-                            // Usa partName que adicionamos no DTO
                             label: item.partName || item.part?.name || `Peça #${item.partId}`,
                             price: item.unitPrice
                         },
@@ -81,7 +84,7 @@ const QuotationForm = () => {
                 });
             }
 
-            // Mapeia Serviços (Correção da Quantidade)
+            // Mapeia Serviços
             if (data.serviceItems) {
                 data.serviceItems.forEach(item => {
                     loadedItems.push({
@@ -91,17 +94,32 @@ const QuotationForm = () => {
                             label: item.serviceName,
                             price: item.serviceCost
                         },
-                        // Usa a quantity que adicionamos no DTO (fallback para 1 se vier nulo)
                         quantity: item.quantity || 1,
                         unitPrice: item.serviceCost
                     });
                 });
             }
 
+            let formattedEntryTime = '';
+            if (data.entryTime) {
+                formattedEntryTime = data.entryTime.length > 16 ? data.entryTime.slice(0, 16) : data.entryTime;
+            }
+
+            // Preenche o veículo selecionado visualmente
+            if (data.vehicle) {
+                setSelectedVehicle({
+                    value: data.vehicle.id,
+                    label: `${data.vehicle.model} - ${data.vehicle.licensePlate}`,
+                    subLabel: data.vehicle.brand,
+                    client: data.client // Guarda o cliente para exibir
+                });
+            }
+
             setFormData({
                 vehicleId: data.vehicle?.id || '',
-                entryTime: data.entryTime ? new Date(data.entryTime).toISOString().slice(0, 16) : '',
+                entryTime: formattedEntryTime,
                 description: data.description || '',
+                status: data.status || 'AWAITING_CONVERSION',
                 items: loadedItems
             });
 
@@ -115,7 +133,22 @@ const QuotationForm = () => {
         }
     };
 
-    // --- Buscas ---
+
+    //  Busca de Veículos
+    const fetchVehicles = async (query) => {
+        try {
+            const response = await vehicleService.search(query);
+            const list = Array.isArray(response) ? response : (response.content || []);
+
+            return list.map(v => ({
+                value: v.id,
+                label: `${v.brand} ${v.model} - ${v.licensePlate}`,
+                subLabel: v.client ? `Cliente: ${v.client.name}` : 'Sem dono',
+                client: v.client
+            }));
+        } catch (e) { return []; }
+    };
+
     const fetchParts = async (query) => {
         try {
             const response = await partService.search(query);
@@ -142,12 +175,18 @@ const QuotationForm = () => {
         } catch (e) { return []; }
     };
 
-    // --- Manipuladores ---
-    const handleVehicleChange = (e) => {
-        const vehicleId = e.target.value;
-        setFormData(prev => ({ ...prev, vehicleId }));
-        const vehicle = vehicles.find((v) => String(v.id) === String(vehicleId));
-        setSelectedClient(vehicle?.client || null);
+
+    const handleVehicleChange = (option) => {
+        setSelectedVehicle(option);
+
+        if (option) {
+            setFormData(prev => ({ ...prev, vehicleId: option.value }));
+            // Preenche o cliente automaticamente baseado no veículo selecionado
+            setSelectedClient(option.client || null);
+        } else {
+            setFormData(prev => ({ ...prev, vehicleId: '' }));
+            setSelectedClient(null);
+        }
     };
 
     const addItem = () => {
@@ -202,6 +241,10 @@ const QuotationForm = () => {
             serviceItems
         };
 
+        if (id) {
+            dataToSend.status = formData.status;
+        }
+
         try {
             if (id) {
                 await quotationService.update(id, dataToSend);
@@ -237,27 +280,36 @@ const QuotationForm = () => {
             <div className="bg-white rounded-lg shadow-md p-6">
                 <form onSubmit={handleSubmit}>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                        <Select
+
+                        {/* Seletor Dinâmico de Veículos */}
+                        <AsyncSelect
                             label="Veículo"
-                            name="vehicleId"
-                            value={formData.vehicleId}
+                            placeholder="Busque por placa ou modelo..."
+                            fetchOptions={fetchVehicles}
+                            value={selectedVehicle}
                             onChange={handleVehicleChange}
-                            options={vehicles.map((vehicle) => ({
-                                value: vehicle.id,
-                                label: `${vehicle.brand} ${vehicle.model} - ${vehicle.licensePlate}`,
-                            }))}
-                            error={fieldErrors.vehicleId}
                             required
                         />
 
-                        <Input
-                            label="Data de Entrada"
-                            type="datetime-local"
-                            value={formData.entryTime}
-                            onChange={(e) => setFormData({...formData, entryTime: e.target.value})}
-                            error={fieldErrors.entryTime}
-                            required
-                        />
+                        <div className="grid grid-cols-2 gap-4">
+                            <Input
+                                label="Data de Entrada"
+                                type="datetime-local"
+                                value={formData.entryTime}
+                                onChange={(e) => setFormData({...formData, entryTime: e.target.value})}
+                                error={fieldErrors.entryTime}
+                                required
+                            />
+
+                            {id && (
+                                <Select
+                                    label="Status"
+                                    value={formData.status}
+                                    onChange={(e) => setFormData({...formData, status: e.target.value})}
+                                    options={statusOptions}
+                                />
+                            )}
+                        </div>
                     </div>
 
                     {selectedClient && (
@@ -298,7 +350,7 @@ const QuotationForm = () => {
                                             newItems[index].unitPrice = 0;
                                             setFormData({...formData, items: newItems});
                                         }}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-sm"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 bg-white text-sm"
                                     >
                                         <option value="PART">Peça</option>
                                         <option value="SERVICE">Serviço</option>
@@ -307,8 +359,8 @@ const QuotationForm = () => {
 
                                 <div className="md:col-span-5">
                                     <AsyncSelect
-                                        label="Item"
-                                        placeholder={item.type === 'PART' ? "Buscar peça..." : "Buscar serviço..."}
+                                        label="Item (Busca)"
+                                        placeholder={item.type === 'PART' ? "Busque peças..." : "Busque serviços..."}
                                         fetchOptions={item.type === 'PART' ? fetchParts : fetchServices}
                                         value={item.selectedOption}
                                         onChange={(val) => updateItem(index, 'selectedOption', val)}
@@ -323,18 +375,18 @@ const QuotationForm = () => {
                                         min="1"
                                         value={item.quantity}
                                         onChange={(e) => updateItem(index, 'quantity', e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 text-sm"
                                     />
                                 </div>
 
                                 <div className="md:col-span-2">
-                                    <label className="block text-xs font-medium text-gray-500 mb-1">Unit. (R$)</label>
+                                    <label className="block text-xs font-medium text-gray-500 mb-1">Preço Unit.</label>
                                     <input
                                         type="number"
                                         step="0.01"
                                         value={item.unitPrice}
                                         onChange={(e) => updateItem(index, 'unitPrice', e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 text-sm"
                                     />
                                 </div>
 
@@ -342,7 +394,7 @@ const QuotationForm = () => {
                                     <button
                                         type="button"
                                         onClick={() => removeItem(index)}
-                                        className="text-red-500 hover:text-red-700 p-2"
+                                        className="text-red-500 hover:text-red-700 transition-colors p-2"
                                     >
                                         <Trash2 className="w-4 h-4" />
                                     </button>
@@ -357,7 +409,6 @@ const QuotationForm = () => {
                         )}
                     </div>
 
-                    {/* Resumo sem Desconto */}
                     <div className="bg-white border-t-4 border-primary-500 rounded-lg shadow-md p-6">
                         <h2 className="text-lg font-semibold mb-4 text-gray-700 flex items-center gap-2">
                             <Calculator className="w-5 h-5" /> Resumo

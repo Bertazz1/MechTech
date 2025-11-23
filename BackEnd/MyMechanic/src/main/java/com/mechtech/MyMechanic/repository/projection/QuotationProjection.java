@@ -12,9 +12,11 @@ public interface QuotationProjection {
 
     String getStatus();
 
-    Long getClientId();
+    String getClientName();
 
-    Long getVehicleId();
+    String getVehicleLicensePlate();
+
+    BigDecimal getTotalCost();
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
     LocalDateTime getEntryTime();

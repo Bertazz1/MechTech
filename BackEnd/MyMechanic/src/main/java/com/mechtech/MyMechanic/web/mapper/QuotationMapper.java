@@ -40,9 +40,9 @@ public class QuotationMapper {
         dto.setStatus(quotation.getStatus().name());
         dto.setEntryTime(quotation.getEntryTime());
         dto.setExitTime(quotation.getExitTime());
-        dto.setTotalPrice(quotation.getTotalCost());
-        dto.setTotalPartsPrice(quotation.getTotalPartsPrice());
-        dto.setTotalServicesPrice(quotation.getTotalServicesPrice());
+        dto.setTotalCost(quotation.getTotalCost());
+        dto.setTotalPartsCost(quotation.getTotalPartsCost());
+        dto.setTotalServicesCost(quotation.getTotalServicesCost());
 
         if (quotation.getVehicle() != null) {
             dto.setVehicle(vehicleMapper.toDto( quotation.getVehicle()));

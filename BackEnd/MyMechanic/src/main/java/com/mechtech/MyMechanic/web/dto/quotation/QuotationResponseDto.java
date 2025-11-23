@@ -27,13 +27,13 @@ public class QuotationResponseDto {
     private LocalDateTime exitTime;
 
     @JsonProperty("total_parts_price")
-    private BigDecimal totalPartsPrice;
+    private BigDecimal totalPartsCost;
 
     @JsonProperty("total_services_price")
-    private BigDecimal totalServicesPrice;
+    private BigDecimal totalServicesCost;
 
     @JsonProperty("grand_total")
-    private BigDecimal totalPrice;
+    private BigDecimal totalCost;
 
     private VehicleResponseDto vehicle;
     private ClientResponseDto client;
