@@ -21,11 +21,18 @@ const QuotationList = () => {
         try {
             setLoading(true);
             const data = await quotationService.getAll();
-            if (Array.isArray(data)) setQuotations(data);
-            else if (data?.content) setQuotations(data.content);
-            else setQuotations([]);
+
+            // Garante que lidamos com um array, mesmo se a API retornar paginação
+            if (Array.isArray(data)) {
+                setQuotations(data);
+            } else if (data?.content && Array.isArray(data.content)) {
+                setQuotations(data.content);
+            } else {
+                setQuotations([]);
+            }
         } catch (error) {
-            toast.error('Erro ao carregar orçamentos'); // <---
+            console.error("Erro ao carregar:", error);
+            toast.error('Erro ao carregar orçamentos');
             setQuotations([]);
         } finally {
             setLoading(false);
@@ -37,14 +44,20 @@ const QuotationList = () => {
             loadQuotations();
             return;
         }
+
         try {
             setLoading(true);
             const data = await quotationService.search(query);
-            if (Array.isArray(data)) setQuotations(data);
-            else if (data?.content) setQuotations(data.content);
-            else setQuotations([]);
+
+            if (Array.isArray(data)) {
+                setQuotations(data);
+            } else if (data?.content && Array.isArray(data.content)) {
+                setQuotations(data.content);
+            } else {
+                setQuotations([]);
+            }
         } catch (error) {
-            toast.error('Erro ao buscar orçamentos'); // <---
+            toast.error('Erro ao buscar orçamentos');
             setQuotations([]);
         } finally {
             setLoading(false);
@@ -53,7 +66,7 @@ const QuotationList = () => {
 
     const handleDelete = async (id) => {
         const isConfirmed = await confirmDelete(
-            'Excluir Orçamento?', // <---
+            'Excluir Orçamento?',
             'Esta ação não pode ser desfeita.'
         );
 
@@ -61,7 +74,7 @@ const QuotationList = () => {
 
         try {
             await quotationService.delete(id);
-            await showAlert('Excluído!', 'Orçamento removido com sucesso.'); // <---
+            await showAlert('Excluído!', 'Orçamento removido com sucesso.');
             loadQuotations();
         } catch (error) {
             const message = parseApiError(error);
@@ -75,7 +88,7 @@ const QuotationList = () => {
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `orcamento-${id}.pdf`; // <--- Nome do arquivo
+            a.download = `orcamento-${id}.pdf`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
@@ -87,13 +100,13 @@ const QuotationList = () => {
     };
 
     const handleConvertToServiceOrder = async (id) => {
-        if (!window.confirm('Deseja converter este orçamento em ordem de serviço?')) { // <---
+        if (!window.confirm('Deseja converter este orçamento em ordem de serviço?')) {
             return;
         }
 
         try {
             await quotationService.convertToServiceOrder(id);
-            await showAlert('Sucesso!', 'Orçamento convertido em OS.'); // <---
+            await showAlert('Sucesso!', 'Orçamento convertido em OS.');
             loadQuotations();
         } catch (error) {
             const message = parseApiError(error);
@@ -104,15 +117,15 @@ const QuotationList = () => {
     return (
         <div>
             <div className="flex justify-between items-center mb-6">
-                <h1 className="text-3xl font-bold text-gray-800">Orçamentos</h1> {/* <--- */}
+                <h1 className="text-3xl font-bold text-gray-800">Orçamentos</h1>
                 <Button onClick={() => navigate('/quotations/new')} className="flex items-center gap-2">
                     <Plus className="w-5 h-5" />
-                    Novo Orçamento {/* <--- */}
+                    Novo Orçamento
                 </Button>
             </div>
 
             <div className="mb-6">
-                <SearchBar onSearch={handleSearch} placeholder="Buscar orçamentos..." /> {/* <--- */}
+                <SearchBar onSearch={handleSearch} placeholder="Buscar orçamentos..." />
             </div>
 
             {loading ? (
@@ -122,38 +135,87 @@ const QuotationList = () => {
                     <table className="min-w-full divide-y divide-gray-200">
                         <thead className="bg-gray-50">
                         <tr>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Veículo</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cliente</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data</th>
-                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                ID
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Veículo
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Cliente
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Total
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Data Entrada
+                            </th>
+                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Ações
+                            </th>
                         </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
                         {quotations?.length === 0 ? (
                             <tr>
-                                <td colSpan="6" className="px-6 py-4 text-center text-gray-500">Nenhum orçamento encontrado</td> {/* <--- */}
+                                <td colSpan="6" className="px-6 py-4 text-center text-gray-500">
+                                    Nenhum orçamento encontrado
+                                </td>
                             </tr>
                         ) : (
                             quotations?.map((quotation) => (
                                 <tr key={quotation.id} className="hover:bg-gray-50">
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#{quotation.id}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{quotation.vehicle?.model}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{quotation.client?.name}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">R$ {quotation.total?.toFixed(2)}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{new Date(quotation.createdAt).toLocaleDateString()}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                        #{quotation.id}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        {quotation.vehicle?.model || '-'}
+                                        {quotation.vehicle?.licensePlate && (
+                                            <span className="text-xs text-gray-400 ml-1">
+                          ({quotation.vehicle.licensePlate})
+                        </span>
+                                        )}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        {quotation.client?.name || '-'}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">
+                                        {/* Usa grand_total conforme o DTO do backend */}
+                                        R$ {quotation.grand_total?.toFixed(2) || '0.00'}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        {/* Usa entryTime e formata a data */}
+                                        {quotation.entryTime
+                                            ? new Date(quotation.entryTime).toLocaleDateString()
+                                            : '-'}
+                                    </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                        <button onClick={() => handleDownloadPDF(quotation.id)} className="text-blue-600 hover:text-blue-900 mr-3" title="Gerar PDF">
+                                        <button
+                                            onClick={() => handleDownloadPDF(quotation.id)}
+                                            className="text-blue-600 hover:text-blue-900 mr-3"
+                                            title="Gerar PDF"
+                                        >
                                             <FileText className="w-5 h-5" />
                                         </button>
-                                        <button onClick={() => handleConvertToServiceOrder(quotation.id)} className="text-green-600 hover:text-green-900 mr-3" title="Converter em OS">
+                                        <button
+                                            onClick={() => handleConvertToServiceOrder(quotation.id)}
+                                            className="text-green-600 hover:text-green-900 mr-3"
+                                            title="Converter em OS"
+                                        >
                                             <ArrowRight className="w-5 h-5" />
                                         </button>
-                                        <button onClick={() => navigate(`/quotations/edit/${quotation.id}`)} className="text-primary-600 hover:text-primary-900 mr-3">
+                                        <button
+                                            onClick={() => navigate(`/quotations/edit/${quotation.id}`)}
+                                            className="text-primary-600 hover:text-primary-900 mr-3"
+                                            title="Editar"
+                                        >
                                             <Edit className="w-5 h-5" />
                                         </button>
-                                        <button onClick={() => handleDelete(quotation.id)} className="text-red-600 hover:text-red-900">
+                                        <button
+                                            onClick={() => handleDelete(quotation.id)}
+                                            className="text-red-600 hover:text-red-900"
+                                            title="Excluir"
+                                        >
                                             <Trash2 className="w-5 h-5" />
                                         </button>
                                     </td>

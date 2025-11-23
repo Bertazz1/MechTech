@@ -14,6 +14,9 @@ public class QuotationServiceItemDto {
     @NotNull
     private Long  id;
 
+    @NotNull
+    @Positive(message = "A quantidade deve ser um número positivo")
+    private Integer quantity;
 
     @Positive(message = "O preço deve ser um número positivo")
     private BigDecimal unitCost; // Preço da peça no momento do serviço

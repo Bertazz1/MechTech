@@ -88,6 +88,7 @@ public class QuotationService extends AbstractTenantAwareService<Quotation, Long
                 QuotationServiceItem serviceItem = new QuotationServiceItem();
                 serviceItem.setQuotation(quotation);
                 serviceItem.setRepairService(service);
+                serviceItem.setQuantity(itemDto.getQuantity());
                 if (itemDto.getUnitCost() != null) {
                     serviceItem.setServiceCost(itemDto.getUnitCost());
                 } else {

@@ -10,9 +10,9 @@ import java.math.BigDecimal;
 @Setter
 @AllArgsConstructor
 public class QuotationPartItemResponseDto {
-    private Long partId;
-    private String partName;
-    private String partCode;
-    private int quantity;
-    private BigDecimal unitPrice; // Preço no momento da OS
+    private Long id; // ID do Item
+    private Long partId; // <--- ID da Peça
+    private String partName; // <--- Nome da Peça (Resolv "undefined")
+    private Integer quantity;
+    private BigDecimal unitPrice;
 }

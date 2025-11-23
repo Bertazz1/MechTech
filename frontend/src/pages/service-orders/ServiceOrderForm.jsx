@@ -260,7 +260,7 @@ const ServiceOrderForm = () => {
                                     label="Peça"
                                     value={item.partId}
                                     onChange={(e) => handlePartChange(index, e.target.value)}
-                                    options={parts.map(p => ({ value: p.id, label: `${p.name} (Estoque: ${p.stockQuantity})` }))}
+                                    options={parts.map(p => ({ value: p.id, label: `${p.name}` }))}
                                     required
                                 />
                             </div>
