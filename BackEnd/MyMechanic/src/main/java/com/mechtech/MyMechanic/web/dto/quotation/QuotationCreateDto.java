@@ -15,7 +15,7 @@ import java.util.Set;
 @Setter
 public class QuotationCreateDto {
 
-    @NotBlank(message = "Descrição não pode estar em branco")
+
     @Size(max = 300)
     private String description;
 

@@ -106,7 +106,7 @@ const RepairServiceList = () => {
                                 <tr key={service.id} className="hover:bg-gray-50">
                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{service.name}</td>
                                     <td className="px-6 py-4 text-sm text-gray-500">{service.description}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">R$ {service.baseCost?.toFixed(2)}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">R$ {service.cost?.toFixed(2)}</td>
                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                         <button onClick={() => navigate(`/repair-services/edit/${service.id}`)} className="text-primary-600 hover:text-primary-900 mr-3">
                                             <Edit className="w-5 h-5" />

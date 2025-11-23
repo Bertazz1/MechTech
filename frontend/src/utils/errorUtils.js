@@ -34,10 +34,12 @@ export const parseApiError = (error) => {
             return "Sessão expirada. Faça login novamente.";
         case 403:
             return "Você não tem permissão para realizar esta ação.";
-        case 409:
-            return "Já existe um registro com esses dados.";
         case 404:
             return "O registro solicitado não foi encontrado.";
+        case 409:
+            return "Já existe um registro com esses dados.";
+        case 422:
+            return "Existem dados inválidos no formulário.";
         case 500:
             return "Erro interno no servidor. Tente novamente mais tarde.";
         default:

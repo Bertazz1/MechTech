@@ -29,13 +29,12 @@ const ServiceOrderForm = () => {
         vehicleId: '',
         description: '',
         status: 'PENDENTE',
-        partItems: [],    // { partId, quantity, unitPrice }
-        serviceItems: [], // { serviceId, quantity, unitPrice }
-        employees: [],    // IDs
+        partItems: [],
+        serviceItems: [],
+        employees: [],
         discount: 0
     });
 
-    // --- CÁLCULOS (Memoized) ---
     const totals = useMemo(() => {
         const partsTotal = formData.partItems.reduce((acc, item) => {
             return acc + (Number(item.quantity) * Number(item.unitPrice || 0));
@@ -100,7 +99,7 @@ const ServiceOrderForm = () => {
                 serviceItems: data.serviceItems?.map(item => ({
                     serviceId: item.service.id,
                     quantity: item.quantity,
-                    unitPrice: item.unitPrice || item.service.baseCost
+                    unitPrice: item.unitPrice || item.service.cost || item.service.baseCost // CORREÇÃO DE CARREGAMENTO
                 })) || [],
                 employees: data.employees?.map(e => e.id) || [],
                 discount: data.discount || 0
@@ -131,7 +130,7 @@ const ServiceOrderForm = () => {
         }
     };
 
-    // --- Lógica de Peças ---
+    // PEÇAS
     const addPartItem = () => {
         setFormData({ ...formData, partItems: [...formData.partItems, { partId: '', quantity: 1, unitPrice: 0 }] });
     };
@@ -157,7 +156,7 @@ const ServiceOrderForm = () => {
         setFormData({ ...formData, partItems: newItems });
     };
 
-    // --- Lógica de Serviços ---
+    // SERVIÇOS
     const addServiceItem = () => {
         setFormData({ ...formData, serviceItems: [...formData.serviceItems, { serviceId: '', quantity: 1, unitPrice: 0 }] });
     };
@@ -167,12 +166,15 @@ const ServiceOrderForm = () => {
         setFormData({ ...formData, serviceItems: newItems });
     };
 
+    // CORREÇÃO AQUI TAMBÉM
     const handleServiceChange = (index, serviceId) => {
         const selectedService = services.find(s => s.id === Number(serviceId));
         const newItems = [...formData.serviceItems];
         newItems[index].serviceId = serviceId;
+
         if (selectedService) {
-            newItems[index].unitPrice = selectedService.baseCost;
+            const price = selectedService.cost !== undefined ? selectedService.cost : selectedService.baseCost;
+            newItems[index].unitPrice = price || 0;
         }
         setFormData({ ...formData, serviceItems: newItems });
     };
@@ -183,7 +185,6 @@ const ServiceOrderForm = () => {
         setFormData({ ...formData, serviceItems: newItems });
     };
 
-    // Lógica de Funcionários (Multi-select simples)
     const handleEmployeeChange = (e) => {
         const selectedOptions = Array.from(e.target.selectedOptions, option => Number(option.value));
         setFormData({ ...formData, employees: selectedOptions });
@@ -196,7 +197,6 @@ const ServiceOrderForm = () => {
             </h1>
 
             <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Card Principal */}
                 <div className="bg-white rounded-lg shadow-md p-6">
                     <h2 className="text-lg font-semibold mb-4 text-gray-700">Detalhes da OS</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -222,7 +222,7 @@ const ServiceOrderForm = () => {
                             required
                         />
                         <div className="mb-4">
-                            <label className="block text-sm font-medium text-gray-700 mb-1.5">Funcionários (Segure Ctrl para selecionar vários)</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1.5">Funcionários (Ctrl para múltiplos)</label>
                             <select
                                 multiple
                                 value={formData.employees}
@@ -246,7 +246,6 @@ const ServiceOrderForm = () => {
                     </div>
                 </div>
 
-                {/* Card Peças */}
                 <div className="bg-white rounded-lg shadow-md p-6">
                     <div className="flex justify-between items-center mb-4">
                         <h2 className="text-lg font-semibold text-gray-700">Peças Utilizadas</h2>
@@ -293,13 +292,11 @@ const ServiceOrderForm = () => {
                             </button>
                         </div>
                     ))}
-                    {formData.partItems.length === 0 && <p className="text-gray-400 text-sm italic">Nenhuma peça adicionada.</p>}
                     <div className="mt-4 text-right text-sm font-medium text-gray-600">
                         Total Peças: R$ {totals.partsTotal.toFixed(2)}
                     </div>
                 </div>
 
-                {/* Card Serviços */}
                 <div className="bg-white rounded-lg shadow-md p-6">
                     <div className="flex justify-between items-center mb-4">
                         <h2 className="text-lg font-semibold text-gray-700">Serviços Realizados</h2>
@@ -314,7 +311,11 @@ const ServiceOrderForm = () => {
                                     label="Serviço"
                                     value={item.serviceId}
                                     onChange={(e) => handleServiceChange(index, e.target.value)}
-                                    options={services.map(s => ({ value: s.id, label: s.name }))}
+                                    // CORREÇÃO NO RÓTULO AQUI TAMBÉM
+                                    options={services.map(s => {
+                                        const price = s.cost !== undefined ? s.cost : s.baseCost;
+                                        return { value: s.id, label: `${s.name} (R$ ${Number(price || 0).toFixed(2)})` };
+                                    })}
                                     required
                                 />
                             </div>
@@ -346,13 +347,11 @@ const ServiceOrderForm = () => {
                             </button>
                         </div>
                     ))}
-                    {formData.serviceItems.length === 0 && <p className="text-gray-400 text-sm italic">Nenhum serviço adicionado.</p>}
                     <div className="mt-4 text-right text-sm font-medium text-gray-600">
                         Total Serviços: R$ {totals.servicesTotal.toFixed(2)}
                     </div>
                 </div>
 
-                {/* Resumo Financeiro */}
                 <div className="bg-white rounded-lg shadow-md p-6 border-t-4 border-primary-500">
                     <h2 className="text-lg font-semibold mb-4 text-gray-700 flex items-center gap-2">
                         <Calculator className="w-5 h-5" /> Resumo da OS

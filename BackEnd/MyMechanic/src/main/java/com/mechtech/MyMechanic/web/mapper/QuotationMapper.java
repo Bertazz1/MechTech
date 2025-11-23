@@ -5,6 +5,7 @@ import com.mechtech.MyMechanic.web.dto.quotation.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
 import java.util.stream.Collectors;
 import java.util.List;
 import java.util.Set;
@@ -22,7 +23,9 @@ public class QuotationMapper {
         }
         Quotation quotation = new Quotation();
         quotation.setDescription(dto.getDescription());
-        quotation.setEntryTime(dto.getEntryTime());
+        if (dto.getEntryTime() != null ){
+        quotation.setEntryTime(dto.getEntryTime());}
+        else {quotation.setEntryTime(LocalDateTime.now());}
         return quotation;
     }
 
