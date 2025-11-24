@@ -27,6 +27,7 @@ public class ServiceOrderMapper {
         dto.setEntryDate(serviceOrder.getEntryDate());
         dto.setExitDate(serviceOrder.getExitDate());
         dto.setTotalCost(serviceOrder.getTotalCost());
+        dto.setInitialMileage(serviceOrder.getInitialMileage());
         dto.setClient(clientMapper.toDto(serviceOrder.getClient()));
         dto.setVehicle(vehicleMapper.toDto(serviceOrder.getVehicle()));
 
@@ -48,6 +49,7 @@ public class ServiceOrderMapper {
         if (serviceOrder.getPartItems() != null) {
             dto.setPartItems(serviceOrder.getPartItems().stream()
                     .map(item -> new ServiceOrderPartItemResponseDto(
+                            item.getId(),
                             item.getPart().getId(),
                             item.getPart().getName(),
                             item.getPart().getCode(),
@@ -61,8 +63,10 @@ public class ServiceOrderMapper {
         if (serviceOrder.getServiceItems() != null) {
             dto.setServiceItems(serviceOrder.getServiceItems().stream()
                     .map(item -> new ServiceOrderServiceItemResponseDto(
+                            item.getId(),
                             item.getRepairService().getId(),
                             item.getRepairService().getName(),
+                            item.getQuantity(),
                             item.getServiceCost()
                     ))
                     .collect(Collectors.toList()));

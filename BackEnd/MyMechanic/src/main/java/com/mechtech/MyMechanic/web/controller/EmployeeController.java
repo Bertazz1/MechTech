@@ -4,7 +4,6 @@ import com.mechtech.MyMechanic.entity.Employee;
 import com.mechtech.MyMechanic.repository.projection.EmployeeProjection;
 import com.mechtech.MyMechanic.service.EmployeeService;
 import com.mechtech.MyMechanic.web.dto.employee.EmployeeCreateDto;
-import com.mechtech.MyMechanic.web.dto.employee.EmployeeProjectionDto;
 import com.mechtech.MyMechanic.web.dto.employee.EmployeeUpdateDto;
 import com.mechtech.MyMechanic.web.dto.employee.EmployeeResponseDto;
 import com.mechtech.MyMechanic.web.dto.pageable.PageableDto;
@@ -48,8 +47,7 @@ public class EmployeeController {
     @IsAdminOrClient
     public ResponseEntity<PageableDto> getAllEmployees(Pageable pageable) {
         Page<EmployeeProjection> employeePage = employeeService.findAll(pageable);
-        Page<EmployeeProjectionDto> dtoPage = employeePage.map(employeeMapper::toProjectionDto);
-        return ResponseEntity.ok(pageableMapper.toDto(dtoPage));
+        return ResponseEntity.ok(pageableMapper.toDto(employeePage));
     }
 
     @IsAdminOrClient
@@ -70,14 +68,6 @@ public class EmployeeController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/search/by-name")
-    @IsAdminOrClient
-    public ResponseEntity<PageableDto> findByName(@RequestParam String name, Pageable pageable) {
-        Page<EmployeeProjection> employeePage = employeeService.findAllByName(name, pageable);
-        Page<EmployeeProjectionDto> dtoPage = employeePage.map(employeeMapper::toProjectionDto);
-        return ResponseEntity.ok(pageableMapper.toDto(dtoPage));
-    }
-
     @GetMapping("/cpf/{cpf}")
     @IsAdminOrClient
     public ResponseEntity<EmployeeResponseDto> findByCpf(@PathVariable String cpf) {
@@ -95,8 +85,7 @@ public class EmployeeController {
     @GetMapping("/search")
     @IsAdmin
     public ResponseEntity<PageableDto> search(@RequestParam(name = "q", required = false) String query, Pageable pageable) {
-        Page<Employee> employeePage = employeeService.search(query, pageable);
-        Page<EmployeeResponseDto> dtoPage = employeePage.map(employeeMapper::toDto);
-        return ResponseEntity.ok(pageableMapper.toDto(dtoPage));
+        Page<EmployeeProjection> employeePage = employeeService.search(query, pageable);
+        return ResponseEntity.ok(pageableMapper.toDto(employeePage));
     }
 }

@@ -15,6 +15,7 @@ public class ClientSpecification {
             }
             String likePattern = "%" + searchTerm.toLowerCase() + "%";
             List<Predicate> predicates = new ArrayList<>();
+
             predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("name")), likePattern));
             predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("email")), likePattern));
             predicates.add(criteriaBuilder.like(root.get("cpf"), likePattern));

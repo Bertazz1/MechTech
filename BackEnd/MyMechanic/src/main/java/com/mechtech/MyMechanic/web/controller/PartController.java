@@ -49,20 +49,6 @@ public class PartController {
     }
 
     @IsAdminOrClient
-    @GetMapping("/search/by-name")
-    public ResponseEntity<PageableDto> findByName(@RequestParam String name, Pageable pageable) {
-        Page<PartProjection> partsPage = partService.findAllByName(name, pageable);
-        return ResponseEntity.ok(pageableMapper.toDto(partsPage));
-    }
-
-    @IsAdminOrClient
-    @GetMapping("/search/by-supplier")
-    public ResponseEntity<PageableDto> findBySupplier(@RequestParam String supplier, Pageable pageable) {
-        Page<PartProjection> partsPage = partService.findAllBySupplier(supplier, pageable);
-        return ResponseEntity.ok(pageableMapper.toDto(partsPage));
-    }
-
-    @IsAdminOrClient
     @GetMapping
     public ResponseEntity<PageableDto> findAll(Pageable pageable) {
         Page<PartProjection> partsPage = partService.findAll(pageable);
@@ -91,8 +77,7 @@ public class PartController {
     @IsAdminOrClient
     @GetMapping("/search")
     public ResponseEntity<PageableDto> search(@RequestParam(name = "q", required = false) String query, Pageable pageable) {
-        Page<Part> partsPage = partService.search(query, pageable);
-        Page<PartResponseDto> dtoPage = partsPage.map(partMapper::toDto);
-        return ResponseEntity.ok(pageableMapper.toDto(dtoPage));
+        Page<PartProjection> partsPage = partService.search(query, pageable);
+        return ResponseEntity.ok(pageableMapper.toDto(partsPage));
     }
 }

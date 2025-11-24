@@ -6,7 +6,9 @@ export const clientService = {
         return response.data;
     },
     search: async (query, params) => {
-        const response = await api.get(`/clients/search/by-name?name=${query}`, { params });
+        const response = await api.get('/clients/search', {
+            params: { ...params, q: query }
+        });
         return response.data;
     },
     getById: async (id) => {

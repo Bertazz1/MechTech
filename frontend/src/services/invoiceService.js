@@ -6,7 +6,9 @@ export const invoiceService = {
         return response.data;
     },
     search: async (query, params) => {
-        const response = await api.get(`/invoices/search?q=${query}`, { params });
+        const response = await api.get('/invoices/search', {
+            params: { ...params, q: query }
+        });
         return response.data;
     },
     getById: async (id) => {

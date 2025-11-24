@@ -45,6 +45,7 @@ public class Quotation extends AbstractEntity implements Serializable, TenantOwn
     private String description;
 
     @Column(name = "status", nullable = false)
+    @Enumerated(EnumType.STRING)
     private QuotationStatus status = QuotationStatus.AWAITING_CONVERSION;
 
     @Column(

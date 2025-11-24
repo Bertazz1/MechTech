@@ -67,9 +67,8 @@ public class ServiceOrderController {
     @IsAdminOrClient
     @GetMapping("/search")
     public ResponseEntity<PageableDto> search(@RequestParam(name = "q", required = false) String query, Pageable pageable) {
-        Page<ServiceOrder> serviceOrderPage = serviceOrderService.search(query, pageable);
-        Page<ServiceOrderResponseDto> dtoPage = serviceOrderPage.map(serviceOrderMapper::toDto);
-        return ResponseEntity.ok(pageableMapper.toDto(dtoPage));
+        Page<ServiceOrderProjection> serviceOrderPage = serviceOrderService.search(query, pageable);
+        return ResponseEntity.ok(pageableMapper.toDto(serviceOrderPage));
     }
 
     @PatchMapping("/{id}")

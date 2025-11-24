@@ -9,13 +9,13 @@ import com.mechtech.MyMechanic.repository.specification.ServiceOrderSpecificatio
 import com.mechtech.MyMechanic.web.dto.serviceorder.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 @Service
@@ -27,11 +27,12 @@ public class ServiceOrderService extends AbstractTenantAwareService<ServiceOrder
     private final VehicleService vehicleService;
     private final RepairServiceService repairServiceService;
     private final PdfGenerationService pdfGenerationService;
+    private final ProjectionFactory projectionFactory;
 
     public ServiceOrderService(ServiceOrderRepository repository, QuotationService quotationService,
                                PartService partService, EmployeeService employeeService,
                                VehicleService vehicleService, RepairServiceService repairServiceService,
-                               PdfGenerationService pdfGenerationService) {
+                               PdfGenerationService pdfGenerationService, ProjectionFactory projectionFactory) {
         super(repository);
         this.quotationService = quotationService;
         this.partService = partService;
@@ -39,6 +40,7 @@ public class ServiceOrderService extends AbstractTenantAwareService<ServiceOrder
         this.vehicleService = vehicleService;
         this.repairServiceService = repairServiceService;
         this.pdfGenerationService = pdfGenerationService;
+        this.projectionFactory = projectionFactory;
     }
 
     @Transactional
@@ -66,8 +68,8 @@ public class ServiceOrderService extends AbstractTenantAwareService<ServiceOrder
                 soItem.setServiceOrder(serviceOrder);
                 soItem.setPart(part);
                 soItem.setQuantity(partItemDto.getQuantity());
-                if (partItemDto.getPrice() != null) {
-                    soItem.setUnitPrice(partItemDto.getPrice());
+                if (partItemDto.getUnitCost() != null) {
+                    soItem.setUnitPrice(partItemDto.getUnitCost());
                 } else {
                     soItem.setUnitPrice(part.getPrice()); // Usa o preço atual da peça se não for fornecido
                 }
@@ -84,8 +86,9 @@ public class ServiceOrderService extends AbstractTenantAwareService<ServiceOrder
                 ServiceOrderServiceItem soItem = new ServiceOrderServiceItem();
                 soItem.setServiceOrder(serviceOrder);
                 soItem.setRepairService(service);
-                if (serviceItemDto.getCost() != null) {
-                    soItem.setServiceCost(serviceItemDto.getCost());
+                soItem.setQuantity(serviceItemDto.getQuantity());
+                if (serviceItemDto.getUnitCost() != null) {
+                    soItem.setServiceCost(serviceItemDto.getUnitCost());
                 } else {
                     soItem.setServiceCost(service.getCost()); // Usa o custo padrão do serviço se não for fornecido
                 }
@@ -113,7 +116,8 @@ public class ServiceOrderService extends AbstractTenantAwareService<ServiceOrder
 
     @Transactional(readOnly = true)
     public Page<ServiceOrderProjection> findAll(Pageable pageable) {
-        return repository.findAllProjectedBy(pageable);
+        Page<ServiceOrder> serviceOrdersPage = repository.findAll(pageable);
+        return serviceOrdersPage.map(order -> projectionFactory.createProjection(ServiceOrderProjection.class, order));
     }
 
 
@@ -133,7 +137,7 @@ public class ServiceOrderService extends AbstractTenantAwareService<ServiceOrder
         serviceOrder.setVehicle(quotation.getVehicle());
         serviceOrder.setDescription(quotation.getDescription());
         serviceOrder.setEntryDate(LocalDateTime.now());
-        serviceOrder.setStatus(ServiceOrder.ServiceOrderStatus.INCOMPLETO); // Ainda falta preencher dados
+        serviceOrder.setStatus(ServiceOrder.ServiceOrderStatus.PENDENTE); // Status default
         serviceOrder.setTotalCost(quotation.getTotalCost()); // O preço já foi calculado no orçamento
 
         Set<ServiceOrderPartItem> soPartItems = new HashSet<>();
@@ -179,19 +183,32 @@ public class ServiceOrderService extends AbstractTenantAwareService<ServiceOrder
     }
 
     @Transactional(readOnly = true)
-    public Page<ServiceOrder> search(String searchTerm, Pageable pageable) {
-        return repository.findAll(ServiceOrderSpecification.search(searchTerm), pageable);
+    public Page<ServiceOrderProjection> search(String searchTerm, Pageable pageable) {
+        Specification<ServiceOrder> spec = ServiceOrderSpecification.search(searchTerm);
+        Page<ServiceOrder> serviceOrdersPage = repository.findAll(spec, pageable);
+        return serviceOrdersPage.map(order -> projectionFactory.createProjection(ServiceOrderProjection.class, order));
     }
 
     @Transactional
     public ServiceOrder update(Long id, ServiceOrderUpdateDto dto) {
         ServiceOrder serviceOrder = findById(id);
 
-        // Validar Transição de Status
+        // Validar transição de status
         if (dto.getStatus() != null) {
             ServiceOrder.ServiceOrderStatus newStatus = ServiceOrder.ServiceOrderStatus.valueOf(dto.getStatus());
             validateStatusTransition(serviceOrder.getStatus(), newStatus);
             serviceOrder.setStatus(newStatus);
+        }
+        if (dto.getInitialMileage() != null) {
+            serviceOrder.setInitialMileage(dto.getInitialMileage());
+        }
+
+
+        if (ServiceOrder.ServiceOrderStatus.valueOf(dto.getStatus()) == ServiceOrder.ServiceOrderStatus.EM_PROGRESSO
+                && serviceOrder.getStatus() == ServiceOrder.ServiceOrderStatus.PENDENTE) {
+            if (dto.getInitialMileage() == null && serviceOrder.getInitialMileage() == null) {
+                 throw new BusinessRuleException("A quilometragem inicial é obrigatória para iniciar o serviço.");
+            }
         }
 
         if (dto.getEmployees() != null) {
@@ -225,8 +242,8 @@ public class ServiceOrderService extends AbstractTenantAwareService<ServiceOrder
                 soItem.setServiceOrder(serviceOrder);
                 soItem.setPart(part);
                 soItem.setQuantity(partItemDto.getQuantity());
-                if (partItemDto.getPrice() != null) {
-                    soItem.setUnitPrice(partItemDto.getPrice());
+                if (partItemDto.getUnitCost() != null) {
+                    soItem.setUnitPrice(partItemDto.getUnitCost());
                 } else {
                     soItem.setUnitPrice(part.getPrice());
                 }
@@ -245,8 +262,9 @@ public class ServiceOrderService extends AbstractTenantAwareService<ServiceOrder
                 ServiceOrderServiceItem soItem = new ServiceOrderServiceItem();
                 soItem.setServiceOrder(serviceOrder);
                 soItem.setRepairService(service);
-                if (serviceItemDto.getCost() != null) {
-                    soItem.setServiceCost(serviceItemDto.getCost());
+                soItem.setQuantity(serviceItemDto.getQuantity());
+                if (serviceItemDto.getUnitCost() != null) {
+                    soItem.setServiceCost(serviceItemDto.getUnitCost());
                 } else {
                     soItem.setServiceCost(service.getCost());
                 }

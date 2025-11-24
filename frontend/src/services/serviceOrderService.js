@@ -6,7 +6,9 @@ export const serviceOrderService = {
         return response.data;
     },
     search: async (query, params) => {
-        const response = await api.get(`/service-orders/search?q=${query}`, { params });
+        const response = await api.get('/service-orders/search', {
+            params: { ...params, q: query }
+        });
         return response.data;
     },
     getById: async (id) => {
@@ -18,7 +20,7 @@ export const serviceOrderService = {
         return response.data;
     },
     update: async (id, data) => {
-        const response = await api.put(`/service-orders/${id}`, data);
+        const response = await api.patch(`/service-orders/${id}`, data);
         return response.data;
     },
     delete: async (id) => {

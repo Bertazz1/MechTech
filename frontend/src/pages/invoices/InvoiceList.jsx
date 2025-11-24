@@ -8,6 +8,7 @@ const InvoiceList = () => {
     const [invoices, setInvoices] = useState([]);
     const [loading, setLoading] = useState(true);
     const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'desc' });
+    const [searchTerm, setSearchTerm] = useState('');
 
     const statusLabels = {
         PENDING: { label: 'Pendente', color: 'bg-yellow-100 text-yellow-800' },
@@ -15,13 +16,20 @@ const InvoiceList = () => {
         OVERDUE: { label: 'Vencido', color: 'bg-red-100 text-red-800' },
     };
 
-    useEffect(() => { loadInvoices(); }, [sortConfig]);
+    useEffect(() => { loadInvoices(); }, [sortConfig, searchTerm]);
 
     const loadInvoices = async () => {
         try {
             setLoading(true);
             const params = { sort: `${sortConfig.key},${sortConfig.direction}` };
-            const data = await invoiceService.getAll(params);
+            let data;
+
+            if (searchTerm) {
+                data = await invoiceService.search(searchTerm, params);
+            } else {
+                data = await invoiceService.getAll(params);
+            }
+
             if (Array.isArray(data)) setInvoices(data);
             else if (data?.content) setInvoices(data.content);
             else setInvoices([]);
@@ -30,6 +38,8 @@ const InvoiceList = () => {
             setInvoices([]);
         } finally { setLoading(false); }
     };
+
+    const handleSearch = (query) => setSearchTerm(query);
 
     const handleSort = (key) => {
         setSortConfig((current) => ({
@@ -64,7 +74,9 @@ const InvoiceList = () => {
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-3xl font-bold text-gray-800">Faturas</h1>
             </div>
-            <div className="mb-6"><SearchBar onSearch={() => loadInvoices()} placeholder="Buscar faturas..." /></div>
+            <div className="mb-6">
+                <SearchBar onSearch={handleSearch} placeholder="Buscar por número, cliente ou placa..." />
+            </div>
             {loading ? <div className="text-center py-8">Carregando...</div> : (
                 <div className="bg-white rounded-lg shadow-md overflow-hidden">
                     <table className="min-w-full divide-y divide-gray-200">
@@ -79,22 +91,26 @@ const InvoiceList = () => {
                         </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
-                        {invoices?.map((invoice) => (
-                            <tr key={invoice.id} className="hover:bg-gray-50">
-                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#{invoice.id}</td>
-                                <td className="px-6 py-4 text-sm text-gray-500">{invoice.client?.name}</td>
-                                <td className="px-6 py-4 text-sm text-gray-500">R$ {invoice.totalAmount?.toFixed(2)}</td>
-                                <td className="px-6 py-4 text-sm text-gray-500">{invoice.issueDate ? new Date(invoice.issueDate).toLocaleDateString() : '-'}</td>
-                                <td className="px-6 py-4 whitespace-nowrap"><span className={`px-2 py-1 text-xs font-semibold rounded-full ${statusLabels[invoice.paymentStatus]?.color}`}>{statusLabels[invoice.paymentStatus]?.label || invoice.paymentStatus}</span></td>
-                                <td className="px-6 py-4 text-right text-sm font-medium">
-                                    <select value={invoice.paymentStatus} onChange={(e) => handleStatusChange(invoice.id, e.target.value)} className="px-3 py-1 border rounded-lg text-sm">
-                                        <option value="PENDING">Pendente</option>
-                                        <option value="PAID">Pago</option>
-                                        <option value="OVERDUE">Vencido</option>
-                                    </select>
-                                </td>
-                            </tr>
-                        ))}
+                        {invoices?.length === 0 ? (
+                            <tr><td colSpan="6" className="text-center py-4 text-gray-500">Nenhuma fatura encontrada.</td></tr>
+                        ) : (
+                            invoices?.map((invoice) => (
+                                <tr key={invoice.id} className="hover:bg-gray-50">
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#{invoice.id}</td>
+                                    <td className="px-6 py-4 text-sm text-gray-500">{invoice.client?.name}</td>
+                                    <td className="px-6 py-4 text-sm text-gray-500">R$ {invoice.totalAmount?.toFixed(2)}</td>
+                                    <td className="px-6 py-4 text-sm text-gray-500">{invoice.issueDate ? new Date(invoice.issueDate).toLocaleDateString() : '-'}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap"><span className={`px-2 py-1 text-xs font-semibold rounded-full ${statusLabels[invoice.paymentStatus]?.color}`}>{statusLabels[invoice.paymentStatus]?.label || invoice.paymentStatus}</span></td>
+                                    <td className="px-6 py-4 text-right text-sm font-medium">
+                                        <select value={invoice.paymentStatus} onChange={(e) => handleStatusChange(invoice.id, e.target.value)} className="px-3 py-1 border rounded-lg text-sm">
+                                            <option value="PENDING">Pendente</option>
+                                            <option value="PAID">Pago</option>
+                                            <option value="OVERDUE">Vencido</option>
+                                        </select>
+                                    </td>
+                                </tr>
+                            ))
+                        )}
                         </tbody>
                     </table>
                 </div>

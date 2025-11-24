@@ -38,8 +38,6 @@ const QuotationForm = () => {
     }
 
     const statusOptions = [
-        { value: 'AWAITING_CONVERSION', label: 'Aguardando Aprovação' },
-        { value: 'CONVERTED_TO_ORDER', label: 'Convertido em OS' },
         { value: 'CANCELED', label: 'Cancelado' },
     ];
 

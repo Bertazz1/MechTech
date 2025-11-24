@@ -8,6 +8,8 @@ import com.mechtech.MyMechanic.repository.projection.InvoiceProjection;
 import com.mechtech.MyMechanic.repository.specification.InvoiceSpecification;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,11 +21,13 @@ public class InvoiceService extends AbstractTenantAwareService<Invoice, Long, In
 
     private final ServiceOrderService serviceOrderService;
     private final PdfGenerationService pdfGenerationService;
+    private final ProjectionFactory projectionFactory;
 
-    public InvoiceService(InvoiceRepository repository, ServiceOrderService serviceOrderService, PdfGenerationService pdfGenerationService) {
+    public InvoiceService(InvoiceRepository repository, ServiceOrderService serviceOrderService, PdfGenerationService pdfGenerationService, ProjectionFactory projectionFactory) {
         super(repository);
         this.serviceOrderService = serviceOrderService;
         this.pdfGenerationService = pdfGenerationService;
+        this.projectionFactory = projectionFactory;
     }
 
     @Transactional
@@ -58,12 +62,15 @@ public class InvoiceService extends AbstractTenantAwareService<Invoice, Long, In
 
     @Transactional(readOnly = true)
     public Page<InvoiceProjection> findAll(Pageable pageable) {
-        return repository.findAllProjectedBy(pageable);
+        Page<Invoice> invoicesPage = repository.findAll(pageable);
+        return invoicesPage.map(invoice -> projectionFactory.createProjection(InvoiceProjection.class, invoice));
     }
 
     @Transactional(readOnly = true)
-    public Page<Invoice> search(String searchTerm, Pageable pageable) {
-        return repository.findAll(InvoiceSpecification.search(searchTerm), pageable);
+    public Page<InvoiceProjection> search(String searchTerm, Pageable pageable) {
+        Specification<Invoice> spec = InvoiceSpecification.search(searchTerm);
+        Page<Invoice> invoicesPage = repository.findAll(spec, pageable);
+        return invoicesPage.map(invoice -> projectionFactory.createProjection(InvoiceProjection.class, invoice));
     }
 
     @Transactional(readOnly = true)

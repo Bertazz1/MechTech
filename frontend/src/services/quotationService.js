@@ -6,7 +6,9 @@ export const quotationService = {
         return response.data;
     },
     search: async (query, params) => {
-        const response = await api.get(`/quotations/search?q=${query}`, { params });
+        const response = await api.get('/quotations/search', {
+            params: { ...params, q: query }
+        });
         return response.data;
     },
     getById: async (id) => {
@@ -30,7 +32,7 @@ export const quotationService = {
         return response.data;
     },
     convertToServiceOrder: async (id) => {
-        const response = await api.post(`/quotations/${id}/convert`);
+        const response = await api.post(`/service-orders/from-quotation/${id}`);
         return response.data;
     }
 };

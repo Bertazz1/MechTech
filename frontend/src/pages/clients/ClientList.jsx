@@ -12,26 +12,40 @@ const ClientList = () => {
     const [clients, setClients] = useState([]);
     const [loading, setLoading] = useState(true);
     const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'desc' });
+    const [searchTerm, setSearchTerm] = useState(''); // Estado para busca
     const navigate = useNavigate();
 
     useEffect(() => {
         loadClients();
-    }, [sortConfig]);
+    }, [sortConfig, searchTerm]); // Recarrega se ordenação ou busca mudar
 
     const loadClients = async () => {
         try {
             setLoading(true);
             const params = { sort: `${sortConfig.key},${sortConfig.direction}` };
-            const data = await clientService.getAll(params);
+            let data;
+
+            if (searchTerm) {
+                // Usa o endpoint de busca se houver termo
+                data = await clientService.search(searchTerm, params);
+            } else {
+                data = await clientService.getAll(params);
+            }
+
             if (Array.isArray(data)) setClients(data);
             else if (data?.content) setClients(data.content);
             else setClients([]);
         } catch (error) {
+            console.error(error);
             toast.error('Erro ao carregar clientes');
             setClients([]);
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleSearch = (query) => {
+        setSearchTerm(query);
     };
 
     const handleSort = (key) => {
@@ -70,7 +84,9 @@ const ClientList = () => {
                 <h1 className="text-3xl font-bold text-gray-800">Clientes</h1>
                 <Button onClick={() => navigate('/clients/new')} className="flex items-center gap-2"><Plus className="w-5 h-5" /> Novo Cliente</Button>
             </div>
-            <div className="mb-6"><SearchBar onSearch={(q) => { /* Busca manual se precisar */ loadClients() }} placeholder="Buscar clientes..." /></div>
+            <div className="mb-6">
+                <SearchBar onSearch={handleSearch} placeholder="Buscar por nome, email ou CPF..." />
+            </div>
             {loading ? <div className="text-center py-8">Carregando...</div> : (
                 <div className="bg-white rounded-lg shadow-md overflow-hidden">
                     <table className="min-w-full divide-y divide-gray-200">
@@ -84,18 +100,22 @@ const ClientList = () => {
                         </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
-                        {clients?.map((client) => (
-                            <tr key={client.id} className="hover:bg-gray-50">
-                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{client.name}</td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{client.cpf}</td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{client.email}</td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{client.phone}</td>
-                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                    <button onClick={() => navigate(`/clients/edit/${client.id}`)} className="text-primary-600 hover:text-primary-900 mr-3"><Edit className="w-5 h-5" /></button>
-                                    <button onClick={() => handleDelete(client.id)} className="text-red-600 hover:text-red-900"><Trash2 className="w-5 h-5" /></button>
-                                </td>
-                            </tr>
-                        ))}
+                        {clients?.length === 0 ? (
+                            <tr><td colSpan="5" className="text-center py-4 text-gray-500">Nenhum cliente encontrado.</td></tr>
+                        ) : (
+                            clients?.map((client) => (
+                                <tr key={client.id} className="hover:bg-gray-50">
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{client.name}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{client.cpf}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{client.email}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{client.phone}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                        <button onClick={() => navigate(`/clients/edit/${client.id}`)} className="text-primary-600 hover:text-primary-900 mr-3"><Edit className="w-5 h-5" /></button>
+                                        <button onClick={() => handleDelete(client.id)} className="text-red-600 hover:text-red-900"><Trash2 className="w-5 h-5" /></button>
+                                    </td>
+                                </tr>
+                            ))
+                        )}
                         </tbody>
                     </table>
                 </div>

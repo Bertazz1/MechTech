@@ -6,7 +6,9 @@ export const vehicleService = {
         return response.data;
     },
     search: async (query, params) => {
-        const response = await api.get(`/vehicles/search?q=${query}`, { params });
+        const response = await api.get('/vehicles/search', {
+            params: { ...params, q: query }
+        });
         return response.data;
     },
     getById: async (id) => {
