@@ -84,6 +84,7 @@ public class ServiceOrderService extends AbstractTenantAwareService<ServiceOrder
                 ServiceOrderServiceItem soItem = new ServiceOrderServiceItem();
                 soItem.setServiceOrder(serviceOrder);
                 soItem.setRepairService(service);
+                soItem.setQuantity(serviceItemDto.getQuantity());
                 if (serviceItemDto.getUnitCost() != null) {
                     soItem.setServiceCost(serviceItemDto.getUnitCost());
                 } else {

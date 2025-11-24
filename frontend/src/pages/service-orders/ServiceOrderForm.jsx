@@ -9,7 +9,7 @@ import { employeeService } from '../../services/employeeService';
 import Input from '../../components/common/Input';
 import Button from '../../components/common/Button';
 import Select from '../../components/common/Select';
-import AsyncSelect from '../../components/common/AsyncSelect'; // Importado
+import AsyncSelect from '../../components/common/AsyncSelect';
 import toast from 'react-hot-toast';
 import { Trash2, Calculator, User, Wrench, Package, Info, Plus, X } from 'lucide-react';
 import { parseApiError } from '../../utils/errorUtils';
@@ -26,12 +26,20 @@ const ServiceOrderForm = () => {
     // Estado temporário para seleção de funcionário antes de adicionar à lista
     const [tempEmployee, setTempEmployee] = useState(null);
 
+    // Função auxiliar para pegar data atual formatada para input datetime-local
+    function getLocalDateTime() {
+        const now = new Date();
+        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+        return now.toISOString().slice(0, 16);
+    }
+
     const [formData, setFormData] = useState({
         clientId: '',
         vehicleId: '',
         description: '',
         status: 'PENDENTE',
         initialMileage: '',
+        entryDate: getLocalDateTime(), // Inicializa com data atual
         partItems: [],
         serviceItems: [],
         employees: [],
@@ -48,10 +56,11 @@ const ServiceOrderForm = () => {
         }, 0);
 
         const subtotal = partsTotal + servicesTotal;
+        // Se tiver desconto futuro, implementar aqui: const total = subtotal - discount;
         const total = subtotal;
 
         return { partsTotal, servicesTotal, subtotal, total };
-    }, [formData.partItems, formData.serviceItems, ]);
+    }, [formData.partItems, formData.serviceItems]);
 
     const statusOptions = [
         { value: 'PENDENTE', label: 'Pendente' },
@@ -141,6 +150,12 @@ const ServiceOrderForm = () => {
                 setSelectedVehicle({ value: data.vehicle.id, label: `${data.vehicle.model} - ${data.vehicle.licensePlate}` });
             }
 
+            // Formata a data vinda do backend para o input
+            let formattedEntryDate = getLocalDateTime();
+            if (data.entryDate) {
+                formattedEntryDate = data.entryDate.length > 16 ? data.entryDate.slice(0, 16) : data.entryDate;
+            }
+
             // Preenche Itens com dados para AsyncSelect
             const loadedParts = (data.partItems || []).map(item => ({
                 partId: item.partId || item.part?.id,
@@ -167,7 +182,7 @@ const ServiceOrderForm = () => {
             // Preenche Funcionários com labels para exibição
             const loadedEmployees = (data.employees || []).map(e => ({
                 id: e.employeeId || e.id,
-                name: e.employeeName || e.name, // Se vier do DTO ou entidade completa
+                name: e.employeeName || e.name,
                 commissionPercentage: e.commissionPercentage || 0,
                 workedHours: e.workedHours || 0
             }));
@@ -178,6 +193,7 @@ const ServiceOrderForm = () => {
                 description: data.description || '',
                 status: data.status || 'PENDENTE',
                 initialMileage: data.initialMileage || '',
+                entryDate: formattedEntryDate, // Define a data carregada
                 partItems: loadedParts,
                 serviceItems: loadedServices,
                 employees: loadedEmployees,
@@ -218,9 +234,11 @@ const ServiceOrderForm = () => {
         const dataToSend = {
             ...formData,
             initialMileage: formData.initialMileage ? parseInt(formData.initialMileage) : null,
+            // Envia a data de entrada
+            entryDate: formData.entryDate,
 
             partItems: formData.partItems
-                .filter(item => item.selectedOption) // Garante que tem item selecionado
+                .filter(item => item.selectedOption)
                 .map(item => ({
                     id: item.selectedOption.value,
                     quantity: Number(item.quantity),
@@ -297,7 +315,6 @@ const ServiceOrderForm = () => {
     const handleAddEmployee = () => {
         if (!tempEmployee) return;
 
-        // Evita duplicados
         if (formData.employees.some(e => e.id === tempEmployee.value)) {
             toast.error('Funcionário já adicionado.');
             return;
@@ -311,7 +328,7 @@ const ServiceOrderForm = () => {
         };
 
         setFormData(prev => ({ ...prev, employees: [...prev.employees, newEmployee] }));
-        setTempEmployee(null); // Limpa seleção
+        setTempEmployee(null);
     };
 
     const handleRemoveEmployee = (empId) => {
@@ -363,6 +380,17 @@ const ServiceOrderForm = () => {
                             disabled={isReadOnly}
                         />
 
+                        {/* Novo Campo de Data */}
+                        <Input
+                            label="Data de Entrada"
+                            type="datetime-local"
+                            name="entryDate"
+                            value={formData.entryDate}
+                            onChange={(e) => setFormData({ ...formData, entryDate: e.target.value })}
+                            required
+                            disabled={isReadOnly}
+                        />
+
                         <Input
                             label="Quilometragem Inicial (KM)"
                             name="initialMileage"
@@ -379,7 +407,6 @@ const ServiceOrderForm = () => {
                             name="description"
                             value={formData.description}
                             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                            required
                             disabled={isReadOnly}
                         />
                     </div>
@@ -540,7 +567,7 @@ const ServiceOrderForm = () => {
                         <div className="text-gray-600 text-sm space-y-1 w-full md:w-auto">
                             <p className="flex justify-between gap-8"><span>Peças:</span> <span>R$ {totals.partsTotal.toFixed(2)}</span></p>
                             <p className="flex justify-between gap-8"><span>Mão de Obra:</span> <span>R$ {totals.servicesTotal.toFixed(2)}</span></p>
-                            <p className="flex justify-between gap-8 font-semibold"><span>Subtotal:</span> <span>R$ {totals.subtotal.toFixed(2)}</span></p>
+                            <p className="flex justify-between gap-8 font-semibold"><span>Subtotal:</span> <span>R$ {totals.total.toFixed(2)}</span></p>
                         </div>
 
                         <div className="bg-gray-50 px-8 py-4 rounded-xl text-center border border-gray-200 w-full md:w-auto">
