@@ -133,7 +133,7 @@ public class ServiceOrderService extends AbstractTenantAwareService<ServiceOrder
         serviceOrder.setVehicle(quotation.getVehicle());
         serviceOrder.setDescription(quotation.getDescription());
         serviceOrder.setEntryDate(LocalDateTime.now());
-        serviceOrder.setStatus(ServiceOrder.ServiceOrderStatus.INCOMPLETO); // Ainda falta preencher dados
+        serviceOrder.setStatus(ServiceOrder.ServiceOrderStatus.PENDENTE); // Status default
         serviceOrder.setTotalCost(quotation.getTotalCost()); // O preço já foi calculado no orçamento
 
         Set<ServiceOrderPartItem> soPartItems = new HashSet<>();
