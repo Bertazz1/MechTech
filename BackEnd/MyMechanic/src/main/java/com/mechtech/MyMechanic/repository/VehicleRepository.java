@@ -19,4 +19,6 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Long>, JpaSpec
     Page<VehicleProjection> findAllProjectedBy(Pageable pageable);
 
     Page<VehicleProjection> findByClientId(Long clientId,Pageable pageable);
+
+    Optional<Vehicle> findByLicensePlate(String licensePlate);
 }

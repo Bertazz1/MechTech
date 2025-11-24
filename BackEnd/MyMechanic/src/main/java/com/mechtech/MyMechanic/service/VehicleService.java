@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Objects;
+import java.util.Optional;
 
 @Service
 public class VehicleService extends AbstractTenantAwareService<Vehicle, Long, VehicleRepository> {
@@ -30,6 +31,7 @@ public class VehicleService extends AbstractTenantAwareService<Vehicle, Long, Ve
             if (vehicle.getClient() != null) {
                 vehicle.setTenantId(vehicle.getClient().getTenantId());
             }
+            validateVehicle(vehicle);
             return repository.save(vehicle);
         } catch (DataIntegrityViolationException ex) {
             throw new UniqueConstraintViolationException(Objects.requireNonNull(ex.getRootCause()).getMessage());
@@ -37,6 +39,9 @@ public class VehicleService extends AbstractTenantAwareService<Vehicle, Long, Ve
     }
     @Transactional
     public Vehicle updateVehicle(Long id, Vehicle vehicleDetails) {
+
+        validateVehicle(vehicleDetails);
+
         Vehicle existingVehicle = findById(id); // Validação de tenant já inclusa
 
         existingVehicle.setYear(vehicleDetails.getYear());
@@ -71,5 +76,12 @@ public class VehicleService extends AbstractTenantAwareService<Vehicle, Long, Ve
     @Transactional(readOnly = true)
     public Page<Vehicle> search(String searchTerm, Pageable pageable) {
         return repository.findAll(VehicleSpecification.search(searchTerm), pageable);
+    }
+
+    void validateVehicle(Vehicle vehicle){
+        Optional<Vehicle> existingVehicle = repository.findByLicensePlate(vehicle.getLicensePlate());
+        if (existingVehicle.isPresent() && !existingVehicle.get().getId().equals(vehicle.getId())){
+            throw new UniqueConstraintViolationException("Placa já cadastrada");
+        }
     }
 }

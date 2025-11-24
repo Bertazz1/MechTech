@@ -9,8 +9,9 @@ import { employeeService } from '../../services/employeeService';
 import Input from '../../components/common/Input';
 import Button from '../../components/common/Button';
 import Select from '../../components/common/Select';
+import AsyncSelect from '../../components/common/AsyncSelect'; // Importado
 import toast from 'react-hot-toast';
-import { Trash2, Calculator, User, Wrench, Package, Info } from 'lucide-react';
+import { Trash2, Calculator, User, Wrench, Package, Info, Plus, X } from 'lucide-react';
 import { parseApiError } from '../../utils/errorUtils';
 
 const ServiceOrderForm = () => {
@@ -18,11 +19,12 @@ const ServiceOrderForm = () => {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
 
-    const [clients, setClients] = useState([]);
-    const [vehicles, setVehicles] = useState([]);
-    const [parts, setParts] = useState([]);
-    const [services, setServices] = useState([]);
-    const [employees, setEmployees] = useState([]);
+    // Estados para os AsyncSelects principais
+    const [selectedClient, setSelectedClient] = useState(null);
+    const [selectedVehicle, setSelectedVehicle] = useState(null);
+
+    // Estado temporário para seleção de funcionário antes de adicionar à lista
+    const [tempEmployee, setTempEmployee] = useState(null);
 
     const [formData, setFormData] = useState({
         clientId: '',
@@ -33,21 +35,23 @@ const ServiceOrderForm = () => {
         partItems: [],
         serviceItems: [],
         employees: [],
+        discount: 0
     });
 
     const totals = useMemo(() => {
         const partsTotal = formData.partItems.reduce((acc, item) => {
-            return acc + (Number(item.quantity) * Number(item.unitCost || 0));
+            return acc + (Number(item.quantity) * Number(item.unitPrice || 0));
         }, 0);
 
         const servicesTotal = formData.serviceItems.reduce((acc, item) => {
-            return acc + (Number(item.quantity) * Number(item.unitCost || 0));
+            return acc + (Number(item.quantity) * Number(item.unitPrice || 0));
         }, 0);
 
-        const total = partsTotal + servicesTotal;
+        const subtotal = partsTotal + servicesTotal;
+        const total = subtotal - Number(formData.discount || 0);
 
-        return { partsTotal, servicesTotal, total };
-    }, [formData.partItems, formData.serviceItems]);
+        return { partsTotal, servicesTotal, subtotal, total };
+    }, [formData.partItems, formData.serviceItems, formData.discount]);
 
     const statusOptions = [
         { value: 'PENDENTE', label: 'Pendente' },
@@ -57,60 +61,126 @@ const ServiceOrderForm = () => {
     ];
 
     useEffect(() => {
-        loadDependencies();
         if (id) {
             loadServiceOrder();
         }
     }, [id]);
 
-    const loadDependencies = async () => {
+    // --- Funções de Busca (Adapters para AsyncSelect) ---
+
+    const fetchClients = async (query) => {
         try {
-            const [clientsData, vehiclesData, partsData, servicesData, employeesData] = await Promise.all([
-                clientService.getAll(),
-                vehicleService.getAll(),
-                partService.getAll(),
-                repairService.getAll(),
-                employeeService.getAll()
-            ]);
-            setClients(Array.isArray(clientsData) ? clientsData : clientsData.content || []);
-            setVehicles(Array.isArray(vehiclesData) ? vehiclesData : vehiclesData.content || []);
-            setParts(Array.isArray(partsData) ? partsData : partsData.content || []);
-            setServices(Array.isArray(servicesData) ? servicesData : servicesData.content || []);
-            setEmployees(Array.isArray(employeesData) ? employeesData : employeesData.content || []);
-        } catch (error) {
-            toast.error('Erro ao carregar dados auxiliares');
-        }
+            const response = await clientService.search(query);
+            const list = Array.isArray(response) ? response : (response.content || []);
+            return list.map(c => ({ value: c.id, label: c.name, subLabel: c.cpf }));
+        } catch (e) { return []; }
     };
+
+    const fetchVehicles = async (query) => {
+        try {
+            const response = await vehicleService.search(query);
+            const list = Array.isArray(response) ? response : (response.content || []);
+            return list.map(v => ({
+                value: v.id,
+                label: `${v.brand} ${v.model} - ${v.licensePlate}`,
+                subLabel: v.client ? `Proprietário: ${v.client.name}` : null,
+                client: v.client // Passa o objeto cliente para auto-seleção
+            }));
+        } catch (e) { return []; }
+    };
+
+    const fetchParts = async (query) => {
+        try {
+            const response = await partService.search(query);
+            const list = Array.isArray(response) ? response : (response.content || []);
+            return list.map(p => ({
+                value: p.id,
+                label: p.name,
+                subLabel: `Cód: ${p.code} | Estoque: R$ ${p.price.toFixed(2)}`,
+                price: p.price
+            }));
+        } catch (e) { return []; }
+    };
+
+    const fetchServices = async (query) => {
+        try {
+            const response = await repairService.search(query);
+            const list = Array.isArray(response) ? response : (response.content || []);
+            return list.map(s => ({
+                value: s.id,
+                label: s.name,
+                subLabel: `Base: R$ ${(s.baseCost || s.cost || 0).toFixed(2)}`,
+                price: s.baseCost || s.cost
+            }));
+        } catch (e) { return []; }
+    };
+
+    const fetchEmployees = async (query) => {
+        try {
+            const response = await employeeService.search(query);
+            const list = Array.isArray(response) ? response : (response.content || []);
+            return list.map(e => ({
+                value: e.id,
+                label: e.name,
+                subLabel: e.role
+            }));
+        } catch (e) { return []; }
+    };
+
+    // --- Carregamento de Dados ---
 
     const loadServiceOrder = async () => {
         try {
             const data = await serviceOrderService.getById(id);
+
+            // Preenche Selects Principais
+            if (data.client) {
+                setSelectedClient({ value: data.client.id, label: data.client.name, subLabel: data.client.cpf });
+            }
+            if (data.vehicle) {
+                setSelectedVehicle({ value: data.vehicle.id, label: `${data.vehicle.model} - ${data.vehicle.licensePlate}` });
+            }
+
+            // Preenche Itens com dados para AsyncSelect
+            const loadedParts = (data.partItems || []).map(item => ({
+                partId: item.partId || item.part?.id,
+                quantity: item.quantity,
+                unitPrice: item.unitPrice,
+                // Objeto para o AsyncSelect da linha
+                selectedOption: {
+                    value: item.partId || item.part?.id,
+                    label: item.partName || item.part?.name || 'Peça carregada'
+                }
+            }));
+
+            const loadedServices = (data.serviceItems || []).map(item => ({
+                serviceId: item.serviceId || item.repairService?.id,
+                quantity: item.quantity,
+                unitPrice: item.serviceCost || item.unitPrice,
+                // Objeto para o AsyncSelect da linha
+                selectedOption: {
+                    value: item.serviceId || item.repairService?.id,
+                    label: item.serviceName || item.repairService?.name || 'Serviço carregado'
+                }
+            }));
+
+            // Preenche Funcionários com labels para exibição
+            const loadedEmployees = (data.employees || []).map(e => ({
+                id: e.employeeId || e.id,
+                name: e.employeeName || e.name, // Se vier do DTO ou entidade completa
+                commissionPercentage: e.commissionPercentage || 0,
+                workedHours: e.workedHours || 0
+            }));
+
             setFormData({
                 clientId: data.client?.id || '',
                 vehicleId: data.vehicle?.id || '',
                 description: data.description || '',
                 status: data.status || 'PENDENTE',
                 initialMileage: data.initialMileage || '',
-
-                partItems: data.partItems?.map(item => ({
-                    partId: item.partId || item.part?.id,
-                    quantity: item.quantity,
-                    unitCost: item.unitCost // Frontend usa unitCost
-                })) || [],
-
-                serviceItems: data.serviceItems?.map(item => ({
-                    serviceId: item.serviceId || item.repairService?.id,
-                    quantity: item.quantity,
-                    unitCost: item.serviceCost || item.unitCost // Frontend usa unitCost
-                })) || [],
-
-                // Carregar como objetos para manter compatibilidade com o state
-                employees: data.employees?.map(e => ({
-                    id: e.employeeId || e.id,
-                    commissionPercentage: e.commissionPercentage || 0,
-                    workedHours: e.workedHours || 0
-                })) || [],
-
+                partItems: loadedParts,
+                serviceItems: loadedServices,
+                employees: loadedEmployees,
                 discount: data.discount || 0
             });
         } catch (error) {
@@ -119,32 +189,54 @@ const ServiceOrderForm = () => {
         }
     };
 
+    // --- Handlers ---
+
+    const handleClientChange = (option) => {
+        setSelectedClient(option);
+        setFormData(prev => ({ ...prev, clientId: option ? option.value : '' }));
+    };
+
+    const handleVehicleChange = (option) => {
+        setSelectedVehicle(option);
+        if (option) {
+            setFormData(prev => ({ ...prev, vehicleId: option.value }));
+            // Auto-seleciona o cliente se vier no objeto do veículo e ainda não tiver cliente selecionado
+            if (option.client && !selectedClient) {
+                const clientOption = { value: option.client.id, label: option.client.name, subLabel: option.client.cpf };
+                setSelectedClient(clientOption);
+                setFormData(prev => ({ ...prev, clientId: option.client.id }));
+            }
+        } else {
+            setFormData(prev => ({ ...prev, vehicleId: '' }));
+        }
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
 
-        // Mapeia os dados para o formato exato que o DTO do Java espera
         const dataToSend = {
             ...formData,
             initialMileage: formData.initialMileage ? parseInt(formData.initialMileage) : null,
 
-            // Mapeamento de Peças: partId -> id, unitCost -> price
-            partItems: formData.partItems.map(item => ({
-                id: item.partId,
-                quantity: Number(item.quantity),
-                price: Number(item.unitCost)
-            })),
+            partItems: formData.partItems
+                .filter(item => item.selectedOption) // Garante que tem item selecionado
+                .map(item => ({
+                    id: item.selectedOption.value,
+                    quantity: Number(item.quantity),
+                    price: Number(item.unitPrice)
+                })),
 
-            // Mapeamento de Serviços: serviceId -> id, unitCost -> cost
-            serviceItems: formData.serviceItems.map(item => ({
-                id: item.serviceId,
-                quantity: Number(item.quantity),
-                cost: Number(item.unitCost)
-            })),
+            serviceItems: formData.serviceItems
+                .filter(item => item.selectedOption)
+                .map(item => ({
+                    id: item.selectedOption.value,
+                    quantity: Number(item.quantity),
+                    cost: Number(item.unitPrice)
+                })),
 
-            // Funcionários já estão como objetos { id, ... }, backend espera Set<ServiceOrderEmployeeDto>
             employees: formData.employees.map(emp => ({
-                id: emp.id, // Backend DTO usa "Id" (maiúsculo) ou "id" dependendo do Lombok/Jackson, mas JSON padrão é minúsculo
+                id: emp.id,
                 commissionPercentage: Number(emp.commissionPercentage || 0),
                 workedHours: Number(emp.workedHours || 0)
             }))
@@ -166,15 +258,15 @@ const ServiceOrderForm = () => {
         }
     };
 
-    // -- Manipulação de Itens --
-    const addPartItem = () => setFormData({ ...formData, partItems: [...formData.partItems, { partId: '', quantity: 1, unitCost: 0 }] });
+    // -- Peças e Serviços (Lógica de Lista) --
+
+    const addPartItem = () => setFormData({ ...formData, partItems: [...formData.partItems, { selectedOption: null, quantity: 1, unitPrice: 0 }] });
     const removePartItem = (index) => setFormData({ ...formData, partItems: formData.partItems.filter((_, i) => i !== index) });
 
-    const handlePartChange = (index, partId) => {
-        const selectedPart = parts.find(p => p.id === Number(partId));
+    const handlePartSelect = (index, option) => {
         const newItems = [...formData.partItems];
-        newItems[index].partId = partId;
-        if (selectedPart) newItems[index].unitCost = selectedPart.price;
+        newItems[index].selectedOption = option;
+        if (option) newItems[index].unitPrice = option.price || 0;
         setFormData({ ...formData, partItems: newItems });
     };
 
@@ -184,15 +276,13 @@ const ServiceOrderForm = () => {
         setFormData({ ...formData, partItems: newItems });
     };
 
-    const addServiceItem = () => setFormData({ ...formData, serviceItems: [...formData.serviceItems, { serviceId: '', quantity: 1, unitCost: 0 }] });
+    const addServiceItem = () => setFormData({ ...formData, serviceItems: [...formData.serviceItems, { selectedOption: null, quantity: 1, unitPrice: 0 }] });
     const removeServiceItem = (index) => setFormData({ ...formData, serviceItems: formData.serviceItems.filter((_, i) => i !== index) });
 
-    const handleServiceChange = (index, serviceId) => {
-        const selectedService = services.find(s => s.id === Number(serviceId));
+    const handleServiceSelect = (index, option) => {
         const newItems = [...formData.serviceItems];
-        newItems[index].serviceId = serviceId;
-        // Usa cost ou baseCost do serviço
-        if (selectedService) newItems[index].unitCost = selectedService.cost || selectedService.baseCost || 0;
+        newItems[index].selectedOption = option;
+        if (option) newItems[index].unitPrice = option.price || 0;
         setFormData({ ...formData, serviceItems: newItems });
     };
 
@@ -202,16 +292,30 @@ const ServiceOrderForm = () => {
         setFormData({ ...formData, serviceItems: newItems });
     };
 
-    const handleEmployeeChange = (e) => {
-        const selectedIds = Array.from(e.target.selectedOptions, option => Number(option.value));
+    // -- Funcionários (Lógica de Adicionar/Remover da Lista) --
 
-        // Preserva dados existentes (comissão/horas) se o funcionário já estava selecionado
-        const newEmployees = selectedIds.map(id => {
-            const existing = formData.employees.find(emp => emp.id === id);
-            return existing || { id, commissionPercentage: 0, workedHours: 0 };
-        });
+    const handleAddEmployee = () => {
+        if (!tempEmployee) return;
 
-        setFormData({ ...formData, employees: newEmployees });
+        // Evita duplicados
+        if (formData.employees.some(e => e.id === tempEmployee.value)) {
+            toast.error('Funcionário já adicionado.');
+            return;
+        }
+
+        const newEmployee = {
+            id: tempEmployee.value,
+            name: tempEmployee.label,
+            commissionPercentage: 0,
+            workedHours: 0
+        };
+
+        setFormData(prev => ({ ...prev, employees: [...prev.employees, newEmployee] }));
+        setTempEmployee(null); // Limpa seleção
+    };
+
+    const handleRemoveEmployee = (empId) => {
+        setFormData(prev => ({ ...prev, employees: prev.employees.filter(e => e.id !== empId) }));
     };
 
     const isReadOnly = formData.status === 'COMPLETO' || formData.status === 'CANCELADO';
@@ -239,19 +343,22 @@ const ServiceOrderForm = () => {
                         <Info className="w-5 h-5 text-primary-500" /> Detalhes da OS
                     </h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                        <Select
-                            label="Cliente"
-                            value={formData.clientId}
-                            onChange={(e) => setFormData({ ...formData, clientId: e.target.value })}
-                            options={clients.map(c => ({ value: c.id, label: c.name }))}
+                        <AsyncSelect
+                            label="Veículo"
+                            placeholder="Buscar por placa ou modelo..."
+                            fetchOptions={fetchVehicles}
+                            value={selectedVehicle}
+                            onChange={handleVehicleChange}
                             required
                             disabled={isReadOnly}
                         />
-                        <Select
-                            label="Veículo"
-                            value={formData.vehicleId}
-                            onChange={(e) => setFormData({ ...formData, vehicleId: e.target.value })}
-                            options={vehicles.map(v => ({ value: v.id, label: `${v.model} - ${v.licensePlate}` }))}
+
+                        <AsyncSelect
+                            label="Cliente"
+                            placeholder="Buscar por nome..."
+                            fetchOptions={fetchClients}
+                            value={selectedClient}
+                            onChange={handleClientChange}
                             required
                             disabled={isReadOnly}
                         />
@@ -283,20 +390,36 @@ const ServiceOrderForm = () => {
                     <h2 className="text-lg font-semibold mb-4 text-gray-800 flex items-center gap-2">
                         <User className="w-5 h-5 text-primary-500" /> Equipe Responsável
                     </h2>
-                    <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700 mb-1.5">Selecione os Técnicos (Ctrl+Click para múltiplos)</label>
-                        <select
-                            multiple
-                            value={formData.employees.map(e => e.id)}
-                            onChange={handleEmployeeChange}
-                            disabled={isReadOnly}
-                            className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 h-32 transition-colors"
-                        >
-                            {employees.map(emp => (
-                                <option key={emp.id} value={emp.id}>{emp.name} - {emp.role}</option>
-                            ))}
-                        </select>
-                        <p className="text-xs text-gray-500 mt-1">Mantenha a tecla Ctrl pressionada para selecionar mais de um.</p>
+
+                    {!isReadOnly && (
+                        <div className="flex gap-3 items-end mb-4">
+                            <div className="flex-grow max-w-md">
+                                <AsyncSelect
+                                    label="Adicionar Técnico"
+                                    placeholder="Buscar funcionário..."
+                                    fetchOptions={fetchEmployees}
+                                    value={tempEmployee}
+                                    onChange={setTempEmployee}
+                                />
+                            </div>
+                            <Button type="button" onClick={handleAddEmployee} disabled={!tempEmployee} className="mb-4 h-[42px]">
+                                <Plus className="w-5 h-5" />
+                            </Button>
+                        </div>
+                    )}
+
+                    <div className="space-y-2">
+                        {formData.employees.length === 0 && <p className="text-sm text-gray-400 italic">Nenhum funcionário atribuído.</p>}
+                        {formData.employees.map((emp) => (
+                            <div key={emp.id} className="flex justify-between items-center bg-gray-50 px-4 py-2 rounded-lg border border-gray-100">
+                                <span className="font-medium text-gray-700">{emp.name}</span>
+                                {!isReadOnly && (
+                                    <button type="button" onClick={() => handleRemoveEmployee(emp.id)} className="text-red-400 hover:text-red-600">
+                                        <X className="w-4 h-4" />
+                                    </button>
+                                )}
+                            </div>
+                        ))}
                     </div>
                 </div>
 
@@ -319,12 +442,11 @@ const ServiceOrderForm = () => {
                             {formData.partItems.map((item, index) => (
                                 <div key={index} className="flex gap-2 items-start bg-gray-50 p-3 rounded-lg border border-gray-100">
                                     <div className="flex-grow">
-                                        <Select
-                                            value={item.partId}
-                                            onChange={(e) => handlePartChange(index, e.target.value)}
-                                            options={parts.map(p => ({ value: p.id, label: p.name }))}
-                                            required
-                                            className="mb-0 text-sm"
+                                        <AsyncSelect
+                                            fetchOptions={fetchParts}
+                                            value={item.selectedOption}
+                                            onChange={(val) => handlePartSelect(index, val)}
+                                            placeholder="Buscar peça..."
                                             disabled={isReadOnly}
                                         />
                                     </div>
@@ -340,7 +462,7 @@ const ServiceOrderForm = () => {
                                         />
                                     </div>
                                     <div className="w-24 pt-2 text-right font-medium text-sm text-gray-600">
-                                        R$ {(item.quantity * item.unitCost).toFixed(2)}
+                                        R$ {(item.quantity * item.unitPrice).toFixed(2)}
                                     </div>
                                     {!isReadOnly && (
                                         <button type="button" onClick={() => removePartItem(index)} className="text-red-400 hover:text-red-600 pt-2">
@@ -373,12 +495,11 @@ const ServiceOrderForm = () => {
                             {formData.serviceItems.map((item, index) => (
                                 <div key={index} className="flex gap-2 items-start bg-gray-50 p-3 rounded-lg border border-gray-100">
                                     <div className="flex-grow">
-                                        <Select
-                                            value={item.serviceId}
-                                            onChange={(e) => handleServiceChange(index, e.target.value)}
-                                            options={services.map(s => ({ value: s.id, label: s.name }))}
-                                            required
-                                            className="mb-0 text-sm"
+                                        <AsyncSelect
+                                            fetchOptions={fetchServices}
+                                            value={item.selectedOption}
+                                            onChange={(val) => handleServiceSelect(index, val)}
+                                            placeholder="Buscar serviço..."
                                             disabled={isReadOnly}
                                         />
                                     </div>
@@ -394,7 +515,7 @@ const ServiceOrderForm = () => {
                                         />
                                     </div>
                                     <div className="w-24 pt-2 text-right font-medium text-sm text-gray-600">
-                                        R$ {(item.quantity * item.unitCost).toFixed(2)}
+                                        R$ {(item.quantity * item.unitPrice).toFixed(2)}
                                     </div>
                                     {!isReadOnly && (
                                         <button type="button" onClick={() => removeServiceItem(index)} className="text-red-400 hover:text-red-600 pt-2">
@@ -419,7 +540,7 @@ const ServiceOrderForm = () => {
                         <div className="text-gray-600 text-sm space-y-1 w-full md:w-auto">
                             <p className="flex justify-between gap-8"><span>Peças:</span> <span>R$ {totals.partsTotal.toFixed(2)}</span></p>
                             <p className="flex justify-between gap-8"><span>Mão de Obra:</span> <span>R$ {totals.servicesTotal.toFixed(2)}</span></p>
-                            <p className="flex justify-between gap-8 font-semibold"><span>Subtotal:</span> <span>R$ {totals.total.toFixed(2)}</span></p>
+                            <p className="flex justify-between gap-8 font-semibold"><span>Subtotal:</span> <span>R$ {totals.subtotal.toFixed(2)}</span></p>
                         </div>
 
                         <div className="bg-gray-50 px-8 py-4 rounded-xl text-center border border-gray-200 w-full md:w-auto">
@@ -445,4 +566,3 @@ const ServiceOrderForm = () => {
 };
 
 export default ServiceOrderForm;
-
