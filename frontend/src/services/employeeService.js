@@ -6,7 +6,9 @@ export const employeeService = {
         return response.data;
     },
     search: async (query, params) => {
-        const response = await api.get(`/employees/search?q=${query}`, { params });
+        const response = await api.get('/employees/search', {
+            params: { ...params, q: query }
+        });
         return response.data;
     },
     getById: async (id) => {

@@ -3,9 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { serviceOrderService } from '../../services/serviceOrderService';
 import SearchBar from '../../components/common/SearchBar';
 import Button from '../../components/common/Button';
-import StartServiceModal from '../StartService'; // Mantenha o caminho correto do seu projeto
 import toast from 'react-hot-toast';
-import { Plus, Edit, Trash2, Receipt, ArrowUpDown, ArrowUp, ArrowDown, Play, Ban } from 'lucide-react'; // <--- Adicionado Ban
+import { Plus, Edit, Trash2, Receipt, ArrowUpDown, ArrowUp, ArrowDown, Play, Ban } from 'lucide-react';
 import { confirmDelete, confirmAction, showAlert } from '../../utils/alert';
 import { parseApiError } from '../../utils/errorUtils';
 
@@ -13,12 +12,7 @@ const ServiceOrderList = () => {
     const [serviceOrders, setServiceOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'desc' });
-
-    // Estados para o Modal de Iniciar Serviço
-    const [isStartModalOpen, setIsStartModalOpen] = useState(false);
-    const [selectedOrderId, setSelectedOrderId] = useState(null);
-    const [actionLoading, setActionLoading] = useState(false);
-
+    const [searchTerm, setSearchTerm] = useState('');
     const navigate = useNavigate();
 
     const statusLabels = {
@@ -30,13 +24,19 @@ const ServiceOrderList = () => {
 
     useEffect(() => {
         loadServiceOrders();
-    }, [sortConfig]);
+    }, [sortConfig, searchTerm]);
 
     const loadServiceOrders = async () => {
         try {
             setLoading(true);
             const params = { sort: `${sortConfig.key},${sortConfig.direction}` };
-            const data = await serviceOrderService.getAll(params);
+            let data;
+
+            if (searchTerm) {
+                data = await serviceOrderService.search(searchTerm, params);
+            } else {
+                data = await serviceOrderService.getAll(params);
+            }
 
             if (Array.isArray(data)) {
                 setServiceOrders(data);
@@ -53,6 +53,8 @@ const ServiceOrderList = () => {
             setLoading(false);
         }
     };
+
+    const handleSearch = (query) => setSearchTerm(query);
 
     const handleSort = (key) => {
         setSortConfig((current) => ({
@@ -98,13 +100,12 @@ const ServiceOrderList = () => {
         }
     };
 
-    // --- NOVA FUNÇÃO: Cancelar Serviço ---
     const handleCancel = async (id) => {
         const isConfirmed = await confirmAction(
             'Cancelar OS?',
-            'Deseja realmente cancelar esta ordem de serviço? Esta ação pode não ser reversível.',
+            'Deseja realmente cancelar esta ordem de serviço?',
             'Sim, cancelar',
-            '#ef4444' // Cor vermelha para perigo
+            '#ef4444'
         );
 
         if (!isConfirmed) return;
@@ -138,45 +139,6 @@ const ServiceOrderList = () => {
         }
     };
 
-    const handleSearch = (query) => {
-        serviceOrderService.search(query).then(data => {
-            if (Array.isArray(data)) {
-                setServiceOrders(data);
-            } else if (data?.content) {
-                setServiceOrders(data.content);
-            }
-        });
-    };
-
-    // --- Lógica do Modal de Início ---
-    const handleOpenStartModal = (id) => {
-        // Se você estiver usando a página dedicada de StartService, redirecione:
-        navigate(`/service-orders/start/${id}`);
-
-        // Se preferir manter o Modal antigo, descomente abaixo e comente o navigate acima:
-        // setSelectedOrderId(id);
-        // setIsStartModalOpen(true);
-    };
-
-    // Mantido caso ainda use o Modal em algum lugar, senão pode remover
-    const handleConfirmStart = async (data) => {
-        try {
-            setActionLoading(true);
-            await serviceOrderService.update(selectedOrderId, {
-                status: 'EM_PROGRESSO',
-                initialMileage: data.initialMileage
-            });
-            toast.success('Ordem de Serviço iniciada com sucesso!');
-            setIsStartModalOpen(false);
-            loadServiceOrders();
-        } catch (error) {
-            const msg = parseApiError(error);
-            toast.error(msg);
-        } finally {
-            setActionLoading(false);
-        }
-    };
-
     return (
         <div>
             <div className="flex justify-between items-center mb-6">
@@ -188,7 +150,7 @@ const ServiceOrderList = () => {
             </div>
 
             <div className="mb-6">
-                <SearchBar onSearch={handleSearch} placeholder="Buscar ordens de serviço..." />
+                <SearchBar onSearch={handleSearch} placeholder="Buscar por cliente, placa, descrição..." />
             </div>
 
             {loading ? (
@@ -243,10 +205,9 @@ const ServiceOrderList = () => {
                                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                             <div className="flex justify-end gap-2">
 
-                                                {/* Botão Iniciar Serviço (Redireciona para a página StartService) */}
                                                 {(order.status === 'PENDENTE' || order.status === 'INCOMPLETO') && (
                                                     <button
-                                                        onClick={() => handleOpenStartModal(order.id)}
+                                                        onClick={() => navigate(`/service-orders/start/${order.id}`)}
                                                         className="text-blue-600 hover:text-blue-900 p-1 hover:bg-blue-50 rounded group relative"
                                                         title="Iniciar Serviço"
                                                     >
@@ -254,7 +215,6 @@ const ServiceOrderList = () => {
                                                     </button>
                                                 )}
 
-                                                {/* Botão Cancelar (Novo) */}
                                                 {(order.status === 'PENDENTE' || order.status === 'EM_PROGRESSO') && (
                                                     <button
                                                         onClick={() => handleCancel(order.id)}
@@ -265,7 +225,6 @@ const ServiceOrderList = () => {
                                                     </button>
                                                 )}
 
-                                                {/* Botão Gerar Fatura (Apenas se COMPLETO) */}
                                                 {order.status === 'COMPLETO' && (
                                                     <button
                                                         onClick={() => handleGenerateInvoice(order.id)}
@@ -300,14 +259,6 @@ const ServiceOrderList = () => {
                     </table>
                 </div>
             )}
-
-            {/* Mantido para compatibilidade se ainda usar modal em algum lugar */}
-            <StartServiceModal
-                isOpen={isStartModalOpen}
-                onClose={() => setIsStartModalOpen(false)}
-                onConfirm={handleConfirmStart}
-                loading={actionLoading}
-            />
         </div>
     );
 };

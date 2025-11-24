@@ -5,13 +5,14 @@ import SearchBar from '../../components/common/SearchBar';
 import Button from '../../components/common/Button';
 import toast from 'react-hot-toast';
 import { Plus, Edit, Trash2, FileText, ArrowRight, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
-import { confirmDelete, confirmAction, showAlert } from '../../utils/alert'; // <--- Importe confirmAction
+import { confirmDelete, confirmAction, showAlert } from '../../utils/alert';
 import { parseApiError } from '../../utils/errorUtils';
 
 const QuotationList = () => {
     const [quotations, setQuotations] = useState([]);
     const [loading, setLoading] = useState(true);
     const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'desc' });
+    const [searchTerm, setSearchTerm] = useState('');
     const navigate = useNavigate();
 
     const statusConfig = {
@@ -22,13 +23,19 @@ const QuotationList = () => {
 
     useEffect(() => {
         loadQuotations();
-    }, [sortConfig]);
+    }, [sortConfig, searchTerm]);
 
     const loadQuotations = async () => {
         try {
             setLoading(true);
             const params = { sort: `${sortConfig.key},${sortConfig.direction}` };
-            const data = await quotationService.getAll(params);
+            let data;
+
+            if (searchTerm) {
+                data = await quotationService.search(searchTerm, params);
+            } else {
+                data = await quotationService.getAll(params);
+            }
 
             if (Array.isArray(data)) {
                 setQuotations(data);
@@ -45,6 +52,8 @@ const QuotationList = () => {
             setLoading(false);
         }
     };
+
+    const handleSearch = (query) => setSearchTerm(query);
 
     const handleSort = (key) => {
         setSortConfig((current) => ({
@@ -107,13 +116,12 @@ const QuotationList = () => {
         }
     };
 
-    // --- NOVA VERSÃO DA CONFIRMAÇÃO ---
     const handleConvertToServiceOrder = async (id) => {
         const isConfirmed = await confirmAction(
             'Converter em OS?',
             'Isso criará uma nova Ordem de Serviço baseada neste orçamento.',
             'Sim, converter!',
-            '#10b981' // Verde (Emerald-500)
+            '#10b981'
         );
 
         if (!isConfirmed) return;
@@ -143,7 +151,7 @@ const QuotationList = () => {
             </div>
 
             <div className="mb-6">
-                <SearchBar onSearch={(q) => loadQuotations()} placeholder="Buscar orçamentos..." />
+                <SearchBar onSearch={handleSearch} placeholder="Buscar por cliente, veículo ou descrição..." />
             </div>
 
             {loading ? (
@@ -154,10 +162,10 @@ const QuotationList = () => {
                         <thead className="bg-gray-50">
                         <tr>
                             <SortableTh label="ID" sortKey="id" />
-                            <SortableTh label="Veículo" sortKey="vehicleLacensePlate" />
+                            <SortableTh label="Veículo" sortKey="vehicleLicensePlate" />
                             <SortableTh label="Cliente" sortKey="clientName" />
                             <SortableTh label="Status" sortKey="status" />
-                            <SortableTh label="Total" sortKey="TotalCost" />
+                            <SortableTh label="Total" sortKey="totalCost" />
                             <SortableTh label="Data" sortKey="entryTime" />
                             <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
                         </tr>
@@ -180,15 +188,15 @@ const QuotationList = () => {
                                             #{quotation.id}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {quotation.vehicleLicensePlate|| '-'}
+                                            {quotation.vehicleLicensePlate || '-'}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             {quotation.clientName || '-'}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${statusInfo.color}`}>
-                          {statusInfo.label}
-                        </span>
+                                            <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${statusInfo.color}`}>
+                                              {statusInfo.label}
+                                            </span>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">
                                             R$ {getTotalValue(quotation).toFixed(2)}

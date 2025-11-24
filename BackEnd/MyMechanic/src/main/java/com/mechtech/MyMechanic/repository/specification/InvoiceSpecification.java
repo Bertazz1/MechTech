@@ -26,6 +26,7 @@ public class InvoiceSpecification {
             List<Predicate> predicates = new ArrayList<>();
 
             predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("invoiceNumber")), likePattern));
+
             predicates.add(criteriaBuilder.like(criteriaBuilder.lower(clientJoin.get("name")), likePattern));
             predicates.add(criteriaBuilder.like(criteriaBuilder.lower(vehicleJoin.get("licensePlate")), likePattern));
 

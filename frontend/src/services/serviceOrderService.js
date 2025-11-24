@@ -6,7 +6,9 @@ export const serviceOrderService = {
         return response.data;
     },
     search: async (query, params) => {
-        const response = await api.get(`/service-orders/search?q=${query}`, { params });
+        const response = await api.get('/service-orders/search', {
+            params: { ...params, q: query }
+        });
         return response.data;
     },
     getById: async (id) => {

@@ -12,15 +12,23 @@ const RepairServiceList = () => {
     const [services, setServices] = useState([]);
     const [loading, setLoading] = useState(true);
     const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'desc' });
+    const [searchTerm, setSearchTerm] = useState('');
     const navigate = useNavigate();
 
-    useEffect(() => { loadServices(); }, [sortConfig]);
+    useEffect(() => { loadServices(); }, [sortConfig, searchTerm]);
 
     const loadServices = async () => {
         try {
             setLoading(true);
             const params = { sort: `${sortConfig.key},${sortConfig.direction}` };
-            const data = await repairService.getAll(params);
+            let data;
+
+            if (searchTerm) {
+                data = await repairService.search(searchTerm, params);
+            } else {
+                data = await repairService.getAll(params);
+            }
+
             if (Array.isArray(data)) setServices(data);
             else if (data?.content) setServices(data.content);
             else setServices([]);
@@ -29,6 +37,8 @@ const RepairServiceList = () => {
             setServices([]);
         } finally { setLoading(false); }
     };
+
+    const handleSearch = (query) => setSearchTerm(query);
 
     const handleSort = (key) => {
         setSortConfig((current) => ({
@@ -61,7 +71,9 @@ const RepairServiceList = () => {
                 <h1 className="text-3xl font-bold text-gray-800">Serviços</h1>
                 <Button onClick={() => navigate('/repair-services/new')} className="flex items-center gap-2"><Plus className="w-5 h-5" /> Novo Serviço</Button>
             </div>
-            <div className="mb-6"><SearchBar onSearch={() => loadServices()} placeholder="Buscar serviços..." /></div>
+            <div className="mb-6">
+                <SearchBar onSearch={handleSearch} placeholder="Buscar por nome ou descrição..." />
+            </div>
             {loading ? <div className="text-center py-8">Carregando...</div> : (
                 <div className="bg-white rounded-lg shadow-md overflow-hidden">
                     <table className="min-w-full divide-y divide-gray-200">
@@ -74,17 +86,21 @@ const RepairServiceList = () => {
                         </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
-                        {services?.map((service) => (
-                            <tr key={service.id} className="hover:bg-gray-50">
-                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{service.name}</td>
-                                <td className="px-6 py-4 text-sm text-gray-500">{service.description}</td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">R$ {service.cost?.toFixed(2)}</td>
-                                <td className="px-6 py-4 text-right text-sm font-medium">
-                                    <button onClick={() => navigate(`/repair-services/edit/${service.id}`)} className="text-primary-600 mr-3"><Edit className="w-5 h-5" /></button>
-                                    <button onClick={() => handleDelete(service.id)} className="text-red-600"><Trash2 className="w-5 h-5" /></button>
-                                </td>
-                            </tr>
-                        ))}
+                        {services?.length === 0 ? (
+                            <tr><td colSpan="4" className="text-center py-4 text-gray-500">Nenhum serviço encontrado.</td></tr>
+                        ) : (
+                            services?.map((service) => (
+                                <tr key={service.id} className="hover:bg-gray-50">
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{service.name}</td>
+                                    <td className="px-6 py-4 text-sm text-gray-500">{service.description}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">R$ {service.cost?.toFixed(2)}</td>
+                                    <td className="px-6 py-4 text-right text-sm font-medium">
+                                        <button onClick={() => navigate(`/repair-services/edit/${service.id}`)} className="text-primary-600 mr-3"><Edit className="w-5 h-5" /></button>
+                                        <button onClick={() => handleDelete(service.id)} className="text-red-600"><Trash2 className="w-5 h-5" /></button>
+                                    </td>
+                                </tr>
+                            ))
+                        )}
                         </tbody>
                     </table>
                 </div>

@@ -20,6 +20,11 @@ public class VehicleSpecification {
             predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("model")), likePattern));
             predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("brand")), likePattern));
             predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("licensePlate")), likePattern));
+            predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("color")), likePattern));
+
+            predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("client").get("name")), likePattern));
+
+
 
             return criteriaBuilder.or(predicates.toArray(new Predicate[0]));
         };

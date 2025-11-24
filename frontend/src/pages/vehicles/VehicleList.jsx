@@ -12,15 +12,23 @@ const VehicleList = () => {
     const [vehicles, setVehicles] = useState([]);
     const [loading, setLoading] = useState(true);
     const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'desc' });
+    const [searchTerm, setSearchTerm] = useState('');
     const navigate = useNavigate();
 
-    useEffect(() => { loadVehicles(); }, [sortConfig]);
+    useEffect(() => { loadVehicles(); }, [sortConfig, searchTerm]);
 
     const loadVehicles = async () => {
         try {
             setLoading(true);
             const params = { sort: `${sortConfig.key},${sortConfig.direction}` };
-            const data = await vehicleService.getAll(params);
+            let data;
+
+            if (searchTerm) {
+                data = await vehicleService.search(searchTerm, params);
+            } else {
+                data = await vehicleService.getAll(params);
+            }
+
             if (Array.isArray(data)) setVehicles(data);
             else if (data?.content) setVehicles(data.content);
             else setVehicles([]);
@@ -29,6 +37,8 @@ const VehicleList = () => {
             setVehicles([]);
         } finally { setLoading(false); }
     };
+
+    const handleSearch = (query) => setSearchTerm(query);
 
     const handleSort = (key) => {
         setSortConfig((current) => ({
@@ -61,7 +71,9 @@ const VehicleList = () => {
                 <h1 className="text-3xl font-bold text-gray-800">Veículos</h1>
                 <Button onClick={() => navigate('/vehicles/new')} className="flex items-center gap-2"><Plus className="w-5 h-5" /> Novo Veículo</Button>
             </div>
-            <div className="mb-6"><SearchBar onSearch={() => loadVehicles()} placeholder="Buscar veículos..." /></div>
+            <div className="mb-6">
+                <SearchBar onSearch={handleSearch} placeholder="Buscar por placa, modelo ou marca..." />
+            </div>
             {loading ? <div className="text-center py-8">Carregando...</div> : (
                 <div className="bg-white rounded-lg shadow-md overflow-hidden">
                     <table className="min-w-full divide-y divide-gray-200">
@@ -76,19 +88,23 @@ const VehicleList = () => {
                         </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
-                        {vehicles?.map((vehicle) => (
-                            <tr key={vehicle.id} className="hover:bg-gray-50">
-                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{vehicle.brand}</td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{vehicle.model}</td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{vehicle.year}</td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{vehicle.licensePlate}</td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{vehicle.client?.name || '-'}</td>
-                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                    <button onClick={() => navigate(`/vehicles/edit/${vehicle.id}`)} className="text-primary-600 hover:text-primary-900 mr-3"><Edit className="w-5 h-5" /></button>
-                                    <button onClick={() => handleDelete(vehicle.id)} className="text-red-600 hover:text-red-900"><Trash2 className="w-5 h-5" /></button>
-                                </td>
-                            </tr>
-                        ))}
+                        {vehicles?.length === 0 ? (
+                            <tr><td colSpan="6" className="text-center py-4 text-gray-500">Nenhum veículo encontrado.</td></tr>
+                        ) : (
+                            vehicles?.map((vehicle) => (
+                                <tr key={vehicle.id} className="hover:bg-gray-50">
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{vehicle.brand}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{vehicle.model}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{vehicle.year}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{vehicle.licensePlate}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{vehicle.clientName || vehicle.client?.name || '-'}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                        <button onClick={() => navigate(`/vehicles/edit/${vehicle.id}`)} className="text-primary-600 hover:text-primary-900 mr-3"><Edit className="w-5 h-5" /></button>
+                                        <button onClick={() => handleDelete(vehicle.id)} className="text-red-600 hover:text-red-900"><Trash2 className="w-5 h-5" /></button>
+                                    </td>
+                                </tr>
+                            ))
+                        )}
                         </tbody>
                     </table>
                 </div>

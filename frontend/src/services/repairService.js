@@ -6,7 +6,9 @@ export const repairService = {
         return response.data;
     },
     search: async (query, params) => {
-        const response = await api.get(`/repair-services/search?q=${query}`, { params });
+        const response = await api.get('/repair-services/search', {
+            params: { ...params, q: query }
+        });
         return response.data;
     },
     getById: async (id) => {

@@ -26,11 +26,16 @@ public class ServiceOrderSpecification {
             List<Predicate> predicates = new ArrayList<>();
 
             predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("description")), likePattern));
+            predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("status")), likePattern));
+            predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("entryDate")), likePattern));
+
             predicates.add(criteriaBuilder.like(criteriaBuilder.lower(clientJoin.get("name")), likePattern));
             predicates.add(criteriaBuilder.like(criteriaBuilder.lower(clientJoin.get("email")), likePattern));
             predicates.add(criteriaBuilder.like(criteriaBuilder.lower(vehicleJoin.get("licensePlate")), likePattern));
             predicates.add(criteriaBuilder.like(criteriaBuilder.lower(vehicleJoin.get("model")), likePattern));
             predicates.add(criteriaBuilder.like(criteriaBuilder.lower(vehicleJoin.get("brand")), likePattern));
+
+
 
             return criteriaBuilder.or(predicates.toArray(new Predicate[0]));
         };

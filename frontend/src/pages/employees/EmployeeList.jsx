@@ -12,15 +12,23 @@ const EmployeeList = () => {
     const [employees, setEmployees] = useState([]);
     const [loading, setLoading] = useState(true);
     const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'desc' });
+    const [searchTerm, setSearchTerm] = useState('');
     const navigate = useNavigate();
 
-    useEffect(() => { loadEmployees(); }, [sortConfig]);
+    useEffect(() => { loadEmployees(); }, [sortConfig, searchTerm]);
 
     const loadEmployees = async () => {
         try {
             setLoading(true);
             const params = { sort: `${sortConfig.key},${sortConfig.direction}` };
-            const data = await employeeService.getAll(params);
+            let data;
+
+            if (searchTerm) {
+                data = await employeeService.search(searchTerm, params);
+            } else {
+                data = await employeeService.getAll(params);
+            }
+
             if (Array.isArray(data)) setEmployees(data);
             else if (data?.content) setEmployees(data.content);
             else setEmployees([]);
@@ -29,6 +37,8 @@ const EmployeeList = () => {
             setEmployees([]);
         } finally { setLoading(false); }
     };
+
+    const handleSearch = (query) => setSearchTerm(query);
 
     const handleSort = (key) => {
         setSortConfig((current) => ({
@@ -61,7 +71,9 @@ const EmployeeList = () => {
                 <h1 className="text-3xl font-bold text-gray-800">Funcionários</h1>
                 <Button onClick={() => navigate('/employees/new')} className="flex items-center gap-2"><Plus className="w-5 h-5" /> Novo Funcionário</Button>
             </div>
-            <div className="mb-6"><SearchBar onSearch={() => loadEmployees()} placeholder="Buscar funcionários..." /></div>
+            <div className="mb-6">
+                <SearchBar onSearch={handleSearch} placeholder="Buscar por nome, email ou CPF..." />
+            </div>
             {loading ? <div className="text-center py-8">Carregando...</div> : (
                 <div className="bg-white rounded-lg shadow-md overflow-hidden">
                     <table className="min-w-full divide-y divide-gray-200">
@@ -75,18 +87,22 @@ const EmployeeList = () => {
                         </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
-                        {employees?.map((employee) => (
-                            <tr key={employee.id} className="hover:bg-gray-50">
-                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{employee.name}</td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{employee.role}</td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{employee.email}</td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{employee.phone}</td>
-                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                    <button onClick={() => navigate(`/employees/edit/${employee.id}`)} className="text-primary-600 mr-3"><Edit className="w-5 h-5" /></button>
-                                    <button onClick={() => handleDelete(employee.id)} className="text-red-600"><Trash2 className="w-5 h-5" /></button>
-                                </td>
-                            </tr>
-                        ))}
+                        {employees?.length === 0 ? (
+                            <tr><td colSpan="5" className="text-center py-4 text-gray-500">Nenhum funcionário encontrado.</td></tr>
+                        ) : (
+                            employees?.map((employee) => (
+                                <tr key={employee.id} className="hover:bg-gray-50">
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{employee.name}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{employee.role}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{employee.email}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{employee.phone}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                        <button onClick={() => navigate(`/employees/edit/${employee.id}`)} className="text-primary-600 mr-3"><Edit className="w-5 h-5" /></button>
+                                        <button onClick={() => handleDelete(employee.id)} className="text-red-600"><Trash2 className="w-5 h-5" /></button>
+                                    </td>
+                                </tr>
+                            ))
+                        )}
                         </tbody>
                     </table>
                 </div>
