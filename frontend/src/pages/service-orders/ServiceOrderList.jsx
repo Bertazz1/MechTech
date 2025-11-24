@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { serviceOrderService } from '../../services/serviceOrderService';
 import SearchBar from '../../components/common/SearchBar';
 import Button from '../../components/common/Button';
-import StartServiceModal from '../../pages/service-orders/StartServiceModal';
 import toast from 'react-hot-toast';
 import { Plus, Edit, Trash2, Receipt, ArrowUpDown, ArrowUp, ArrowDown, Play } from 'lucide-react';
 import { confirmDelete, confirmAction, showAlert } from '../../utils/alert';
@@ -13,15 +12,10 @@ const ServiceOrderList = () => {
     const [serviceOrders, setServiceOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'desc' });
-
-    // Estados para o Modal de Iniciar Serviço
-    const [isStartModalOpen, setIsStartModalOpen] = useState(false);
-    const [selectedOrderId, setSelectedOrderId] = useState(null);
-    const [actionLoading, setActionLoading] = useState(false);
-
     const navigate = useNavigate();
 
     const statusLabels = {
+        INCOMPLETO: { label: 'Incompleto', color: 'bg-gray-100 text-gray-600' },
         PENDENTE: { label: 'Pendente', color: 'bg-yellow-100 text-yellow-800' },
         EM_PROGRESSO: { label: 'Em Progresso', color: 'bg-blue-100 text-blue-800' },
         COMPLETO: { label: 'Completo', color: 'bg-green-100 text-green-800' },
@@ -46,7 +40,6 @@ const ServiceOrderList = () => {
                 setServiceOrders([]);
             }
         } catch (error) {
-            console.error("Erro ao carregar OS:", error);
             toast.error('Erro ao carregar ordens de serviço');
             setServiceOrders([]);
         } finally {
@@ -81,11 +74,7 @@ const ServiceOrderList = () => {
     );
 
     const handleDelete = async (id) => {
-        const isConfirmed = await confirmDelete(
-            'Excluir OS?',
-            'Esta ação removerá a ordem de serviço e todo seu histórico.'
-        );
-
+        const isConfirmed = await confirmDelete('Excluir OS?', 'Esta ação removerá a ordem de serviço.');
         if (!isConfirmed) return;
 
         try {
@@ -93,19 +82,12 @@ const ServiceOrderList = () => {
             await showAlert('Excluído!', 'Ordem de serviço removida.');
             loadServiceOrders();
         } catch (error) {
-            const message = parseApiError(error);
-            showAlert('Erro!', message, 'error');
+            showAlert('Erro!', parseApiError(error), 'error');
         }
     };
 
     const handleGenerateInvoice = async (id) => {
-        const isConfirmed = await confirmAction(
-            'Gerar Fatura?',
-            'Deseja gerar a fatura para esta ordem de serviço?',
-            'Sim, gerar',
-            '#10b981'
-        );
-
+        const isConfirmed = await confirmAction('Gerar Fatura?', 'Deseja gerar a fatura?', 'Sim, gerar', '#10b981');
         if (!isConfirmed) return;
 
         try {
@@ -117,55 +99,17 @@ const ServiceOrderList = () => {
         }
     };
 
-    const handleSearch = (query) => {
-        serviceOrderService.search(query).then(data => {
-            if (Array.isArray(data)) {
-                setServiceOrders(data);
-            } else if (data?.content) {
-                setServiceOrders(data.content);
-            }
-        });
-    };
-
-    // --- Lógica do Modal de Início ---
-    const handleOpenStartModal = (id) => {
-        setSelectedOrderId(id);
-        setIsStartModalOpen(true);
-    };
-
-    const handleConfirmStart = async (data) => {
-        try {
-            setActionLoading(true);
-
-            // Chama o update passando STATUS + Quilometragem
-            await serviceOrderService.update(selectedOrderId, {
-                status: 'EM_PROGRESSO',
-                initialMileage: data.initialMileage
-            });
-
-            toast.success('Ordem de Serviço iniciada com sucesso!');
-            setIsStartModalOpen(false);
-            loadServiceOrders(); // Recarrega a lista para atualizar o status
-        } catch (error) {
-            const msg = parseApiError(error);
-            toast.error(msg);
-        } finally {
-            setActionLoading(false);
-        }
-    };
-
     return (
         <div>
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-3xl font-bold text-gray-800">Ordens de Serviço</h1>
                 <Button onClick={() => navigate('/service-orders/new')} className="flex items-center gap-2">
-                    <Plus className="w-5 h-5" />
-                    Nova Ordem
+                    <Plus className="w-5 h-5" /> Nova Ordem
                 </Button>
             </div>
 
             <div className="mb-6">
-                <SearchBar onSearch={handleSearch} placeholder="Buscar ordens de serviço..." />
+                <SearchBar onSearch={() => loadServiceOrders()} placeholder="Buscar ordens de serviço..." />
             </div>
 
             {loading ? (
@@ -180,100 +124,68 @@ const ServiceOrderList = () => {
                             <SortableTh label="Cliente" sortKey="client.name" />
                             <SortableTh label="Status" sortKey="status" />
                             <SortableTh label="Total" sortKey="totalCost" />
-                            <SortableTh label="Data Entrada" sortKey="entryDate" />
+                            <SortableTh label="Data" sortKey="entryDate" />
                             <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
                         </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
-                        {serviceOrders?.length === 0 ? (
-                            <tr>
-                                <td colSpan="7" className="px-6 py-4 text-center text-gray-500">
-                                    Nenhuma ordem de serviço encontrada
-                                </td>
-                            </tr>
-                        ) : (
-                            serviceOrders?.map((order) => {
-                                const statusInfo = statusLabels[order.status] || { label: order.status, color: 'bg-gray-100 text-gray-800' };
+                        {serviceOrders?.map((order) => {
+                            const statusInfo = statusLabels[order.status] || { label: order.status, color: 'bg-gray-100 text-gray-800' };
+                            return (
+                                <tr key={order.id} className="hover:bg-gray-50">
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#{order.id}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{order.vehicleLicensePlate || '-'}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{order.clientName || '-'}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        <span className={`px-2 py-1 text-xs font-semibold rounded-full ${statusInfo.color}`}>
+                                            {statusInfo.label}
+                                        </span>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">
+                                        R$ {Number(order.totalCost || 0).toFixed(2)}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        {order.entryDate ? new Date(order.entryDate).toLocaleDateString() : '-'}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                        <div className="flex justify-end gap-2">
 
-                                return (
-                                    <tr key={order.id} className="hover:bg-gray-50">
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                            #{order.id}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {order.vehicleLicensePlate || '-'}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {order.clientName || '-'}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className={`px-2 py-1 text-xs font-semibold rounded-full ${statusInfo.color}`}>
-                                              {statusInfo.label}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">
-                                            R$ {Number(order.totalCost || 0).toFixed(2)}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {order.entryDate ? new Date(order.entryDate).toLocaleDateString() : '-'}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                            <div className="flex justify-end gap-2">
-
-                                                {/* Botão Iniciar Serviço (Apenas se PENDENTE) */}
-                                                {order.status === 'PENDENTE' && (
-                                                    <button
-                                                        onClick={() => handleOpenStartModal(order.id)}
-                                                        className="text-blue-600 hover:text-blue-900 p-1 hover:bg-blue-50 rounded group relative"
-                                                        title="Iniciar Serviço"
-                                                    >
-                                                        <Play className="w-5 h-5" />
-                                                    </button>
-                                                )}
-
-                                                {/* Botão Gerar Fatura (Apenas se COMPLETO) */}
-                                                {order.status === 'COMPLETO' && (
-                                                    <button
-                                                        onClick={() => handleGenerateInvoice(order.id)}
-                                                        className="text-green-600 hover:text-green-900 p-1 hover:bg-green-50 rounded"
-                                                        title="Gerar Fatura"
-                                                    >
-                                                        <Receipt className="w-5 h-5" />
-                                                    </button>
-                                                )}
-
+                                            {/* Botão Iniciar Serviço - Redireciona para tela dedicada */}
+                                            {(order.status === 'PENDENTE' || order.status === 'INCOMPLETO') && (
                                                 <button
-                                                    onClick={() => navigate(`/service-orders/edit/${order.id}`)}
-                                                    className="text-primary-600 hover:text-primary-900 p-1 hover:bg-blue-50 rounded"
-                                                    title="Editar"
+                                                    onClick={() => navigate(`/service-orders/start/${order.id}`)}
+                                                    className="text-blue-600 hover:text-blue-900 p-1 hover:bg-blue-50 rounded group relative"
+                                                    title="Iniciar Serviço"
                                                 >
-                                                    <Edit className="w-5 h-5" />
+                                                    <Play className="w-5 h-5" />
                                                 </button>
+                                            )}
+
+                                            {order.status === 'COMPLETO' && (
                                                 <button
-                                                    onClick={() => handleDelete(order.id)}
-                                                    className="text-red-600 hover:text-red-900 p-1 hover:bg-red-50 rounded"
-                                                    title="Excluir"
+                                                    onClick={() => handleGenerateInvoice(order.id)}
+                                                    className="text-green-600 hover:text-green-900 p-1 hover:bg-green-50 rounded"
+                                                    title="Gerar Fatura"
                                                 >
-                                                    <Trash2 className="w-5 h-5" />
+                                                    <Receipt className="w-5 h-5" />
                                                 </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                );
-                            })
-                        )}
+                                            )}
+
+                                            <button onClick={() => navigate(`/service-orders/edit/${order.id}`)} className="text-primary-600 p-1">
+                                                <Edit className="w-5 h-5" />
+                                            </button>
+                                            <button onClick={() => handleDelete(order.id)} className="text-red-600 p-1">
+                                                <Trash2 className="w-5 h-5" />
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            );
+                        })}
                         </tbody>
                     </table>
                 </div>
             )}
-
-            {/* Componente Modal */}
-            <StartServiceModal
-                isOpen={isStartModalOpen}
-                onClose={() => setIsStartModalOpen(false)}
-                onConfirm={handleConfirmStart}
-                loading={actionLoading}
-            />
         </div>
     );
 };

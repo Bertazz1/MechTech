@@ -40,18 +40,18 @@ const ServiceOrderForm = () => {
 
     const totals = useMemo(() => {
         const partsTotal = formData.partItems.reduce((acc, item) => {
-            return acc + (Number(item.quantity) * Number(item.unitPrice || 0));
+            return acc + (Number(item.quantity) * Number(item.unitCost || 0));
         }, 0);
 
         const servicesTotal = formData.serviceItems.reduce((acc, item) => {
-            return acc + (Number(item.quantity) * Number(item.unitPrice || 0));
+            return acc + (Number(item.quantity) * Number(item.unitCost || 0));
         }, 0);
 
         const subtotal = partsTotal + servicesTotal;
-        const total = subtotal - Number(formData.discount || 0);
+        const total = subtotal;
 
         return { partsTotal, servicesTotal, subtotal, total };
-    }, [formData.partItems, formData.serviceItems, formData.discount]);
+    }, [formData.partItems, formData.serviceItems, ]);
 
     const statusOptions = [
         { value: 'PENDENTE', label: 'Pendente' },
@@ -145,7 +145,7 @@ const ServiceOrderForm = () => {
             const loadedParts = (data.partItems || []).map(item => ({
                 partId: item.partId || item.part?.id,
                 quantity: item.quantity,
-                unitPrice: item.unitPrice,
+                unitCost: item.unitCost,
                 // Objeto para o AsyncSelect da linha
                 selectedOption: {
                     value: item.partId || item.part?.id,
@@ -156,7 +156,7 @@ const ServiceOrderForm = () => {
             const loadedServices = (data.serviceItems || []).map(item => ({
                 serviceId: item.serviceId || item.repairService?.id,
                 quantity: item.quantity,
-                unitPrice: item.serviceCost || item.unitPrice,
+                unitCost: item.serviceCost || item.unitCost,
                 // Objeto para o AsyncSelect da linha
                 selectedOption: {
                     value: item.serviceId || item.repairService?.id,
@@ -224,7 +224,7 @@ const ServiceOrderForm = () => {
                 .map(item => ({
                     id: item.selectedOption.value,
                     quantity: Number(item.quantity),
-                    price: Number(item.unitPrice)
+                    price: Number(item.unitCost)
                 })),
 
             serviceItems: formData.serviceItems
@@ -232,7 +232,7 @@ const ServiceOrderForm = () => {
                 .map(item => ({
                     id: item.selectedOption.value,
                     quantity: Number(item.quantity),
-                    cost: Number(item.unitPrice)
+                    cost: Number(item.unitCost)
                 })),
 
             employees: formData.employees.map(emp => ({
@@ -260,13 +260,13 @@ const ServiceOrderForm = () => {
 
     // -- Peças e Serviços (Lógica de Lista) --
 
-    const addPartItem = () => setFormData({ ...formData, partItems: [...formData.partItems, { selectedOption: null, quantity: 1, unitPrice: 0 }] });
+    const addPartItem = () => setFormData({ ...formData, partItems: [...formData.partItems, { selectedOption: null, quantity: 1, unitCost: 0 }] });
     const removePartItem = (index) => setFormData({ ...formData, partItems: formData.partItems.filter((_, i) => i !== index) });
 
     const handlePartSelect = (index, option) => {
         const newItems = [...formData.partItems];
         newItems[index].selectedOption = option;
-        if (option) newItems[index].unitPrice = option.price || 0;
+        if (option) newItems[index].unitCost = option.price || 0;
         setFormData({ ...formData, partItems: newItems });
     };
 
@@ -276,13 +276,13 @@ const ServiceOrderForm = () => {
         setFormData({ ...formData, partItems: newItems });
     };
 
-    const addServiceItem = () => setFormData({ ...formData, serviceItems: [...formData.serviceItems, { selectedOption: null, quantity: 1, unitPrice: 0 }] });
+    const addServiceItem = () => setFormData({ ...formData, serviceItems: [...formData.serviceItems, { selectedOption: null, quantity: 1, unitCost: 0 }] });
     const removeServiceItem = (index) => setFormData({ ...formData, serviceItems: formData.serviceItems.filter((_, i) => i !== index) });
 
     const handleServiceSelect = (index, option) => {
         const newItems = [...formData.serviceItems];
         newItems[index].selectedOption = option;
-        if (option) newItems[index].unitPrice = option.price || 0;
+        if (option) newItems[index].unitCost = option.price || 0;
         setFormData({ ...formData, serviceItems: newItems });
     };
 
@@ -324,7 +324,7 @@ const ServiceOrderForm = () => {
         <div className="max-w-6xl mx-auto pb-20">
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-3xl font-bold text-gray-800">
-                    {id ? `OS #${id}` : 'Nova Ordem de Serviço'}
+                    {id ? `Ordem de Serviço #${id}` : 'Nova Ordem de Serviço'}
                 </h1>
                 {id && (
                     <span className={`px-3 py-1 rounded-full text-sm font-semibold 
@@ -462,7 +462,7 @@ const ServiceOrderForm = () => {
                                         />
                                     </div>
                                     <div className="w-24 pt-2 text-right font-medium text-sm text-gray-600">
-                                        R$ {(item.quantity * item.unitPrice).toFixed(2)}
+                                        R$ {(item.quantity * item.unitCost).toFixed(2)}
                                     </div>
                                     {!isReadOnly && (
                                         <button type="button" onClick={() => removePartItem(index)} className="text-red-400 hover:text-red-600 pt-2">
@@ -515,7 +515,7 @@ const ServiceOrderForm = () => {
                                         />
                                     </div>
                                     <div className="w-24 pt-2 text-right font-medium text-sm text-gray-600">
-                                        R$ {(item.quantity * item.unitPrice).toFixed(2)}
+                                        R$ {(item.quantity * item.unitCost).toFixed(2)}
                                     </div>
                                     {!isReadOnly && (
                                         <button type="button" onClick={() => removeServiceItem(index)} className="text-red-400 hover:text-red-600 pt-2">

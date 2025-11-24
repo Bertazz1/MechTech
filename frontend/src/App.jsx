@@ -20,6 +20,7 @@ import QuotationForm from './pages/quotations/QuotationForm';
 import ServiceOrderList from './pages/service-orders/ServiceOrderList';
 import ServiceOrderForm from './pages/service-orders/ServiceOrderForm';
 import InvoiceList from './pages/invoices/InvoiceList';
+import StartService from './pages/service-orders/StartService';
 
 function App() {
   return (
@@ -65,6 +66,7 @@ function App() {
 
             <Route path="service-orders" element={<ServiceOrderList />} />
             <Route path="service-orders/new" element={<ServiceOrderForm />} />
+              <Route path="service-orders/start/:id" element={<StartService />} />
             <Route path="service-orders/edit/:id" element={<ServiceOrderForm />} />
 
             <Route path="invoices" element={<InvoiceList />} />
