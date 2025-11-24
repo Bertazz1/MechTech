@@ -33,6 +33,9 @@ public class ServiceOrderServiceItem extends AbstractEntity implements Serializa
     @Column(name = "service_cost", nullable = false, precision = 10, scale = 2)
     private BigDecimal serviceCost; // Custo do serviço no momento da criação da OS
 
+    @Column(name = "quantity", nullable = false)
+    private int quantity;
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

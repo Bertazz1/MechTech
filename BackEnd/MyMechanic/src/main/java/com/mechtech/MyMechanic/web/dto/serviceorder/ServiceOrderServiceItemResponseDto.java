@@ -10,7 +10,9 @@ import java.math.BigDecimal;
 @Setter
 @AllArgsConstructor
 public class ServiceOrderServiceItemResponseDto {
+    private Long id;
     private Long serviceId;
     private String serviceName;
-    private BigDecimal serviceCost; // Custo no momento da OS
+    private int quantity;
+    private BigDecimal unitCost; // Custo no momento da OS
 }

@@ -14,9 +14,9 @@ import java.math.BigDecimal;
         private Long id; // ID do RepairService
 
         @Positive(message = "A quantidade deve ser um número positivo")
-        private int quantity = 1; // A quantidade é 1 por defeito (para serviços)
+        private int quantity;
 
         @Positive(message = "O custo deve ser um número positivo")
-        private BigDecimal cost;
+        private BigDecimal unitCost;
     }
 

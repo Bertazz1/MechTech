@@ -14,8 +14,8 @@ public class ServiceOrderPartDto {
     private Long id; // ID da Peça (Part)
 
     @Positive(message = "A quantidade deve ser um número positivo")
-    private int quantity = 1; // A quantidade é 1 por defeito (para serviços)
+    private int quantity;
 
     @Positive(message = "O preço deve ser um número positivo")
-    private BigDecimal price; // Preço da peça no momento do serviço
+    private BigDecimal unitCost; // Preço da peça no momento do serviço
 }

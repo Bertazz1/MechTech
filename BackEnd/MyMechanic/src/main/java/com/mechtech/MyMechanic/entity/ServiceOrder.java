@@ -60,6 +60,9 @@ public class ServiceOrder extends AbstractEntity implements Serializable, Tenant
   @JoinColumn(name = "Quotation_id")
   private Quotation quotation;
 
+  @Column(name = "initial_mileage")
+  private Integer initialMileage;
+
   @ManyToOne
   @JoinColumn(name = "vehicle_id", nullable = false)
   private Vehicle vehicle;
@@ -127,7 +130,7 @@ public class ServiceOrder extends AbstractEntity implements Serializable, Tenant
     }
     if (this.serviceItems != null) {
       for (ServiceOrderServiceItem item : this.serviceItems) {
-        total = total.add(item.getServiceCost());
+        total = total.add(item.getServiceCost().multiply(new BigDecimal(item.getQuantity())));
       }
     }
     this.totalCost = total;

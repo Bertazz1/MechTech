@@ -11,9 +11,10 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class ServiceOrderPartItemResponseDto {
 
+    private Long id;
     private Long partId;
     private String partName;
     private String partCode;
     private int quantity;
-    private BigDecimal unitPrice; // Preço no momento da OS
+    private BigDecimal unitCost; // Preço no momento da OS
 }

@@ -18,7 +18,7 @@ export const serviceOrderService = {
         return response.data;
     },
     update: async (id, data) => {
-        const response = await api.put(`/service-orders/${id}`, data);
+        const response = await api.patch(`/service-orders/${id}`, data);
         return response.data;
     },
     delete: async (id) => {

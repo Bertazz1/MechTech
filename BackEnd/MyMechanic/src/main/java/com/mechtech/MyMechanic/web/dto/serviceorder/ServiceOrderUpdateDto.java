@@ -16,6 +16,8 @@ public class ServiceOrderUpdateDto {
 
     private String status;
 
+    private Integer initialMileage;
+
     @Valid
     private Set<ServiceOrderEmployeeDto> employees;
 

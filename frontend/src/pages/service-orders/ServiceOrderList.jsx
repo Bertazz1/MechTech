@@ -3,8 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { serviceOrderService } from '../../services/serviceOrderService';
 import SearchBar from '../../components/common/SearchBar';
 import Button from '../../components/common/Button';
+import StartServiceModal from '../../pages/service-orders/StartServiceModal';
 import toast from 'react-hot-toast';
-import { Plus, Edit, Trash2, Receipt, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { Plus, Edit, Trash2, Receipt, ArrowUpDown, ArrowUp, ArrowDown, Play } from 'lucide-react';
 import { confirmDelete, confirmAction, showAlert } from '../../utils/alert';
 import { parseApiError } from '../../utils/errorUtils';
 
@@ -12,6 +13,12 @@ const ServiceOrderList = () => {
     const [serviceOrders, setServiceOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'desc' });
+
+    // Estados para o Modal de Iniciar Serviço
+    const [isStartModalOpen, setIsStartModalOpen] = useState(false);
+    const [selectedOrderId, setSelectedOrderId] = useState(null);
+    const [actionLoading, setActionLoading] = useState(false);
+
     const navigate = useNavigate();
 
     const statusLabels = {
@@ -111,8 +118,40 @@ const ServiceOrderList = () => {
     };
 
     const handleSearch = (query) => {
-        serviceOrders.search(query);
-        loadServiceOrders();
+        serviceOrderService.search(query).then(data => {
+            if (Array.isArray(data)) {
+                setServiceOrders(data);
+            } else if (data?.content) {
+                setServiceOrders(data.content);
+            }
+        });
+    };
+
+    // --- Lógica do Modal de Início ---
+    const handleOpenStartModal = (id) => {
+        setSelectedOrderId(id);
+        setIsStartModalOpen(true);
+    };
+
+    const handleConfirmStart = async (data) => {
+        try {
+            setActionLoading(true);
+
+            // Chama o update passando STATUS + Quilometragem
+            await serviceOrderService.update(selectedOrderId, {
+                status: 'EM_PROGRESSO',
+                initialMileage: data.initialMileage
+            });
+
+            toast.success('Ordem de Serviço iniciada com sucesso!');
+            setIsStartModalOpen(false);
+            loadServiceOrders(); // Recarrega a lista para atualizar o status
+        } catch (error) {
+            const msg = parseApiError(error);
+            toast.error(msg);
+        } finally {
+            setActionLoading(false);
+        }
     };
 
     return (
@@ -162,28 +201,37 @@ const ServiceOrderList = () => {
                                             #{order.id}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {/* Campo da Projection: getVehicleLicensePlate() */}
                                             {order.vehicleLicensePlate || '-'}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {/* Campo da Projection: getClientName() */}
                                             {order.clientName || '-'}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 py-1 text-xs font-semibold rounded-full ${statusInfo.color}`}>
-                          {statusInfo.label}
-                        </span>
+                                            <span className={`px-2 py-1 text-xs font-semibold rounded-full ${statusInfo.color}`}>
+                                              {statusInfo.label}
+                                            </span>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">
-                                            {/* Campo da Projection: getTotalCost() */}
                                             R$ {Number(order.totalCost || 0).toFixed(2)}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {/* Campo da Projection: getEntryDate() */}
                                             {order.entryDate ? new Date(order.entryDate).toLocaleDateString() : '-'}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                             <div className="flex justify-end gap-2">
+
+                                                {/* Botão Iniciar Serviço (Apenas se PENDENTE) */}
+                                                {order.status === 'PENDENTE' && (
+                                                    <button
+                                                        onClick={() => handleOpenStartModal(order.id)}
+                                                        className="text-blue-600 hover:text-blue-900 p-1 hover:bg-blue-50 rounded group relative"
+                                                        title="Iniciar Serviço"
+                                                    >
+                                                        <Play className="w-5 h-5" />
+                                                    </button>
+                                                )}
+
+                                                {/* Botão Gerar Fatura (Apenas se COMPLETO) */}
                                                 {order.status === 'COMPLETO' && (
                                                     <button
                                                         onClick={() => handleGenerateInvoice(order.id)}
@@ -193,6 +241,7 @@ const ServiceOrderList = () => {
                                                         <Receipt className="w-5 h-5" />
                                                     </button>
                                                 )}
+
                                                 <button
                                                     onClick={() => navigate(`/service-orders/edit/${order.id}`)}
                                                     className="text-primary-600 hover:text-primary-900 p-1 hover:bg-blue-50 rounded"
@@ -217,6 +266,14 @@ const ServiceOrderList = () => {
                     </table>
                 </div>
             )}
+
+            {/* Componente Modal */}
+            <StartServiceModal
+                isOpen={isStartModalOpen}
+                onClose={() => setIsStartModalOpen(false)}
+                onConfirm={handleConfirmStart}
+                loading={actionLoading}
+            />
         </div>
     );
 };

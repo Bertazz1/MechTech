@@ -66,8 +66,8 @@ public class ServiceOrderService extends AbstractTenantAwareService<ServiceOrder
                 soItem.setServiceOrder(serviceOrder);
                 soItem.setPart(part);
                 soItem.setQuantity(partItemDto.getQuantity());
-                if (partItemDto.getPrice() != null) {
-                    soItem.setUnitPrice(partItemDto.getPrice());
+                if (partItemDto.getUnitCost() != null) {
+                    soItem.setUnitPrice(partItemDto.getUnitCost());
                 } else {
                     soItem.setUnitPrice(part.getPrice()); // Usa o preço atual da peça se não for fornecido
                 }
@@ -84,8 +84,8 @@ public class ServiceOrderService extends AbstractTenantAwareService<ServiceOrder
                 ServiceOrderServiceItem soItem = new ServiceOrderServiceItem();
                 soItem.setServiceOrder(serviceOrder);
                 soItem.setRepairService(service);
-                if (serviceItemDto.getCost() != null) {
-                    soItem.setServiceCost(serviceItemDto.getCost());
+                if (serviceItemDto.getUnitCost() != null) {
+                    soItem.setServiceCost(serviceItemDto.getUnitCost());
                 } else {
                     soItem.setServiceCost(service.getCost()); // Usa o custo padrão do serviço se não for fornecido
                 }
@@ -187,11 +187,22 @@ public class ServiceOrderService extends AbstractTenantAwareService<ServiceOrder
     public ServiceOrder update(Long id, ServiceOrderUpdateDto dto) {
         ServiceOrder serviceOrder = findById(id);
 
-        // Validar Transição de Status
+        // Validar transição de status
         if (dto.getStatus() != null) {
             ServiceOrder.ServiceOrderStatus newStatus = ServiceOrder.ServiceOrderStatus.valueOf(dto.getStatus());
             validateStatusTransition(serviceOrder.getStatus(), newStatus);
             serviceOrder.setStatus(newStatus);
+        }
+        if (dto.getInitialMileage() != null) {
+            serviceOrder.setInitialMileage(dto.getInitialMileage());
+        }
+
+
+        if (ServiceOrder.ServiceOrderStatus.valueOf(dto.getStatus()) == ServiceOrder.ServiceOrderStatus.EM_PROGRESSO
+                && serviceOrder.getStatus() == ServiceOrder.ServiceOrderStatus.PENDENTE) {
+            if (dto.getInitialMileage() == null && serviceOrder.getInitialMileage() == null) {
+                 throw new BusinessRuleException("A quilometragem inicial é obrigatória para iniciar o serviço.");
+            }
         }
 
         if (dto.getEmployees() != null) {
@@ -225,8 +236,8 @@ public class ServiceOrderService extends AbstractTenantAwareService<ServiceOrder
                 soItem.setServiceOrder(serviceOrder);
                 soItem.setPart(part);
                 soItem.setQuantity(partItemDto.getQuantity());
-                if (partItemDto.getPrice() != null) {
-                    soItem.setUnitPrice(partItemDto.getPrice());
+                if (partItemDto.getUnitCost() != null) {
+                    soItem.setUnitPrice(partItemDto.getUnitCost());
                 } else {
                     soItem.setUnitPrice(part.getPrice());
                 }
@@ -245,8 +256,9 @@ public class ServiceOrderService extends AbstractTenantAwareService<ServiceOrder
                 ServiceOrderServiceItem soItem = new ServiceOrderServiceItem();
                 soItem.setServiceOrder(serviceOrder);
                 soItem.setRepairService(service);
-                if (serviceItemDto.getCost() != null) {
-                    soItem.setServiceCost(serviceItemDto.getCost());
+                soItem.setQuantity(serviceItemDto.getQuantity());
+                if (serviceItemDto.getUnitCost() != null) {
+                    soItem.setServiceCost(serviceItemDto.getUnitCost());
                 } else {
                     soItem.setServiceCost(service.getCost());
                 }

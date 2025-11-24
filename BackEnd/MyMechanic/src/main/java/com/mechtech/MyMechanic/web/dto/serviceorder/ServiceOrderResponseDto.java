@@ -17,6 +17,7 @@ public class ServiceOrderResponseDto {
     private Long id;
     private String status;
     private String description;
+    private Integer initialMileage;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime entryDate;
