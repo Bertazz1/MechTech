@@ -1,6 +1,5 @@
 package com.mechtech.MyMechanic.web.controller;
 
-import com.mechtech.MyMechanic.config.security.IsAdmin;
 import com.mechtech.MyMechanic.entity.Vehicle;
 import com.mechtech.MyMechanic.repository.projection.VehicleProjection;
 import com.mechtech.MyMechanic.service.ClientService;
@@ -18,8 +17,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RequiredArgsConstructor
 @RestController
@@ -72,8 +69,7 @@ public class VehicleController {
 
     @GetMapping("/search")
     public ResponseEntity<PageableDto> search(@RequestParam(name = "q", required = false) String query, Pageable pageable) {
-        Page<Vehicle> vehiclePage = vehicleService.search(query, pageable);
-        Page<VehicleResponseDto> dtoPage = vehiclePage.map(vehicleMapper::toDto);
-        return ResponseEntity.ok(pageableMapper.toDto(dtoPage));
+        Page<VehicleProjection> vehiclePage = vehicleService.search(query, pageable);
+        return ResponseEntity.ok(pageableMapper.toDto(vehiclePage));
     }
 }

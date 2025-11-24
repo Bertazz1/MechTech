@@ -10,14 +10,19 @@ import com.mechtech.MyMechanic.repository.specification.PartSpecification;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class PartService extends AbstractTenantAwareService<Part, Long, PartRepository> {
 
-    public PartService(PartRepository repository) {
+    private final ProjectionFactory projectionFactory;
+
+    public PartService(PartRepository repository, ProjectionFactory projectionFactory) {
         super(repository);
+        this.projectionFactory = projectionFactory;
     }
 
     @Transactional
@@ -32,7 +37,8 @@ public class PartService extends AbstractTenantAwareService<Part, Long, PartRepo
 
     @Transactional(readOnly = true)
     public Page<PartProjection> findAll(Pageable pageable) {
-        return repository.findAllProjectedBy(pageable);
+        Page<Part> partsPage = repository.findAll(pageable);
+        return partsPage.map(part -> projectionFactory.createProjection(PartProjection.class, part));
     }
 
     @Transactional
@@ -56,16 +62,6 @@ public class PartService extends AbstractTenantAwareService<Part, Long, PartRepo
     }
 
     @Transactional(readOnly = true)
-    public Page<PartProjection> findAllByName(String name, Pageable pageable) {
-        return repository.findByNameContainingIgnoreCase(name, pageable);
-    }
-
-    @Transactional(readOnly = true)
-    public Page<PartProjection> findAllBySupplier(String supplier, Pageable pageable) {
-        return repository.findBySupplierContainingIgnoreCase(supplier, pageable);
-    }
-
-    @Transactional(readOnly = true)
     public Part findByCode(String code) {
         Part part = repository.findByCode(code)
                 .orElseThrow(() -> new EntityNotFoundException("Peça não encontrada: " + code));
@@ -74,7 +70,9 @@ public class PartService extends AbstractTenantAwareService<Part, Long, PartRepo
     }
 
     @Transactional(readOnly = true)
-    public Page<Part> search(String searchTerm, Pageable pageable) {
-        return repository.findAll(PartSpecification.search(searchTerm), pageable);
+    public Page<PartProjection> search(String searchTerm, Pageable pageable) {
+        Specification<Part> spec = PartSpecification.search(searchTerm);
+        Page<Part> partsPage = repository.findAll(spec, pageable);
+        return partsPage.map(part -> projectionFactory.createProjection(PartProjection.class, part));
     }
 }

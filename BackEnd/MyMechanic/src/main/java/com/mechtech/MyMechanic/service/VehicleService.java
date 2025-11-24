@@ -9,6 +9,8 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,10 +21,12 @@ import java.util.Optional;
 public class VehicleService extends AbstractTenantAwareService<Vehicle, Long, VehicleRepository> {
 
     private final ClientService clientService;
+    private final ProjectionFactory projectionFactory;
 
-    public VehicleService(VehicleRepository repository, @Lazy ClientService clientService) {
+    public VehicleService(VehicleRepository repository, @Lazy ClientService clientService, ProjectionFactory projectionFactory) {
         super(repository);
         this.clientService = clientService;
+        this.projectionFactory = projectionFactory;
     }
 
     @Transactional
@@ -61,7 +65,8 @@ public class VehicleService extends AbstractTenantAwareService<Vehicle, Long, Ve
 
     @Transactional(readOnly = true)
     public Page<VehicleProjection> findAll(Pageable pageable) {
-        return repository.findAllProjectedBy(pageable);
+        Page<Vehicle> vehiclesPage = repository.findAll(pageable);
+        return vehiclesPage.map(vehicle -> projectionFactory.createProjection(VehicleProjection.class, vehicle));
     }
 
     @Transactional(readOnly = true)
@@ -70,12 +75,16 @@ public class VehicleService extends AbstractTenantAwareService<Vehicle, Long, Ve
         clientService.findById(clientId);
 
         // Se a validação passar, busca os veículos.
-        return repository.findByClientId(clientId,pageable);
+        Specification<Vehicle> spec = (root, query, cb) -> cb.equal(root.get("client").get("id"), clientId);
+        Page<Vehicle> vehiclesPage = repository.findAll(spec, pageable);
+        return vehiclesPage.map(vehicle -> projectionFactory.createProjection(VehicleProjection.class, vehicle));
     }
 
     @Transactional(readOnly = true)
-    public Page<Vehicle> search(String searchTerm, Pageable pageable) {
-        return repository.findAll(VehicleSpecification.search(searchTerm), pageable);
+    public Page<VehicleProjection> search(String searchTerm, Pageable pageable) {
+        Specification<Vehicle> spec = VehicleSpecification.search(searchTerm);
+        Page<Vehicle> vehiclesPage = repository.findAll(spec, pageable);
+        return vehiclesPage.map(vehicle -> projectionFactory.createProjection(VehicleProjection.class, vehicle));
     }
 
     void validateVehicle(Vehicle vehicle){

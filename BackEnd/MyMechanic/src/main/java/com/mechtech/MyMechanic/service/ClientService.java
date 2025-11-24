@@ -8,10 +8,10 @@ import com.mechtech.MyMechanic.repository.ClientRepository;
 import com.mechtech.MyMechanic.repository.projection.ClientProjection;
 import com.mechtech.MyMechanic.repository.specification.ClientSpecification;
 import com.mechtech.MyMechanic.util.ValidationUtils;
-import lombok.RequiredArgsConstructor;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,16 +20,16 @@ import java.util.Optional;
 @Service
 public class ClientService extends AbstractTenantAwareService<Client, Long, ClientRepository> {
 
-//    private final AddressService addressService;
     private final VehicleService vehicleService;
     private final ClientRepository clientRepository;
+    private final ProjectionFactory projectionFactory;
 
-    public ClientService(ClientRepository repository, AddressService addressService, VehicleService vehicleService,
-                         ClientRepository clientRepository) {
+    public ClientService(ClientRepository repository, VehicleService vehicleService,
+                         ClientRepository clientRepository, ProjectionFactory projectionFactory) {
         super(repository);
-//        this.addressService = addressService;
         this.vehicleService = vehicleService;
         this.clientRepository = clientRepository;
+        this.projectionFactory = projectionFactory;
     }
 
 
@@ -41,15 +41,16 @@ public class ClientService extends AbstractTenantAwareService<Client, Long, Clie
         try {
             client.setTenantId(TenantContext.getTenantId());
             return repository.save(client);
-        } catch (DataIntegrityViolationException ex) {
+        } catch (Exception ex) {
             throw new UniqueConstraintViolationException(
-                   ex.getMessage());
+                   "Erro de violação de restrição de unicidade: " + ex.getMessage());
         }
     }
 
     @Transactional(readOnly = true)
     public Page<ClientProjection> findAll(Pageable pageable) {
-        return repository.findAllProjectedBy(pageable);
+        Page<Client> clientsPage = repository.findAll(pageable);
+        return clientsPage.map(client -> projectionFactory.createProjection(ClientProjection.class, client));
     }
 
     @Transactional(readOnly = true)
@@ -96,13 +97,10 @@ public class ClientService extends AbstractTenantAwareService<Client, Long, Clie
     }
 
     @Transactional(readOnly = true)
-    public Page<ClientProjection> findAllByName(String name, Pageable pageable) {
-        return repository.findByNameContainingIgnoreCase(name, pageable);
-    }
-
-    @Transactional(readOnly = true)
-    public Page<Client> search(String searchTerm, Pageable pageable) {
-        return repository.findAll(ClientSpecification.search(searchTerm), pageable);
+    public Page<ClientProjection> search(String searchTerm, Pageable pageable) {
+        Specification<Client> spec = ClientSpecification.search(searchTerm);
+        Page<Client> clientsPage = repository.findAll(spec, pageable);
+        return clientsPage.map(client -> projectionFactory.createProjection(ClientProjection.class, client));
     }
 
     private void validateClient(Client client){

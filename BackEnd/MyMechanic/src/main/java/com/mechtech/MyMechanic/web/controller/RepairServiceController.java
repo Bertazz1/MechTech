@@ -1,6 +1,5 @@
 package com.mechtech.MyMechanic.web.controller;
 
-import com.mechtech.MyMechanic.config.security.IsAdmin;
 import com.mechtech.MyMechanic.config.security.IsAdminOrClient;
 import com.mechtech.MyMechanic.entity.RepairService;
 import com.mechtech.MyMechanic.repository.projection.RepairServiceProjection;
@@ -50,14 +49,6 @@ public class RepairServiceController {
     }
 
     @IsAdminOrClient
-    @GetMapping("/search/by-name")
-    public ResponseEntity<PageableDto> findByName(@RequestParam String name,Pageable pageable) {
-        Page<RepairServiceProjection> servicePage = repairServiceService.findByName(name,pageable);
-        return ResponseEntity.ok(pageableMapper.toDto(servicePage));
-    }
-
-
-    @IsAdminOrClient
     @PutMapping("/{id}")
     public ResponseEntity<RepairServiceResponseDto> update(@PathVariable Long id, @Valid @RequestBody RepairServiceCreateDto updateDto) {
         RepairService existingService = repairServiceService.findById(id);
@@ -76,8 +67,7 @@ public class RepairServiceController {
     @IsAdminOrClient
     @GetMapping("/search")
     public ResponseEntity<PageableDto> search(@RequestParam(name = "q", required = false) String query, Pageable pageable) {
-        Page<RepairService> servicePage = repairServiceService.search(query, pageable);
-        Page<RepairServiceResponseDto> dtoPage = servicePage.map(repairServiceMapper::toDto);
-        return ResponseEntity.ok(pageableMapper.toDto(dtoPage));
+        Page<RepairServiceProjection> servicePage = repairServiceService.search(query, pageable);
+        return ResponseEntity.ok(pageableMapper.toDto(servicePage));
     }
 }

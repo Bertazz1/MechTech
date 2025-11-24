@@ -43,9 +43,8 @@ public class InvoiceController {
     @IsAdminOrClient
     @GetMapping("/search")
     public ResponseEntity<PageableDto> search(@RequestParam(name = "q") String query, Pageable pageable) {
-        Page<Invoice> invoicePage = invoiceService.search(query, pageable);
-        Page<InvoiceResponseDto> dtoPage = invoicePage.map(invoiceMapper::toDto);
-        return ResponseEntity.ok(pageableMapper.toDto(dtoPage));
+        Page<InvoiceProjection> invoicePage = invoiceService.search(query, pageable);
+        return ResponseEntity.ok(pageableMapper.toDto(invoicePage));
     }
 
     @IsAdminOrClient

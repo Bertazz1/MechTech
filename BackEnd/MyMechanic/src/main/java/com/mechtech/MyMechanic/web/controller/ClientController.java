@@ -7,7 +7,6 @@ import com.mechtech.MyMechanic.entity.Client;
 import com.mechtech.MyMechanic.repository.projection.ClientProjection;
 import com.mechtech.MyMechanic.service.ClientService;
 import com.mechtech.MyMechanic.web.dto.client.ClientCreateDto;
-import com.mechtech.MyMechanic.web.dto.client.ClientProjectionDto;
 import com.mechtech.MyMechanic.web.dto.client.ClientResponseDto;
 import com.mechtech.MyMechanic.web.dto.client.ClientUpdateDto;
 import com.mechtech.MyMechanic.web.dto.pageable.PageableDto;
@@ -48,8 +47,7 @@ public class ClientController {
     @IsAdmin
     public ResponseEntity<PageableDto> getAllClients(Pageable pageable) {
         Page<ClientProjection> clientPage = clientService.findAll(pageable);
-        Page<ClientProjectionDto> dtoPage = clientPage.map(clientMapper::toProjectionDto);
-        return ResponseEntity.ok(pageableMapper.toDto(dtoPage));
+        return ResponseEntity.ok(pageableMapper.toDto(clientPage));
     }
 
 
@@ -58,13 +56,6 @@ public class ClientController {
         Client client = clientService.findByVehicleId(vehicleId);
         return ResponseEntity.ok(clientMapper.toDto(client));
     }
-
-    @GetMapping("/search/by-name")
-    public ResponseEntity<PageableDto> findByName(@RequestParam String name, Pageable pageable) {
-        Page<ClientProjection> clientPage = clientService.findAllByName(name, pageable);
-        return ResponseEntity.ok(pageableMapper.toDto(clientPage));
-    }
-
 
     @PutMapping("/{id}")
     @IsAdminOrOwner(id = "#id")
@@ -85,9 +76,8 @@ public class ClientController {
 
     @GetMapping("/search")
     public ResponseEntity<PageableDto> searchClients(@RequestParam(name = "q", required = false) String query, Pageable pageable) {
-        Page<Client> clientPage = clientService.search(query, pageable);
-        Page<ClientResponseDto> dtoPage = clientPage.map(clientMapper::toDto);
-        return ResponseEntity.ok(pageableMapper.toDto(dtoPage));
+        Page<ClientProjection> clientPage = clientService.search(query, pageable);
+        return ResponseEntity.ok(pageableMapper.toDto(clientPage));
     }
 
 }

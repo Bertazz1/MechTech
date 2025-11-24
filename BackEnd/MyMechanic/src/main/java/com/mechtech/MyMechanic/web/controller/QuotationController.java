@@ -80,9 +80,8 @@ public class QuotationController {
     @IsAdminOrClient
     @GetMapping("/search")
     public ResponseEntity<PageableDto> search(@RequestParam(name = "q", required = false) String query, Pageable pageable) {
-        Page<Quotation> quotationPage = quotationService.search(query, pageable);
-        Page<QuotationResponseDto> dtoPage = quotationPage.map(quotationMapper::toDto);
-        return ResponseEntity.ok(pageableMapper.toDto(dtoPage));
+        Page<QuotationProjection> quotationPage = quotationService.search(query, pageable);
+        return ResponseEntity.ok(pageableMapper.toDto(quotationPage));
     }
 
     @IsAdminOrClient

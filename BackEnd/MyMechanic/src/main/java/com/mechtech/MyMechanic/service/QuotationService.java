@@ -11,12 +11,11 @@ import com.mechtech.MyMechanic.web.dto.quotation.QuotationServiceItemDto;
 import com.mechtech.MyMechanic.web.dto.quotation.QuotationUpdateDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -28,15 +27,17 @@ public class QuotationService extends AbstractTenantAwareService<Quotation, Long
     private final PartService partService;
     private final RepairServiceService repairServiceService;
     private final PdfGenerationService pdfGenerationService;
+    private final ProjectionFactory projectionFactory;
 
     public QuotationService(QuotationRepository repository, VehicleService vehicleService,
                             PartService partService, RepairServiceService repairServiceService,
-                            PdfGenerationService pdfGenerationService) {
+                            PdfGenerationService pdfGenerationService, ProjectionFactory projectionFactory) {
         super(repository);
         this.vehicleService = vehicleService;
         this.partService = partService;
         this.repairServiceService = repairServiceService;
         this.pdfGenerationService = pdfGenerationService;
+        this.projectionFactory = projectionFactory;
     }
 
     @Override
@@ -106,7 +107,8 @@ public class QuotationService extends AbstractTenantAwareService<Quotation, Long
 
     @Transactional(readOnly = true)
     public Page<QuotationProjection> findAll(Pageable pageable) {
-        return repository.findAllProjectedBy(pageable);
+        Page<Quotation> quotationsPage = repository.findAll(pageable);
+        return quotationsPage.map(quotation -> projectionFactory.createProjection(QuotationProjection.class, quotation));
     }
 
     @Transactional(readOnly = true)
@@ -177,8 +179,10 @@ public class QuotationService extends AbstractTenantAwareService<Quotation, Long
     }
 
     @Transactional(readOnly = true)
-    public Page<Quotation> search(String searchTerm, Pageable pageable) {
-        return repository.findAll(QuotationSpecification.search(searchTerm), pageable);
+    public Page<QuotationProjection> search(String searchTerm, Pageable pageable) {
+        Specification<Quotation> spec = QuotationSpecification.search(searchTerm);
+        Page<Quotation> quotationsPage = repository.findAll(spec, pageable);
+        return quotationsPage.map(quotation -> projectionFactory.createProjection(QuotationProjection.class, quotation));
     }
 
     @Transactional(readOnly = true)

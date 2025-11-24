@@ -9,13 +9,13 @@ import com.mechtech.MyMechanic.repository.specification.ServiceOrderSpecificatio
 import com.mechtech.MyMechanic.web.dto.serviceorder.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 @Service
@@ -27,11 +27,12 @@ public class ServiceOrderService extends AbstractTenantAwareService<ServiceOrder
     private final VehicleService vehicleService;
     private final RepairServiceService repairServiceService;
     private final PdfGenerationService pdfGenerationService;
+    private final ProjectionFactory projectionFactory;
 
     public ServiceOrderService(ServiceOrderRepository repository, QuotationService quotationService,
                                PartService partService, EmployeeService employeeService,
                                VehicleService vehicleService, RepairServiceService repairServiceService,
-                               PdfGenerationService pdfGenerationService) {
+                               PdfGenerationService pdfGenerationService, ProjectionFactory projectionFactory) {
         super(repository);
         this.quotationService = quotationService;
         this.partService = partService;
@@ -39,6 +40,7 @@ public class ServiceOrderService extends AbstractTenantAwareService<ServiceOrder
         this.vehicleService = vehicleService;
         this.repairServiceService = repairServiceService;
         this.pdfGenerationService = pdfGenerationService;
+        this.projectionFactory = projectionFactory;
     }
 
     @Transactional
@@ -114,7 +116,8 @@ public class ServiceOrderService extends AbstractTenantAwareService<ServiceOrder
 
     @Transactional(readOnly = true)
     public Page<ServiceOrderProjection> findAll(Pageable pageable) {
-        return repository.findAllProjectedBy(pageable);
+        Page<ServiceOrder> serviceOrdersPage = repository.findAll(pageable);
+        return serviceOrdersPage.map(order -> projectionFactory.createProjection(ServiceOrderProjection.class, order));
     }
 
 
@@ -180,8 +183,10 @@ public class ServiceOrderService extends AbstractTenantAwareService<ServiceOrder
     }
 
     @Transactional(readOnly = true)
-    public Page<ServiceOrder> search(String searchTerm, Pageable pageable) {
-        return repository.findAll(ServiceOrderSpecification.search(searchTerm), pageable);
+    public Page<ServiceOrderProjection> search(String searchTerm, Pageable pageable) {
+        Specification<ServiceOrder> spec = ServiceOrderSpecification.search(searchTerm);
+        Page<ServiceOrder> serviceOrdersPage = repository.findAll(spec, pageable);
+        return serviceOrdersPage.map(order -> projectionFactory.createProjection(ServiceOrderProjection.class, order));
     }
 
     @Transactional

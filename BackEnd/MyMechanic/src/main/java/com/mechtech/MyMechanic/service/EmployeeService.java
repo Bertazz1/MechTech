@@ -7,20 +7,21 @@ import com.mechtech.MyMechanic.repository.EmployeeRepository;
 import com.mechtech.MyMechanic.repository.projection.EmployeeProjection;
 import com.mechtech.MyMechanic.repository.specification.EmployeeSpecification;
 import com.mechtech.MyMechanic.util.ValidationUtils;
-import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class EmployeeService extends AbstractTenantAwareService<Employee, Long, EmployeeRepository> {
 
-    private final AddressService addressService;
+    private final ProjectionFactory projectionFactory;
 
-    public EmployeeService(EmployeeRepository repository, AddressService addressService) {
+    public EmployeeService(EmployeeRepository repository, ProjectionFactory projectionFactory) {
         super(repository);
-        this.addressService = addressService;
+        this.projectionFactory = projectionFactory;
     }
 
     @Transactional
@@ -33,7 +34,8 @@ public class EmployeeService extends AbstractTenantAwareService<Employee, Long, 
 
     @Transactional(readOnly = true)
     public Page<EmployeeProjection> findAll(Pageable pageable) {
-        return repository.findAllProjectedBy(pageable);
+        Page<Employee> employeesPage = repository.findAll(pageable);
+        return employeesPage.map(employee -> projectionFactory.createProjection(EmployeeProjection.class, employee));
     }
 
     @Transactional
@@ -61,11 +63,6 @@ public class EmployeeService extends AbstractTenantAwareService<Employee, Long, 
     }
 
     @Transactional(readOnly = true)
-    public Page<EmployeeProjection> findAllByName(String name, Pageable pageable) {
-        return repository.findByNameContainingIgnoreCase(name, pageable);
-    }
-
-    @Transactional(readOnly = true)
     public Employee findByCpf(String cpf) {
         Employee employee = repository.findByCpf(cpf)
                 .orElseThrow(() -> new EntityNotFoundException("Funcionário não encontrado com CPF: " + cpf));
@@ -82,7 +79,9 @@ public class EmployeeService extends AbstractTenantAwareService<Employee, Long, 
     }
 
     @Transactional(readOnly = true)
-    public Page<Employee> search(String searchTerm, Pageable pageable) {
-        return repository.findAll(EmployeeSpecification.search(searchTerm), pageable);
+    public Page<EmployeeProjection> search(String searchTerm, Pageable pageable) {
+        Specification<Employee> spec = EmployeeSpecification.search(searchTerm);
+        Page<Employee> employeesPage = repository.findAll(spec, pageable);
+        return employeesPage.map(employee -> projectionFactory.createProjection(EmployeeProjection.class, employee));
     }
 }

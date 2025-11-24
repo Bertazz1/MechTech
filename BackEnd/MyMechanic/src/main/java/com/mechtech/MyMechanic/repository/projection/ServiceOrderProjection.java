@@ -1,6 +1,7 @@
 package com.mechtech.MyMechanic.repository.projection;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -17,6 +18,10 @@ public interface ServiceOrderProjection {
     LocalDateTime getExitDate();
 
     BigDecimal getTotalCost();
+
+    @Value("#{target.vehicle.licensePlate}")
     String getVehicleLicensePlate();
+
+    @Value("#{target.client.name}")
     String getClientName();
 }
