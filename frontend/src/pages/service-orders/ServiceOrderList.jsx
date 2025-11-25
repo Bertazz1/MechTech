@@ -135,9 +135,10 @@ const ServiceOrderList = () => {
             toast.success('Fatura gerada com sucesso');
             navigate('/invoices');
         } catch (error) {
-            toast.error('Erro ao gerar fatura');
+            toast.error(parseApiError(error));
         }
     };
+
 
     return (
         <div>
