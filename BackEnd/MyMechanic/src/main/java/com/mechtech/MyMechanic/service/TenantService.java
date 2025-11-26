@@ -2,11 +2,13 @@ package com.mechtech.MyMechanic.service;
 
 import com.mechtech.MyMechanic.entity.Tenant;
 import com.mechtech.MyMechanic.entity.User;
+import com.mechtech.MyMechanic.exception.EntityNotFoundException;
+import com.mechtech.MyMechanic.exception.UniqueConstraintViolationException;
 import com.mechtech.MyMechanic.repository.TenantRepository;
 import com.mechtech.MyMechanic.repository.UserRepository;
 import com.mechtech.MyMechanic.web.dto.tenant.TenantSignupDto;
-import com.mechtech.MyMechanic.exception.UniqueConstraintViolationException;
-import com.mechtech.MyMechanic.exception.EntityNotFoundException;
+import com.mechtech.MyMechanic.web.dto.tenant.TenantUpdateDto; // Importar novo DTO
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,49 +17,55 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 
 @Service
+@RequiredArgsConstructor
 public class TenantService {
 
     private final TenantRepository tenantRepository;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public TenantService(TenantRepository tenantRepository, UserRepository userRepository, PasswordEncoder passwordEncoder) {
-        this.tenantRepository = tenantRepository;
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
+    @Transactional
+    public Tenant registerTenant(TenantSignupDto dto) {
+        if (userRepository.findByEmail(dto.getAdminEmail()).isPresent()) {
+            throw new UniqueConstraintViolationException("Este e-mail já está em uso.");
+        }
+
+        Tenant tenant = new Tenant();
+        tenant.setName(dto.getCompanyName());
+        tenant.setDocument(dto.getCompanyDocument());
+        tenant.setPhone(dto.getCompanyPhone());
+        tenant.setEmail(dto.getAdminEmail());
+        tenant.setActive(true);
+
+        tenant = tenantRepository.save(tenant);
+
+        User adminUser = new User();
+        adminUser.setEmail(dto.getAdminEmail());
+        adminUser.setPassword(passwordEncoder.encode(dto.getAdminPassword()));
+        adminUser.setFullName(dto.getAdminName());
+        adminUser.setRole(User.Role.ROLE_ADMIN);
+        adminUser.setTenantId(String.valueOf(tenant.getId()));
+
+        userRepository.save(adminUser);
+
+        return tenant;
     }
 
-        @Transactional
-        public Tenant registerTenant(TenantSignupDto dto) {
-            if (userRepository.findByEmail(dto.getAdminEmail()).isPresent()) {
-                throw new UniqueConstraintViolationException("Este e-mail já está em uso.");
-            }
-
-            //  Cria a Empresa
-            Tenant tenant = new Tenant();
-            tenant.setName(dto.getCompanyName());
-            tenant.setDocument(dto.getCompanyDocument());
-            tenant.setPhone(dto.getCompanyPhone());
-            tenant.setEmail(dto.getAdminEmail());
-            tenant = tenantRepository.save(tenant);
-
-            //  Cria o Usuário Admin vinculado à Empresa
-            User adminUser = new User();
-            adminUser.setFullName(dto.getAdminName());
-            adminUser.setPassword(passwordEncoder.encode(dto.getAdminPassword()));
-            adminUser.setEmail(dto.getAdminEmail());
-            adminUser.setRole(User.Role.ROLE_ADMIN);
-            // O seu sistema usa tenantId como String na entidade User, então convertemos o ID gerado
-            adminUser.setTenantId(String.valueOf(tenant.getId()));
-
-            userRepository.save(adminUser);
-
-            return tenant;
-        }
 
     public Tenant getById(Long id) {
         return tenantRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Empresa não encontrada"));
+    }
+
+    @Transactional
+    public Tenant updateTenant(Long id, TenantUpdateDto dto) {
+        Tenant tenant = getById(id);
+
+        tenant.setName(dto.getCompanyName());
+        tenant.setDocument(dto.getCompanyDocument());
+        tenant.setPhone(dto.getCompanyPhone());
+
+        return tenantRepository.save(tenant);
     }
 
 

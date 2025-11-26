@@ -4,6 +4,7 @@ import com.mechtech.MyMechanic.entity.Tenant;
 import com.mechtech.MyMechanic.service.TenantService;
 import com.mechtech.MyMechanic.web.dto.tenant.TenantResponseDto;
 import com.mechtech.MyMechanic.web.dto.tenant.TenantSignupDto;
+import com.mechtech.MyMechanic.web.dto.tenant.TenantUpdateDto; // Importar
 import com.mechtech.MyMechanic.web.mapper.TenantMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -16,7 +17,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-@Tag(name = "Tenants (Empresas)", description = "Gerenciamento de Empresas")
+@Tag(name = "Tenants", description = "Gerenciamento de Empresas")
 @RestController
 @RequestMapping("/api/v1/tenants")
 @RequiredArgsConstructor
@@ -32,6 +33,22 @@ public class TenantController {
         return ResponseEntity.status(HttpStatus.CREATED).body(tenantMapper.toDto(tenant));
     }
 
+    @Operation(summary = "Buscar dados da empresa por ID")
+    @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')") // Protege para que apenas admins vejam
+    public ResponseEntity<TenantResponseDto> getById(@PathVariable Long id) {
+        Tenant tenant = tenantService.getById(id);
+        return ResponseEntity.ok(tenantMapper.toDto(tenant));
+    }
+
+    @Operation(summary = "Atualizar dados da empresa")
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<TenantResponseDto> update(@PathVariable Long id, @Valid @RequestBody TenantUpdateDto dto) {
+        Tenant tenant = tenantService.updateTenant(id, dto);
+        return ResponseEntity.ok(tenantMapper.toDto(tenant));
+    }
+    
     @Operation(summary = "Upload da Logo da Empresa")
     @PostMapping(value = "/{id}/logo", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('ADMIN')")

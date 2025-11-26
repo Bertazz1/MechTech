@@ -12,19 +12,16 @@ export const useAuth = () => {
 };
 
 export const AuthProvider = ({ children }) => {
-    // Inicializa isAuthenticated verificando o token
     const [isAuthenticated, setIsAuthenticated] = useState(authService.isAuthenticated());
-    const [user, setUser] = useState(null); // Estado para guardar os dados do usuário (tenantId, nome, etc)
-    const [loading, setLoading] = useState(true); // Começa carregando para verificar o token
+    const [user, setUser] = useState(null);
+    const [loading, setLoading] = useState(true);
 
-    // Função para carregar dados do usuário
     const loadUserProfile = async () => {
         try {
             const userData = await authService.getCurrentUser();
             setUser(userData);
         } catch (error) {
             console.error("Erro ao carregar perfil:", error);
-            // Se der erro (token inválido, etc), desloga
             if (error.response && error.response.status === 401) {
                 authService.logout();
                 setIsAuthenticated(false);
@@ -35,7 +32,6 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
-    // Efeito inicial: Se tem token, carrega o usuário
     useEffect(() => {
         if (isAuthenticated) {
             loadUserProfile();
@@ -45,19 +41,18 @@ export const AuthProvider = ({ children }) => {
         }
     }, [isAuthenticated]);
 
-    const login = async (username, password) => {
+    const login = async (email, password) => {
         setLoading(true);
         try {
-            const response = await authService.login(username, password);
+            const response = await authService.login(email, password);
             localStorage.setItem('token', response.token);
             setIsAuthenticated(true);
 
-            // Após login com sucesso, carrega os dados do usuário imediatamente
             await loadUserProfile();
 
             return { success: true };
         } catch (error) {
-            setLoading(false); // Garante que o loading pare em caso de erro
+            setLoading(false);
             return {
                 success: false,
                 error: error.response?.data?.message || 'Erro ao fazer login'
