@@ -1,105 +1,122 @@
-import { useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import {
-    Wrench,
+    LayoutDashboard,
     Users,
     Car,
-    UserCircle,
-    Package,
-    PenTool,
-    FileText,
     ClipboardList,
+    FileText,
+    Wrench,
+    Package,
     Receipt,
+    UserCog,
     LogOut,
-    Menu,
-    X
+    Building
 } from 'lucide-react';
 
 const Sidebar = () => {
-    const { logout } = useAuth();
-    const [isOpen, setIsOpen] = useState(false);
+    const location = useLocation();
+    const { logout, user } = useAuth();
+    const navigate = useNavigate();
+
+    const handleLogout = () => {
+        logout();
+        navigate('/auth');
+    };
 
     const menuItems = [
-        { path: '/', label: 'Dashboard', icon: Wrench },
-        { path: '/clients', label: 'Clientes', icon: Users },
-        { path: '/vehicles', label: 'Veículos', icon: Car },
+        { path: '/', label: 'Dashboard', icon: LayoutDashboard },
         { path: '/service-orders', label: 'Ordens de Serviço', icon: ClipboardList },
         { path: '/quotations', label: 'Orçamentos', icon: FileText },
         { path: '/invoices', label: 'Faturas', icon: Receipt },
+        { path: '/clients', label: 'Clientes', icon: Users },
+        { path: '/vehicles', label: 'Veículos', icon: Car },
         { path: '/parts', label: 'Peças', icon: Package },
-        { path: '/repair-services', label: 'Serviços', icon: PenTool },
-        { path: '/employees', label: 'Funcionários', icon: UserCircle },
+        { path: '/repair-services', label: 'Serviços', icon: Wrench },
+        { path: '/employees', label: 'Funcionários', icon: UserCog },
     ];
 
+    // Verifica se a rota está ativa para aplicar estilo de destaque
+    const isActive = (path) => location.pathname === path;
+
     return (
-        <>
-            {/* Botão Mobile para abrir o menu */}
-            <div className="lg:hidden fixed top-4 left-4 z-50">
-                <button
-                    onClick={() => setIsOpen(!isOpen)}
-                    className="p-2 rounded-md bg-white shadow-md text-gray-600 hover:text-primary-600 focus:outline-none"
-                >
-                    {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-                </button>
+        <div className="h-screen w-64 bg-gray-900 text-white flex flex-col fixed left-0 top-0 overflow-y-auto z-50">
+            {/* Header / Logo */}
+            <div className="p-6 border-b border-gray-800 flex items-center gap-2">
+                <div className="bg-primary-600 p-1.5 rounded-lg">
+                    <Wrench className="w-6 h-6 text-white" />
+                </div>
+                <span className="text-xl font-bold tracking-tight text-white">MyMechanic</span>
             </div>
 
-            {/* Overlay para fechar ao clicar fora no mobile */}
-            {isOpen && (
-                <div
-                    className="fixed inset-0 z-30 bg-black/50 lg:hidden"
-                    onClick={() => setIsOpen(false)}
-                />
-            )}
+            <nav className="flex-1 py-6 px-3 space-y-1">
+                {menuItems.map((item) => (
+                    <Link
+                        key={item.path}
+                        to={item.path}
+                        className={`flex items-center px-3 py-2.5 rounded-lg transition-all duration-200 group ${
+                            isActive(item.path)
+                                ? 'bg-primary-600 text-white shadow-lg shadow-primary-900/50'
+                                : 'text-gray-400 hover:bg-gray-800 hover:text-white'
+                        }`}
+                    >
+                        <item.icon
+                            className={`w-5 h-5 mr-3 transition-colors ${
+                                isActive(item.path) ? 'text-white' : 'text-gray-500 group-hover:text-white'
+                            }`}
+                        />
+                        <span className="font-medium text-sm">{item.label}</span>
+                    </Link>
+                ))}
 
-            <aside
-                className={`fixed left-0 top-0 h-screen bg-slate-900 text-white transition-transform duration-300 z-40 ${
-                    isOpen ? 'translate-x-0' : '-translate-x-full'
-                } lg:translate-x-0 w-64 shadow-xl flex flex-col`}
-            >
-                <div className="p-6 border-b border-slate-800">
-                    <div className="flex items-center gap-3">
-                        <div className="bg-primary-600 p-2 rounded-lg">
-                            <Wrench className="w-6 h-6 text-white" />
-                        </div>
-                        <h1 className="text-xl font-bold tracking-wide">MyMechanic</h1>
+                <div className="pt-4 pb-2">
+                    <div className="border-t border-gray-800 mx-2"></div>
+                    <p className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                        Configurações
+                    </p>
+                </div>
+
+                <Link
+                    to="/settings/company"
+                    className={`flex items-center px-3 py-2.5 rounded-lg transition-all duration-200 group ${
+                        isActive('/settings/company')
+                            ? 'bg-primary-600 text-white shadow-lg shadow-primary-900/50'
+                            : 'text-gray-400 hover:bg-gray-800 hover:text-white'
+                    }`}
+                >
+                    <Building
+                        className={`w-5 h-5 mr-3 transition-colors ${
+                            isActive('/settings/company') ? 'text-white' : 'text-gray-500 group-hover:text-white'
+                        }`}
+                    />
+                    <span className="font-medium text-sm">Minha Oficina</span>
+                </Link>
+            </nav>
+
+            <div className="p-4 border-t border-gray-800 bg-gray-900/50">
+                <div className="flex items-center gap-3 mb-3">
+                    <div className="w-9 h-9 rounded-full bg-gray-700 flex items-center justify-center text-white font-bold border border-gray-600">
+                        {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                    </div>
+                    <div className="flex-1 overflow-hidden">
+                        <p className="text-sm font-medium text-white truncate">
+                            {user?.name || 'Usuário'}
+                        </p>
+                        <p className="text-xs text-gray-500 truncate" title={user?.email}>
+                            {user?.email || 'email@exemplo.com'}
+                        </p>
                     </div>
                 </div>
 
-                <nav className="px-3 py-6 flex-1 overflow-y-auto space-y-1 scrollbar-thin scrollbar-thumb-slate-700">
-                    {menuItems.map((item) => {
-                        const Icon = item.icon;
-                        return (
-                            <NavLink
-                                key={item.path}
-                                to={item.path}
-                                onClick={() => setIsOpen(false)} // Fecha menu ao clicar no mobile
-                                className={({ isActive }) =>
-                                    `flex items-center px-4 py-3 rounded-lg transition-all duration-200 group ${
-                                        isActive
-                                            ? 'bg-primary-600 text-white shadow-lg shadow-primary-900/20'
-                                            : 'text-slate-400 hover:bg-slate-800 hover:text-white'
-                                    }`
-                                }
-                            >
-                                <Icon className="w-5 h-5 mr-3 transition-colors" />
-                                <span className="font-medium">{item.label}</span>
-                            </NavLink>
-                        );
-                    })}
-                </nav>
-
-                <div className="p-4 border-t border-slate-800 bg-slate-950/30">
-                    <button
-                        onClick={logout}
-                        className="flex items-center w-full px-4 py-3 text-red-400 hover:bg-red-950/30 hover:text-red-300 rounded-lg transition-colors duration-200 cursor-pointer"
-                    >
-                        <LogOut className="w-5 h-5 mr-3" />
-                        <span className="font-medium">Sair</span>
-                    </button>
-                </div>
-            </aside>
-        </>
+                <button
+                    onClick={handleLogout}
+                    className="flex items-center justify-center w-full px-4 py-2 text-sm font-medium text-red-400 bg-red-400/10 hover:bg-red-400/20 hover:text-red-300 rounded-lg transition-colors"
+                >
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Sair do Sistema
+                </button>
+            </div>
+        </div>
     );
 };
 

@@ -21,6 +21,7 @@ import ServiceOrderList from './pages/service-orders/ServiceOrderList';
 import ServiceOrderForm from './pages/service-orders/ServiceOrderForm';
 import InvoiceList from './pages/invoices/InvoiceList';
 import StartService from './pages/service-orders/StartService';
+import CompanySettings from './pages/settings/CompanySettings';
 
 function App() {
   return (
@@ -70,6 +71,8 @@ function App() {
             <Route path="service-orders/edit/:id" element={<ServiceOrderForm />} />
 
             <Route path="invoices" element={<InvoiceList />} />
+
+              <Route path="settings/company" element={<CompanySettings />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/" replace />} />
