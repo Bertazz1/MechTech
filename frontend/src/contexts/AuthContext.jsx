@@ -16,16 +16,6 @@ export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        const initAuth = async () => {
-            if (isAuthenticated) {
-                await loadUserProfile();
-            }
-            setLoading(false);
-        };
-        initAuth();
-    }, [isAuthenticated]);
-
     const loadUserProfile = async () => {
         try {
             const userData = await authService.getCurrentUser();
@@ -37,8 +27,19 @@ export const AuthProvider = ({ children }) => {
                 setIsAuthenticated(false);
                 setUser(null);
             }
+        } finally {
+            setLoading(false);
         }
     };
+
+    useEffect(() => {
+        if (isAuthenticated) {
+            loadUserProfile();
+        } else {
+            setLoading(false);
+            setUser(null);
+        }
+    }, [isAuthenticated]);
 
     const login = async (email, password) => {
         setLoading(true);
@@ -46,12 +47,30 @@ export const AuthProvider = ({ children }) => {
             const response = await authService.login(email, password);
             localStorage.setItem('token', response.token);
             setIsAuthenticated(true);
+            await loadUserProfile();
             return { success: true };
         } catch (error) {
             setLoading(false);
             return {
                 success: false,
                 error: error.response?.data?.message || 'Erro ao fazer login'
+            };
+        }
+    };
+
+    const registerAndLogin = async (userData) => {
+        setLoading(true);
+        try {
+            //  Cadastra
+            await authService.registerUser(userData);
+            //  Loga automaticamente
+            const loginResult = await login(userData.email, userData.password);
+            return loginResult;
+        } catch (error) {
+            setLoading(false);
+            return {
+                success: false,
+                error: error.response?.data?.message || 'Erro ao realizar cadastro.'
             };
         }
     };
@@ -63,8 +82,8 @@ export const AuthProvider = ({ children }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ isAuthenticated, user, login, logout, loading }}>
-            {!loading && children}
+        <AuthContext.Provider value={{ isAuthenticated, user, login, logout, registerAndLogin, loading }}>
+            {children}
         </AuthContext.Provider>
     );
 };

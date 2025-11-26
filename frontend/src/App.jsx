@@ -22,7 +22,8 @@ import ServiceOrderList from './pages/service-orders/ServiceOrderList';
 import ServiceOrderForm from './pages/service-orders/ServiceOrderForm';
 import StartService from './pages/service-orders/StartService';
 import InvoiceList from './pages/invoices/InvoiceList';
-import CompanySettings from './pages/settings/CompanySettings'; // Se já criou este
+import CompanySettings from './pages/settings/CompanySettings';
+import RegisterUser from "./pages/auth/RegisterUser.jsx"; // Se já criou este
 
 function App() {
     return (
@@ -32,7 +33,8 @@ function App() {
                 <Routes>
                     {/* --- ROTAS PÚBLICAS (Acessíveis sem login) --- */}
                     <Route path="/auth" element={<Login />} />
-                    <Route path="/register" element={<RegisterTenant />} /> {/* <--- AQUI, FORA DO PROTECTED */}
+                    <Route path="/register" element={<RegisterTenant />} />
+                    <Route path="/signup" element={<RegisterUser />} />     {/* Cria Usuário (Novo) */}
 
                     {/* --- ROTAS PROTEGIDAS (Requerem login) --- */}
                     <Route

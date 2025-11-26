@@ -25,6 +25,6 @@ public class UserCreateDto {
 
     private String role;
 
-    @NotBlank(message = "Tenant ID nao pode estar em branco")
-    private String tenantId;
+    @NotBlank(message = "O Código de Convite da Oficina é obrigatório")
+    private String inviteToken;
 }

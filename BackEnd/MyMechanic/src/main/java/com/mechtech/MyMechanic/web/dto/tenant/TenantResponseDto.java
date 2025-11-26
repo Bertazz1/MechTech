@@ -12,5 +12,6 @@ public class TenantResponseDto {
     private String email;
     private String phone;
     private Boolean active;
-    private Boolean hasLogo; // Novo campo
+    private Boolean hasLogo;
+    private String inviteToken;
 }

@@ -31,8 +31,11 @@ export const tenantService = {
         return response.data;
     },
 
-    // Retorna a URL para usar em tags <img src="..." />
-    getLogoUrl: (id) => {
-        return `${api.defaults.baseURL}/tenants/${id}/logo`;
+
+    getLogo: async (id) => {
+        const response = await api.get(`/tenants/${id}/logo`, {
+            responseType: 'blob' // Importante para arquivos binários
+        });
+        return response.data; // Retorna o Blob
     }
 };

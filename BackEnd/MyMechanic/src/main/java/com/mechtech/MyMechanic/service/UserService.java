@@ -1,5 +1,6 @@
 package com.mechtech.MyMechanic.service;
 
+import com.mechtech.MyMechanic.entity.Tenant;
 import com.mechtech.MyMechanic.entity.User;
 import com.mechtech.MyMechanic.exception.BusinessRuleException;
 import com.mechtech.MyMechanic.exception.EntityNotFoundException;
@@ -7,6 +8,7 @@ import com.mechtech.MyMechanic.exception.PasswordInvalidException;
 import com.mechtech.MyMechanic.exception.UniqueConstraintViolationException;
 import com.mechtech.MyMechanic.repository.UserRepository;
 import com.mechtech.MyMechanic.repository.specification.UserSpecification;
+import com.mechtech.MyMechanic.web.dto.user.UserCreateDto;
 import com.mechtech.MyMechanic.web.mapper.UserMapper;
 import com.mechtech.MyMechanic.web.dto.user.UserUpdateDto;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -26,24 +28,40 @@ public class UserService extends AbstractTenantAwareService<User, Long, UserRepo
     private final UserMapper userMapper;
     private final EmailService emailService;
     private final UserRepository userRepository;
+    private final TenantService tenantService;
+
 
     public UserService(UserRepository repository, PasswordEncoder passwordEncoder, UserMapper userMapper, EmailService emailService,
-                       UserRepository userRepository) {
+                       UserRepository userRepository, TenantService tenantService) {
         super(repository);
         this.passwordEncoder = passwordEncoder;
         this.userMapper = userMapper;
         this.emailService = emailService;
         this.userRepository = userRepository;
+        this.tenantService = tenantService;
     }
 
     @Transactional
-    public User createUser(User user) {
-        try {
-            user.setPassword(passwordEncoder.encode(user.getPassword()));
-            return repository.save(user);
-        } catch (DataIntegrityViolationException ex) {
-            throw new UniqueConstraintViolationException("Já existe um registro com esses dados.");
+    public User createUser(UserCreateDto dto) {
+        Tenant tenant = tenantService.findByInviteToken(dto.getInviteToken());
+
+        if (userRepository.findByEmail(dto.getEmail()).isPresent()) {
+            throw new UniqueConstraintViolationException("E-mail já cadastrado.");
         }
+
+        User user = new User();
+        user.setFullName(dto.getFullname());
+        user.setEmail(dto.getEmail());
+        user.setPassword(passwordEncoder.encode(dto.getPassword()));
+        user.setPhone(dto.getPhone());
+        user.setRole(User.Role.ROLE_CLIENT);
+
+        // Define o Tenant ID encontrado via token
+        user.setTenantId(String.valueOf(tenant.getId()));
+
+        user.setStatus(User.Status.ACTIVE); // Garante que nasce ativo
+
+        return userRepository.save(user);
     }
 
     @Transactional

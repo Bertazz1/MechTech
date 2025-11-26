@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.io.Serializable;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -33,5 +34,15 @@ public class Tenant extends AbstractEntity implements Serializable {
 
     @Column(name = "logo_content_type")
     private String logoContentType;
+
+    @Column(name = "invite_token", unique = true)
+    private String inviteToken;
+
+    @PrePersist
+    public void generateToken() {
+        if (this.inviteToken == null) {
+            this.inviteToken = UUID.randomUUID().toString();
+        }
+    }
 
 }

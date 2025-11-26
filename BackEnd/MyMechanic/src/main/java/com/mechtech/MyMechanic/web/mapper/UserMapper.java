@@ -18,7 +18,6 @@ public class UserMapper {
         user.setPassword(dto.getPassword());
         user.setEmail(dto.getEmail());
         user.setPhone(dto.getPhone());
-        user.setTenantId(dto.getTenantId());
         user.setRole(dto.getRole() != null ? User.Role.valueOf(dto.getRole()) : User.Role.ROLE_CLIENT);
         return user;
     }

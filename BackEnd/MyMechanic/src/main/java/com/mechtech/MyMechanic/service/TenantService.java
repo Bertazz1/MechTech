@@ -8,6 +8,7 @@ import com.mechtech.MyMechanic.repository.TenantRepository;
 import com.mechtech.MyMechanic.repository.UserRepository;
 import com.mechtech.MyMechanic.web.dto.tenant.TenantSignupDto;
 import com.mechtech.MyMechanic.web.dto.tenant.TenantUpdateDto; // Importar novo DTO
+import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -15,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -51,7 +53,7 @@ public class TenantService {
         adminUser.setEmail(dto.getAdminEmail());
         adminUser.setPassword(passwordEncoder.encode(dto.getAdminPassword()));
         adminUser.setFullName(dto.getAdminName());
-        adminUser.setRole(User.Role.ROLE_ADMIN);
+        adminUser.setRole(User.Role.ROLE_CLIENT);
         adminUser.setTenantId(String.valueOf(tenant.getId()));
 
         userRepository.save(adminUser);
@@ -99,5 +101,10 @@ public class TenantService {
     public String getLogoContentType(Long tenantId) {
         Tenant tenant = getById(tenantId);
         return tenant.getLogoContentType();
+    }
+
+    public Tenant findByInviteToken(String inviteToken) {
+        return tenantRepository.findByInviteToken(inviteToken)
+                .orElseThrow(() -> new EntityNotFoundException("Código de convite inválido ou oficina não encontrada"));
     }
 }
