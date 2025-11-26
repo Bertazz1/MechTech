@@ -18,8 +18,10 @@ public class Tenant extends AbstractEntity implements Serializable {
     @Column(nullable = false)
     private String name;
 
+    @Column(nullable = false)
     private String document; // CNPJ
 
+    @Column(nullable = false)
     private String email;
 
     private String phone;

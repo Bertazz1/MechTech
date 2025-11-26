@@ -32,14 +32,22 @@ public class TenantService {
 
         Tenant tenant = new Tenant();
         tenant.setName(dto.getCompanyName());
+        if (tenantRepository.existsByDocument(dto.getCompanyDocument())){
+            throw new UniqueConstraintViolationException("Este CNPJ/CPF já está em uso.");}
         tenant.setDocument(dto.getCompanyDocument());
         tenant.setPhone(dto.getCompanyPhone());
+        if (tenantRepository.existsByEmail(dto.getCompanyDocument())) {
+            throw new UniqueConstraintViolationException("Já existe uma empresa com este e-mail cadastrado.");
+        }
         tenant.setEmail(dto.getAdminEmail());
         tenant.setActive(true);
 
         tenant = tenantRepository.save(tenant);
 
         User adminUser = new User();
+        if (userRepository.findByEmail(dto.getAdminEmail()).isPresent()){
+            throw new UniqueConstraintViolationException("Este e-mail já está em uso.");
+        }
         adminUser.setEmail(dto.getAdminEmail());
         adminUser.setPassword(passwordEncoder.encode(dto.getAdminPassword()));
         adminUser.setFullName(dto.getAdminName());

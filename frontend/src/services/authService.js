@@ -17,6 +17,7 @@ export const authService = {
     },
 
     isAuthenticated: () => {
-        return !!localStorage.getItem('token');
+        const token = localStorage.getItem('token');
+        return !!token; // Retorna true se tiver token
     },
 };

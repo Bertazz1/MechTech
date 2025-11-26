@@ -82,10 +82,10 @@ const RegisterTenant = () => {
                                 <Input label="Nome da Oficina" name="companyName" value={formData.companyName} onChange={handleChange} required autoFocus />
                                 <Input label="CNPJ ou CPF" name="companyDocument" value={formData.companyDocument} onChange={handleChange} required />
                                 <Input label="Telefone" name="companyPhone" value={formData.companyPhone} onChange={handleChange} />
-                                <Button type="submit" className="w-full mt-4">Continuar <ArrowRight className="w-4 h-4 ml-2" /></Button>
+                                <Button type="submit" className="w-full mt-4">Continuar </Button>
                             </div>
                         ) : (
-                            <div className="space-y-4 animate-fade-in">
+                            <div className="space-y-4 animate-fade-in">sss
                                 <div className="flex items-center gap-2 text-gray-700 font-semibold pb-2 border-b">
                                     <User className="w-5 h-5" /> Dados do Admin
                                 </div>

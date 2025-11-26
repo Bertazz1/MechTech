@@ -35,7 +35,7 @@ public class TenantController {
 
     @Operation(summary = "Buscar dados da empresa por ID")
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')") // Protege para que apenas admins vejam
+    @PreAuthorize("hasRole('ADMIN') or @securityService.isTenantMember(#id)")
     public ResponseEntity<TenantResponseDto> getById(@PathVariable Long id) {
         Tenant tenant = tenantService.getById(id);
         return ResponseEntity.ok(tenantMapper.toDto(tenant));
@@ -43,15 +43,15 @@ public class TenantController {
 
     @Operation(summary = "Atualizar dados da empresa")
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or @securityService.isTenantMember(#id)")
     public ResponseEntity<TenantResponseDto> update(@PathVariable Long id, @Valid @RequestBody TenantUpdateDto dto) {
         Tenant tenant = tenantService.updateTenant(id, dto);
         return ResponseEntity.ok(tenantMapper.toDto(tenant));
     }
-    
+
     @Operation(summary = "Upload da Logo da Empresa")
     @PostMapping(value = "/{id}/logo", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or @securityService.isTenantMember(#id)")
     public ResponseEntity<Void> uploadLogo(@PathVariable Long id, @RequestParam("file") MultipartFile file) {
         tenantService.updateLogo(id, file);
         return ResponseEntity.ok().build();
