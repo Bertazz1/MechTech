@@ -96,11 +96,11 @@ const Sidebar = () => {
             <div className="p-4 border-t border-gray-800 bg-gray-900/50">
                 <div className="flex items-center gap-3 mb-3">
                     <div className="w-9 h-9 rounded-full bg-gray-700 flex items-center justify-center text-white font-bold border border-gray-600">
-                        {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                        {user?.fullname ? user.fullname.charAt(0).toUpperCase() : 'U'}
                     </div>
                     <div className="flex-1 overflow-hidden">
                         <p className="text-sm font-medium text-white truncate">
-                            {user?.name || 'Usuário'}
+                            {user?.fullname || 'Usuário'}
                         </p>
                         <p className="text-xs text-gray-500 truncate" title={user?.email}>
                             {user?.email || 'email@exemplo.com'}

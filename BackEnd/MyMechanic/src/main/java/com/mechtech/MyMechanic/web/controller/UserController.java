@@ -17,6 +17,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import com.mechtech.MyMechanic.jwt.JwtUserDetails;
@@ -59,7 +60,7 @@ public class UserController {
         return ResponseEntity.noContent().build();
     }
 
-    @IsAdminOrOwner(id = "id")
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/me")
     public ResponseEntity<UserResponseDto> getCurrentUser(@AuthenticationPrincipal JwtUserDetails userDetails) {
         User currentUser = userService.findById(userDetails.getId());
