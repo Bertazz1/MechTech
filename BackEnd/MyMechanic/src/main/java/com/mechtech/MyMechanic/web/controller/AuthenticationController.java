@@ -34,13 +34,13 @@ public class AuthenticationController {
 
     @PostMapping("/auth")
     public ResponseEntity<?> authenticate(@RequestBody @Valid UserLoginDto userLoginDto, HttpServletRequest request){
-        log.info("Authenticating user: {}", userLoginDto.getUsername());
-        User userAux = userService.findByUsername(userLoginDto.getUsername());
+        log.info("Authenticating user: {}", userLoginDto.getEmail());
+        User userAux = userService.findByEmail(userLoginDto.getEmail());
 
         UsernamePasswordAuthenticationToken authenticationToken =
-                new UsernamePasswordAuthenticationToken(userLoginDto.getUsername(), userLoginDto.getPassword());
+                new UsernamePasswordAuthenticationToken(userLoginDto.getEmail(), userLoginDto.getPassword());
         authenticationManager.authenticate(authenticationToken); // Se falhar, lança AuthenticationException
-        JwtToken jwtToken = jwtUserDetailsService.getTokenAuthenticated(userLoginDto.getUsername(), userAux.getTenantId());
+        JwtToken jwtToken = jwtUserDetailsService.getTokenAuthenticated(userLoginDto.getEmail(), userAux.getTenantId());
         return ResponseEntity.ok(jwtToken);
       }
 

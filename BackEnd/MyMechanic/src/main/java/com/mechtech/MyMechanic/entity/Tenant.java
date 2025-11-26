@@ -26,7 +26,6 @@ public class Tenant extends AbstractEntity implements Serializable {
 
     private Boolean active = true;
 
-    @Lob
     @Column(name = "logo", columnDefinition = "bytea")
     private byte[] logo;
 

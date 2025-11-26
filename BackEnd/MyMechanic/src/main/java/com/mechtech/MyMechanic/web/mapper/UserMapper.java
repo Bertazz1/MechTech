@@ -17,14 +17,8 @@ public class UserMapper {
             return null;
         }
         User user = new User();
-        user.setUsername(userCreateDTO.getUsername());
+        user.setFullName(userCreateDTO.getFullname());
         user.setPassword(userCreateDTO.getPassword());
-        if (userCreateDTO.getFirstName() != null) {
-            user.setFirstName(userCreateDTO.getFirstName());
-        }
-        if (userCreateDTO.getLastName() != null) {
-            user.setLastName(userCreateDTO.getLastName());
-        }
         user.setEmail(userCreateDTO.getEmail());
         if (userCreateDTO.getPhone() != null) {
             user.setPhone(userCreateDTO.getPhone());
@@ -44,15 +38,10 @@ public class UserMapper {
         }
         UserResponseDto dto = new UserResponseDto();
         dto.setId(user.getId());
-        if (user.getUsername() != null) {
-            dto.setUsername(user.getUsername());
+        if (user.getFullName() != null) {
+            dto.setFullname(user.getFullName());
         }
-        if (user.getFirstName() != null) {
-            dto.setFirstName(user.getFirstName());
-        }
-        if (user.getLastName() != null) {
-            dto.setLastName(user.getLastName());
-        }
+
         if (user.getEmail() != null) {
             dto.setEmail(user.getEmail());
         }
@@ -74,12 +63,6 @@ public class UserMapper {
     public void updateFromDTO(UserUpdateDto dto, User user) {
         if (dto == null || user == null) {
             return;
-        }
-        if (dto.getFirstName() != null) {
-            user.setFirstName(dto.getFirstName());
-        }
-        if (dto.getLastName() != null) {
-            user.setLastName(dto.getLastName());
         }
         if (dto.getEmail() != null) {
             user.setEmail(dto.getEmail());

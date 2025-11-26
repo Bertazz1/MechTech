@@ -27,32 +27,33 @@ public class TenantService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    @Transactional
-    public Tenant registerTenant(TenantSignupDto dto) {
-        if (userRepository.findByUsername(dto.getAdminEmail()).isPresent()) {
-            throw new UniqueConstraintViolationException("Este e-mail já está em uso.");
+        @Transactional
+        public Tenant registerTenant(TenantSignupDto dto) {
+            if (userRepository.findByEmail(dto.getAdminEmail()).isPresent()) {
+                throw new UniqueConstraintViolationException("Este e-mail já está em uso.");
+            }
+
+            //  Cria a Empresa
+            Tenant tenant = new Tenant();
+            tenant.setName(dto.getCompanyName());
+            tenant.setDocument(dto.getCompanyDocument());
+            tenant.setPhone(dto.getCompanyPhone());
+            tenant.setEmail(dto.getAdminEmail());
+            tenant = tenantRepository.save(tenant);
+
+            //  Cria o Usuário Admin vinculado à Empresa
+            User adminUser = new User();
+            adminUser.setFullName(dto.getAdminName());
+            adminUser.setPassword(passwordEncoder.encode(dto.getAdminPassword()));
+            adminUser.setEmail(dto.getAdminEmail());
+            adminUser.setRole(User.Role.ROLE_ADMIN);
+            // O seu sistema usa tenantId como String na entidade User, então convertemos o ID gerado
+            adminUser.setTenantId(String.valueOf(tenant.getId()));
+
+            userRepository.save(adminUser);
+
+            return tenant;
         }
-
-        Tenant tenant = new Tenant();
-        tenant.setName(dto.getCompanyName());
-        tenant.setDocument(dto.getCompanyDocument());
-        tenant.setPhone(dto.getCompanyPhone());
-        tenant.setEmail(dto.getAdminEmail());
-        tenant.setActive(true);
-
-        tenant = tenantRepository.save(tenant);
-
-        User adminUser = new User();
-        adminUser.setEmail(dto.getAdminEmail());
-        adminUser.setPassword(passwordEncoder.encode(dto.getAdminPassword()));
-        adminUser.setUsername(dto.getAdminName());
-        adminUser.setRole(User.Role.ROLE_ADMIN);
-        adminUser.setTenantId(tenant.getId().toString());
-
-        userRepository.save(adminUser);
-
-        return tenant;
-    }
 
     public Tenant getById(Long id) {
         return tenantRepository.findById(id)

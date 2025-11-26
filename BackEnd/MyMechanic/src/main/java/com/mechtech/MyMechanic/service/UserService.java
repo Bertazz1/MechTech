@@ -66,15 +66,15 @@ public class UserService extends AbstractTenantAwareService<User, Long, UserRepo
     }
 
     @Transactional(readOnly = true)
-    public User findByUsername(String username) {
+    public User findByEmail(String username) {
         // A validação de tenant não se aplica na autenticação inicial, pois ainda não há contexto.
-        return repository.findByUsernameAndStatus(username, User.Status.ACTIVE).orElseThrow(() ->
+        return repository.findByEmailAndStatus(username, User.Status.ACTIVE).orElseThrow(() ->
                 new EntityNotFoundException(String.format("User nao encontrado com username: %s", username)));
     }
 
     @Transactional(readOnly = true)
-    public User.Role findRoleByUsername(String username) {
-        return repository.findRoleByUsername(username);
+    public User.Role findRoleByEmail(String username) {
+        return repository.findRoleByEmail(username);
     }
 
     @Transactional
@@ -103,9 +103,9 @@ public class UserService extends AbstractTenantAwareService<User, Long, UserRepo
     }
 
     @Transactional
-    public User createPasswordResetToken(String username) {
-        User user = repository.findByUsername(username).orElseThrow(() ->
-                new EntityNotFoundException("Usuário não encontrado com o username: " + username));
+    public User createPasswordResetToken(String fullName) {
+        User user = repository.findByFullName(fullName).orElseThrow(() ->
+                new EntityNotFoundException("Usuário não encontrado com o username: " + fullName));
 
         if (user.getStatus() != User.Status.ACTIVE) {
             throw new BusinessRuleException("A conta do usuário está inativa.");

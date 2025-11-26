@@ -19,10 +19,10 @@ export const AuthProvider = ({ children }) => {
     setIsAuthenticated(authService.isAuthenticated());
   }, []);
 
-  const login = async (username, password) => {
+  const login = async (email, password) => {
     setLoading(true);
     try {
-      const response = await authService.login(username, password);
+      const response = await authService.login(email, password);
       localStorage.setItem('token', response.token);
       setIsAuthenticated(true);
       return { success: true };

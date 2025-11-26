@@ -36,9 +36,9 @@ import org.springframework.security.config.Customizer;
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.POST, "/api/v1/auth").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/users").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/tenants/register").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/users/forgot-password").permitAll()
                         .requestMatchers(HttpMethod.PATCH, "/api/v1/users/reset-password").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/v1/hello").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/addresses/**").permitAll()
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .anyRequest().authenticated()

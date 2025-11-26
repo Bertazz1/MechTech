@@ -31,25 +31,18 @@ public class User extends AbstractEntity implements Serializable, TenantOwned {
     @Column(name = "tenant_id", nullable = false, updatable = false)
     private String tenantId;
 
-    @Column(name = "username", nullable = false, unique = true)
-    private String username;
+    @Column(name = "full_name", nullable = false, unique = true)
+    private String fullName;
 
     @Column(name = "password", nullable = false, length = 200)
     private String password;
 
-    @Column(name = "first_name", length = 100)
-    private String firstName;
-
-    @Column(name = "last_name", length = 100)
-    private String lastName;
-
-    @Column(name = "email", unique = true, length = 150)
+    @Column(name = "email", nullable = false ,unique = true, length = 150)
     private String email;
 
-    @Column(name = "phone", length = 20)
+    @Column(name = "phone", length = 20,unique = true)
     private String phone;
 
-    //Variaveis Rec senha
     @Column(name = "password_reset_token")
     private String passwordResetToken;
 

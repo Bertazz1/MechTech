@@ -4,6 +4,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import ProtectedRoute from './components/common/ProtectedRoute';
 import MainLayout from './components/layout/MainLayout';
 import Login from './pages/auth/Login';
+import RegisterTenant from './pages/auth/RegisterTenant'; // <--- Importação
 import Dashboard from './pages/dashboard/Dashboard';
 import ClientList from './pages/clients/ClientList';
 import ClientForm from './pages/clients/ClientForm';
@@ -19,67 +20,70 @@ import QuotationList from './pages/quotations/QuotationList';
 import QuotationForm from './pages/quotations/QuotationForm';
 import ServiceOrderList from './pages/service-orders/ServiceOrderList';
 import ServiceOrderForm from './pages/service-orders/ServiceOrderForm';
-import InvoiceList from './pages/invoices/InvoiceList';
 import StartService from './pages/service-orders/StartService';
-import CompanySettings from './pages/settings/CompanySettings';
+import InvoiceList from './pages/invoices/InvoiceList';
+import CompanySettings from './pages/settings/CompanySettings'; // Se já criou este
 
 function App() {
-  return (
-    <AuthProvider>
-      <Router>
-        <Toaster position="top-right" />
-        <Routes>
-          <Route path="/auth" element={<Login />} />
+    return (
+        <AuthProvider>
+            <Router>
+                <Toaster position="top-right" />
+                <Routes>
+                    {/* --- ROTAS PÚBLICAS (Acessíveis sem login) --- */}
+                    <Route path="/auth" element={<Login />} />
+                    <Route path="/register" element={<RegisterTenant />} /> {/* <--- AQUI, FORA DO PROTECTED */}
 
-          <Route
-            path="/"
-            element={
-              <ProtectedRoute>
-                <MainLayout />
-              </ProtectedRoute>
-            }
-          >
-            <Route index element={<Dashboard />} />
+                    {/* --- ROTAS PROTEGIDAS (Requerem login) --- */}
+                    <Route
+                        path="/"
+                        element={
+                            <ProtectedRoute>
+                                <MainLayout />
+                            </ProtectedRoute>
+                        }
+                    >
+                        <Route index element={<Dashboard />} />
 
-            <Route path="clients" element={<ClientList />} />
-            <Route path="clients/new" element={<ClientForm />} />
-            <Route path="clients/edit/:id" element={<ClientForm />} />
+                        <Route path="clients" element={<ClientList />} />
+                        <Route path="clients/new" element={<ClientForm />} />
+                        <Route path="clients/edit/:id" element={<ClientForm />} />
 
-            <Route path="vehicles" element={<VehicleList />} />
-            <Route path="vehicles/new" element={<VehicleForm />} />
-            <Route path="vehicles/edit/:id" element={<VehicleForm />} />
+                        <Route path="vehicles" element={<VehicleList />} />
+                        <Route path="vehicles/new" element={<VehicleForm />} />
+                        <Route path="vehicles/edit/:id" element={<VehicleForm />} />
 
-            <Route path="employees" element={<EmployeeList />} />
-            <Route path="employees/new" element={<EmployeeForm />} />
-            <Route path="employees/edit/:id" element={<EmployeeForm />} />
+                        <Route path="employees" element={<EmployeeList />} />
+                        <Route path="employees/new" element={<EmployeeForm />} />
+                        <Route path="employees/edit/:id" element={<EmployeeForm />} />
 
-            <Route path="parts" element={<PartList />} />
-            <Route path="parts/new" element={<PartForm />} />
-            <Route path="parts/edit/:id" element={<PartForm />} />
+                        <Route path="parts" element={<PartList />} />
+                        <Route path="parts/new" element={<PartForm />} />
+                        <Route path="parts/edit/:id" element={<PartForm />} />
 
-            <Route path="repair-services" element={<RepairServiceList />} />
-            <Route path="repair-services/new" element={<RepairServiceForm />} />
-            <Route path="repair-services/edit/:id" element={<RepairServiceForm />} />
+                        <Route path="repair-services" element={<RepairServiceList />} />
+                        <Route path="repair-services/new" element={<RepairServiceForm />} />
+                        <Route path="repair-services/edit/:id" element={<RepairServiceForm />} />
 
-            <Route path="quotations" element={<QuotationList />} />
-            <Route path="quotations/new" element={<QuotationForm />} />
-            <Route path="quotations/edit/:id" element={<QuotationForm />} />
+                        <Route path="quotations" element={<QuotationList />} />
+                        <Route path="quotations/new" element={<QuotationForm />} />
+                        <Route path="quotations/edit/:id" element={<QuotationForm />} />
 
-            <Route path="service-orders" element={<ServiceOrderList />} />
-            <Route path="service-orders/new" element={<ServiceOrderForm />} />
-              <Route path="service-orders/start/:id" element={<StartService />} />
-            <Route path="service-orders/edit/:id" element={<ServiceOrderForm />} />
+                        <Route path="service-orders" element={<ServiceOrderList />} />
+                        <Route path="service-orders/new" element={<ServiceOrderForm />} />
+                        <Route path="service-orders/start/:id" element={<StartService />} />
+                        <Route path="service-orders/edit/:id" element={<ServiceOrderForm />} />
 
-            <Route path="invoices" element={<InvoiceList />} />
+                        <Route path="invoices" element={<InvoiceList />} />
 
-              <Route path="settings/company" element={<CompanySettings />} />
-          </Route>
+                        <Route path="settings/company" element={<CompanySettings />} />
+                    </Route>
 
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </Router>
-    </AuthProvider>
-  );
+                    <Route path="*" element={<Navigate to="/" replace />} />
+                </Routes>
+            </Router>
+        </AuthProvider>
+    );
 }
 
 export default App;

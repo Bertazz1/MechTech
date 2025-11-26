@@ -7,14 +7,14 @@ import Button from '../../components/common/Button';
 import { Wrench } from 'lucide-react';
 
 const Login = () => {
-  const [credentials, setCredentials] = useState({ username: '', password: '' });
+  const [credentials, setCredentials] = useState({ email: '', password: '' });
   const { login, loading } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const result = await login(credentials.username, credentials.password);
+    const result = await login(credentials.email, credentials.password);
 
     if (result.success) {
       toast.success('Login realizado com sucesso!');
@@ -44,12 +44,12 @@ const Login = () => {
 
         <form onSubmit={handleSubmit}>
           <Input
-            label="Usuário"
+            label="Email"
             type="text"
-            name="username"
-            value={credentials.username}
+            name="email"
+            value={credentials.email}
             onChange={handleChange}
-            placeholder="Digite seu usuário"
+            placeholder="Digite seu email"
             required
           />
 
@@ -72,6 +72,17 @@ const Login = () => {
             {loading ? 'Entrando...' : 'Entrar'}
           </Button>
         </form>
+          <div className="mt-6 text-center">
+              <p className="text-sm text-gray-600">
+                  Ainda não tem conta?{' '}
+                  <span
+                      onClick={() => navigate('/register')}
+                      className="text-primary-600 font-bold cursor-pointer hover:underline"
+                  >
+      Cadastre sua Oficina
+    </span>
+              </p>
+          </div>
       </div>
     </div>
   );

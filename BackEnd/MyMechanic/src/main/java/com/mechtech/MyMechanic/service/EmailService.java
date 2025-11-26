@@ -39,7 +39,7 @@ public class EmailService {
                             "Se você não solicitou esta alteração, ignore este e-mail.\n\n" +
                             "Atenciosamente,\n" +
                             "Equipe My Mechanic",
-                    user.getUsername(), resetLink);
+                    user.getFullName(), resetLink);
 
             message.setText(emailContent);
 
