@@ -9,5 +9,6 @@ import org.springframework.stereotype.Repository;
 public interface InvoiceRepository extends JpaRepository<Invoice, Long>, JpaSpecificationExecutor<Invoice> {
 
     boolean existsByServiceOrderId(Long serviceOrderId);
+    long countByPaymentStatus(Invoice.PaymentStatus paymentStatus);
 
 }

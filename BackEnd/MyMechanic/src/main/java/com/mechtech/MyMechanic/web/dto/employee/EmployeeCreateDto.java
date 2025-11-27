@@ -1,7 +1,9 @@
 package com.mechtech.MyMechanic.web.dto.employee;
 
 import com.mechtech.MyMechanic.entity.Employee;
+import com.mechtech.MyMechanic.entity.Role;
 import com.mechtech.MyMechanic.web.dto.client.AddressDto;
+import com.mechtech.MyMechanic.web.dto.role.RoleCreateDto;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -23,8 +25,8 @@ public class EmployeeCreateDto {
     @Size(max = 100)
     private String name;
 
-    @NotBlank(message =  "Role deve ser preenchido: Mechanic, Electrician, etc")
-    private String role;
+    @Valid
+   private RoleCreateDto role;
 
     @NotBlank(message = "Email deve ser preenchido")
     @Email

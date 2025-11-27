@@ -27,7 +27,6 @@ public class EmployeeService extends AbstractTenantAwareService<Employee, Long, 
     @Transactional
     public Employee create(Employee employee) {
         ValidationUtils.validateCpf(employee.getCpf());
-
         employee.setTenantId(TenantContext.getTenantId());
         return repository.save(employee);
     }
@@ -39,26 +38,16 @@ public class EmployeeService extends AbstractTenantAwareService<Employee, Long, 
     }
 
     @Transactional
-    public Employee update(Long id, Employee employee) {
-        Employee existingEmployee = findById(id); // Validação de tenant acontece aqui
+    public Employee update(Employee employee) {
         if (employee.getCpf() != null ) {
             ValidationUtils.validateCpf(employee.getCpf());
         }
-        existingEmployee.setName(employee.getName());
-        existingEmployee.setRole(employee.getRole());
-        existingEmployee.setCpf(employee.getCpf());
-        existingEmployee.setEmail(employee.getEmail());
-        existingEmployee.setPhone(employee.getPhone());
-        existingEmployee.setAddress(employee.getAddress());
-        return repository.save(existingEmployee);
+        return repository.save(employee);
     }
 
     @Transactional
-    public void delete(Employee employee) {
-        if (employee == null || employee.getId() == null) {
-            throw new EntityNotFoundException("Empregado não encontrado");
-        }
-        validateTenant(employee);
+    public void delete(Long id) {
+        Employee employee = findById(id);
         repository.delete(employee);
     }
 

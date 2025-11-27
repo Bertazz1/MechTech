@@ -29,7 +29,7 @@ public class ServiceOrderEmployee extends AbstractEntity{
     private BigDecimal workedHours;
 
     @Column(name = "commission_percentage")
-    private int commissionPercentage;
+    private BigDecimal commissionPercentage;
 
     @Override
     public boolean equals(Object o) {

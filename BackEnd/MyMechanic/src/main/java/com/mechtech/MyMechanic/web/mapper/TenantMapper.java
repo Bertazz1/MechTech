@@ -21,7 +21,7 @@ public class TenantMapper {
         dto.setPhone(tenant.getPhone());
         dto.setActive(tenant.getActive());
         dto.setInviteToken(tenant.getInviteToken());
-        
+
         boolean hasLogo = tenant.getLogo() != null && tenant.getLogo().length > 0;
         dto.setHasLogo(hasLogo);
 

@@ -11,7 +11,8 @@ import {
     Receipt,
     UserCog,
     LogOut,
-    Building
+    Building,
+    DollarSign // <--- Ícone para Comissões
 } from 'lucide-react';
 
 const Sidebar = () => {
@@ -29,6 +30,7 @@ const Sidebar = () => {
         { path: '/service-orders', label: 'Ordens de Serviço', icon: ClipboardList },
         { path: '/quotations', label: 'Orçamentos', icon: FileText },
         { path: '/invoices', label: 'Faturas', icon: Receipt },
+        { path: '/reports/commissions', label: 'Comissões', icon: DollarSign }, // <--- NOVO ITEM
         { path: '/clients', label: 'Clientes', icon: Users },
         { path: '/vehicles', label: 'Veículos', icon: Car },
         { path: '/parts', label: 'Peças', icon: Package },
@@ -49,6 +51,7 @@ const Sidebar = () => {
                 <span className="text-xl font-bold tracking-tight text-white">MyMechanic</span>
             </div>
 
+            {/* Navegação Principal */}
             <nav className="flex-1 py-6 px-3 space-y-1">
                 {menuItems.map((item) => (
                     <Link
@@ -69,6 +72,7 @@ const Sidebar = () => {
                     </Link>
                 ))}
 
+                {/* Separador */}
                 <div className="pt-4 pb-2">
                     <div className="border-t border-gray-800 mx-2"></div>
                     <p className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
@@ -76,6 +80,7 @@ const Sidebar = () => {
                     </p>
                 </div>
 
+                {/* Link da Empresa */}
                 <Link
                     to="/settings/company"
                     className={`flex items-center px-3 py-2.5 rounded-lg transition-all duration-200 group ${
@@ -93,14 +98,15 @@ const Sidebar = () => {
                 </Link>
             </nav>
 
+            {/* Rodapé do Usuário */}
             <div className="p-4 border-t border-gray-800 bg-gray-900/50">
                 <div className="flex items-center gap-3 mb-3">
                     <div className="w-9 h-9 rounded-full bg-gray-700 flex items-center justify-center text-white font-bold border border-gray-600">
-                        {user?.fullname ? user.fullname.charAt(0).toUpperCase() : 'U'}
+                        {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
                     </div>
                     <div className="flex-1 overflow-hidden">
                         <p className="text-sm font-medium text-white truncate">
-                            {user?.fullname || 'Usuário'}
+                            {user?.fullname || user?.name || 'Usuário'}
                         </p>
                         <p className="text-xs text-gray-500 truncate" title={user?.email}>
                             {user?.email || 'email@exemplo.com'}

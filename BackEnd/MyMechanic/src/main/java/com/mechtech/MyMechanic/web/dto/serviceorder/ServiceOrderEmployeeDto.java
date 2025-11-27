@@ -15,7 +15,7 @@ public class ServiceOrderEmployeeDto {
     private Long Id;
 
     @DecimalMin(value = "0.0", message = "A comissão não pode ser negativa")
-    private int commissionPercentage;
+    private BigDecimal commissionPercentage;
 
     @DecimalMin(value = "0.0", message = "As horas trabalhadas não podem ser negativas")
     private BigDecimal workedHours;

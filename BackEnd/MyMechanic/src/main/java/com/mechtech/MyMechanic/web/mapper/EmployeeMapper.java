@@ -19,6 +19,8 @@ import java.util.stream.Collectors;
 public class EmployeeMapper {
 
     private final AddressMapper addressMapper;
+    private final RoleMapper roleMapper;
+
 
     public Employee toEmployee(EmployeeCreateDto dto) {
         if (dto == null) {
@@ -26,8 +28,8 @@ public class EmployeeMapper {
         }
         Employee employee = new Employee();
         employee.setName(dto.getName());
-        employee.setRole(dto.getRole());
         employee.setCpf(dto.getCpf());
+        employee.setRole(roleMapper.toRole(dto.getRole()));
         employee.setEmail(dto.getEmail());
         employee.setPhone(dto.getPhone());
         if (dto.getAddress() != null) {
@@ -44,7 +46,7 @@ public class EmployeeMapper {
         EmployeeResponseDto dto = new EmployeeResponseDto();
         dto.setId(employee.getId());
         dto.setName(employee.getName());
-        dto.setRole(employee.getRole());
+        dto.setRole(roleMapper.toDto(employee.getRole()));
         dto.setCpf(employee.getCpf());
         dto.setEmail(employee.getEmail());
         dto.setPhone(employee.getPhone());
@@ -62,7 +64,7 @@ public class EmployeeMapper {
             employee.setName(dto.getName());
         }
         if (dto.getRole() != null) {
-            employee.setRole(dto.getRole());
+            employee.setRole(roleMapper.toRole(dto.getRole()));
         }
         if (dto.getPhone() != null) {
             employee.setPhone(dto.getPhone());

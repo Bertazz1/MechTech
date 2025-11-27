@@ -2,6 +2,7 @@ package com.mechtech.MyMechanic.web.dto.employee;
 
 
 import com.mechtech.MyMechanic.web.dto.client.AddressDto;
+import com.mechtech.MyMechanic.web.dto.role.RoleCreateDto;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -17,7 +18,8 @@ public class EmployeeUpdateDto {
     @Size(max = 100)
     private String name;
 
-    private String role;
+    @Valid
+    private RoleCreateDto role;
 
     @Email
     private String email;

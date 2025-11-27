@@ -23,7 +23,8 @@ import ServiceOrderForm from './pages/service-orders/ServiceOrderForm';
 import StartService from './pages/service-orders/StartService';
 import InvoiceList from './pages/invoices/InvoiceList';
 import CompanySettings from './pages/settings/CompanySettings';
-import RegisterUser from "./pages/auth/RegisterUser.jsx"; // Se já criou este
+import RegisterUser from "./pages/auth/RegisterUser.jsx";
+import CommissionReport from './pages/reports/CommissionReport';
 
 function App() {
     return (
@@ -79,6 +80,7 @@ function App() {
                         <Route path="invoices" element={<InvoiceList />} />
 
                         <Route path="settings/company" element={<CompanySettings />} />
+                        <Route path="reports/commissions" element={<CommissionReport />} />
                     </Route>
 
                     <Route path="*" element={<Navigate to="/" replace />} />

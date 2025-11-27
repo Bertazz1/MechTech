@@ -23,10 +23,19 @@ const EmployeeForm = () => {
     }
   }, [id]);
 
+  const formatCPF = (value) => {
+    return value
+        .replace(/\D/g, '')
+        .replace(/(\d{3})(\d)/, '$1.$2')
+        .replace(/(\d{3})(\d)/, '$1.$2')
+        .replace(/(\d{3})(\d{1,2})/, '$1-$2')
+        .replace(/(-\d{2})\d+?$/, '$1');
+  };
+
   const loadEmployee = async () => {
     try {
       const data = await employeeService.getById(id);
-      setFormData(data);
+      setFormData({ ...data, cpf: data.cpf ? formatCPF(data.cpf) : '' });
     } catch (error) {
       toast.error('Erro ao carregar funcionário');
       navigate('/employees');
@@ -34,10 +43,12 @@ const EmployeeForm = () => {
   };
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    const { name, value } = e.target;
+    if (name === 'cpf') {
+        setFormData({ ...formData, [name]: formatCPF(value) });
+    } else {
+        setFormData({ ...formData, [name]: value });
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -45,11 +56,16 @@ const EmployeeForm = () => {
     setLoading(true);
 
     try {
+      const dataToSend = {
+        ...formData,
+        cpf: formData.cpf.replace(/\D/g, ''),
+      };
+
       if (id) {
-        await employeeService.update(id, formData);
+        await employeeService.update(id, dataToSend);
         toast.success('Funcionário atualizado com sucesso');
       } else {
-        await employeeService.create(formData);
+        await employeeService.create(dataToSend);
         toast.success('Funcionário criado com sucesso');
       }
       navigate('/employees');
@@ -107,6 +123,7 @@ const EmployeeForm = () => {
               name="cpf"
               value={formData.cpf}
               onChange={handleChange}
+              placeholder="000.000.000-00"
               required
             />
           </div>
