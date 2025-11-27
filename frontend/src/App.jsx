@@ -79,6 +79,10 @@ function App() {
 
                         <Route path="invoices" element={<InvoiceList />} />
 
+                        <Route path="roles" element={<RoleList />} />
+                        <Route path="roles/new" element={<RoleForm />} />
+                        <Route path="roles/edit/:id" element={<RoleForm />} />
+
                         <Route path="settings/company" element={<CompanySettings />} />
                         <Route path="reports/commissions" element={<CommissionReport />} />
                     </Route>

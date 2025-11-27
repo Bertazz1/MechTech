@@ -23,7 +23,7 @@ public class RoleService extends AbstractTenantAwareService<Role, Long, RoleRepo
 
     @Transactional
     public Role updateRole(Long id, Role roleDetails) {
-        Role existingRole = findById(id); 
+        Role existingRole = findById(id);
         existingRole.setName(roleDetails.getName());
         existingRole.setReceivesCommission(roleDetails.isReceivesCommission());
         return repository.save(existingRole);

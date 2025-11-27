@@ -36,6 +36,7 @@ const Sidebar = () => {
         { path: '/parts', label: 'Peças', icon: Package },
         { path: '/repair-services', label: 'Serviços', icon: Wrench },
         { path: '/employees', label: 'Funcionários', icon: UserCog },
+        { path: '/roles', label: 'Cargos', icon: ShieldCheck },
     ];
 
     // Verifica se a rota está ativa para aplicar estilo de destaque
