@@ -13,21 +13,17 @@ import AsyncSelect from '../../components/common/AsyncSelect';
 import toast from 'react-hot-toast';
 import { Trash2, Calculator, User, Wrench, Package, Info, Plus, X, CheckCircle } from 'lucide-react';
 import { parseApiError } from '../../utils/errorUtils';
-import { confirmAction } from '../../utils/alert'; // <--- Importação da confirmação bonita
+import { confirmAction } from '../../utils/alert';
 
 const ServiceOrderForm = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
 
-    // Estados para os AsyncSelects principais
     const [selectedClient, setSelectedClient] = useState(null);
     const [selectedVehicle, setSelectedVehicle] = useState(null);
-
-    // Estado temporário para seleção de funcionário antes de adicionar à lista
     const [tempEmployee, setTempEmployee] = useState(null);
 
-    // Função auxiliar para pegar data atual formatada para input datetime-local
     function getLocalDateTime() {
         const now = new Date();
         now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
@@ -75,7 +71,7 @@ const ServiceOrderForm = () => {
         }
     }, [id]);
 
-    // --- Funções de Busca (Adapters para AsyncSelect) ---
+    // --- Funções de Busca ---
 
     const fetchClients = async (query) => {
         try {
@@ -131,7 +127,8 @@ const ServiceOrderForm = () => {
             return list.map(e => ({
                 value: e.id,
                 label: e.name,
-                subLabel: e.role
+                // CORREÇÃO AQUI: Acessa o .name do objeto role
+                subLabel: e.role?.name || 'Sem Cargo'
             }));
         } catch (e) { return []; }
     };
@@ -199,8 +196,6 @@ const ServiceOrderForm = () => {
         }
     };
 
-    // --- Handlers ---
-
     const handleClientChange = (option) => {
         setSelectedClient(option);
         setFormData(prev => ({ ...prev, clientId: option ? option.value : '' }));
@@ -254,7 +249,6 @@ const ServiceOrderForm = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
-
         const dataToSend = prepareDataToSend();
 
         try {
@@ -273,19 +267,15 @@ const ServiceOrderForm = () => {
         }
     };
 
-    // --- NOVA FUNÇÃO DE FINALIZAÇÃO ---
     const handleFinishOrder = async () => {
         const isConfirmed = await confirmAction(
             'Finalizar Serviço?',
             'Isso encerrará a OS, registrará a data de saída e permitirá gerar a fatura. Deseja continuar?',
             'Sim, Finalizar',
-            '#16a34a' // Verde Sucesso
+            '#16a34a'
         );
-
         if (!isConfirmed) return;
-
         setLoading(true);
-        // Força o status COMPLETO
         const dataToSend = prepareDataToSend('COMPLETO');
 
         try {
@@ -298,8 +288,6 @@ const ServiceOrderForm = () => {
             setLoading(false);
         }
     };
-
-    // -- Itens e Funcionários --
 
     const addPartItem = () => setFormData({ ...formData, partItems: [...formData.partItems, { selectedOption: null, quantity: 1, unitCost: 0 }] });
     const removePartItem = (index) => setFormData({ ...formData, partItems: formData.partItems.filter((_, i) => i !== index) });
@@ -420,13 +408,11 @@ const ServiceOrderForm = () => {
                             name="description"
                             value={formData.description}
                             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                            required
                             disabled={isReadOnly}
                         />
                     </div>
                 </div>
 
-                {/* Componentes de Funcionários */}
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                     <h2 className="text-lg font-semibold mb-4 text-gray-800 flex items-center gap-2">
                         <User className="w-5 h-5 text-primary-500" /> Equipe Responsável
@@ -566,7 +552,6 @@ const ServiceOrderForm = () => {
                     </div>
                 </div>
 
-                {/* Totais e Botões Finais */}
                 <div className="bg-white rounded-xl shadow-md p-6 border-t-4 border-primary-500">
                     <h2 className="text-lg font-semibold mb-4 text-gray-700 flex items-center gap-2">
                         <Calculator className="w-5 h-5" /> Resumo Financeiro
@@ -595,16 +580,9 @@ const ServiceOrderForm = () => {
                         </Button>
                     )}
 
-                    {/* Botão FINALIZAR */}
                     {formData.status === 'EM_PROGRESSO' && (
-                        <Button
-                            type="button"
-                            disabled={loading}
-                            onClick={handleFinishOrder}
-                            className="bg-green-600 hover:bg-green-700 text-white border-green-600"
-                        >
-                            <CheckCircle className="w-5 h-5 mr-2" />
-                            Finalizar Serviço
+                        <Button type="button" disabled={loading} onClick={handleFinishOrder} className="bg-green-600 hover:bg-green-700 text-white border-green-600">
+                            <CheckCircle className="w-5 h-5 mr-2" /> Finalizar Serviço
                         </Button>
                     )}
                 </div>

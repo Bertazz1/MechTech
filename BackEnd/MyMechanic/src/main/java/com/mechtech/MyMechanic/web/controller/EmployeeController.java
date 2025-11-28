@@ -56,15 +56,14 @@ public class EmployeeController {
                                                               @Valid @RequestBody EmployeeUpdateDto dto) {
         Employee employee = employeeService.findById(id);
         employeeMapper.updateEmployeeFromDto(dto, employee);
-        Employee updated = employeeService.update(id, employee);
+        Employee updated = employeeService.update(employee);
         return ResponseEntity.ok(employeeMapper.toDto(updated));
     }
 
     @IsAdminOrClient
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteEmployee(@PathVariable Long id) {
-        Employee employee = employeeService.findById(id);
-        employeeService.delete(employee);
+        employeeService.delete(id);
         return ResponseEntity.noContent().build();
     }
 

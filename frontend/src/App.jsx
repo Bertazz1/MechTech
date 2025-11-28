@@ -25,6 +25,8 @@ import InvoiceList from './pages/invoices/InvoiceList';
 import CompanySettings from './pages/settings/CompanySettings';
 import RegisterUser from "./pages/auth/RegisterUser.jsx";
 import CommissionReport from './pages/reports/CommissionReport';
+import RoleList from './pages/roles/RoleList';
+import RoleForm from './pages/roles/RoleForm';
 
 function App() {
     return (

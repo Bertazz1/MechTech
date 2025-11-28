@@ -25,9 +25,6 @@ public class ServiceOrderEmployee extends AbstractEntity{
     @JoinColumn(name = "employee_id", nullable = false)
     private Employee employee;
 
-    @Column(name = "worked_hours", precision = 10, scale = 2)
-    private BigDecimal workedHours;
-
     @Column(name = "commission_percentage")
     private BigDecimal commissionPercentage;
 

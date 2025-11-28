@@ -1,8 +1,8 @@
 package com.mechtech.MyMechanic.web.mapper;
 
 import com.mechtech.MyMechanic.entity.Employee;
-import com.mechtech.MyMechanic.entity.ServiceOrder;
-import com.mechtech.MyMechanic.entity.ServiceOrderEmployee;
+import com.mechtech.MyMechanic.entity.Role;
+import com.mechtech.MyMechanic.service.RoleService; // <--- Importar Service
 import com.mechtech.MyMechanic.repository.projection.EmployeeProjection;
 import com.mechtech.MyMechanic.web.dto.employee.EmployeeCreateDto;
 import com.mechtech.MyMechanic.web.dto.employee.EmployeeProjectionDto;
@@ -20,7 +20,7 @@ public class EmployeeMapper {
 
     private final AddressMapper addressMapper;
     private final RoleMapper roleMapper;
-
+    private final RoleService roleService;
 
     public Employee toEmployee(EmployeeCreateDto dto) {
         if (dto == null) {
@@ -29,9 +29,16 @@ public class EmployeeMapper {
         Employee employee = new Employee();
         employee.setName(dto.getName());
         employee.setCpf(dto.getCpf());
-        employee.setRole(roleMapper.toRole(dto.getRole()));
+
+        if (dto.getRoleId() != null) {
+            Role role = roleService.findById(dto.getRoleId());
+            employee.setRole(role);
+        }
+
         employee.setEmail(dto.getEmail());
         employee.setPhone(dto.getPhone());
+        employee.setCommissionPercentage(dto.getCommissionPercentage());
+
         if (dto.getAddress() != null) {
             employee.setAddress(addressMapper.toAddress(dto.getAddress()));
         }
@@ -46,10 +53,17 @@ public class EmployeeMapper {
         EmployeeResponseDto dto = new EmployeeResponseDto();
         dto.setId(employee.getId());
         dto.setName(employee.getName());
-        dto.setRole(roleMapper.toDto(employee.getRole()));
+
+        // Mapeia a Role completa para resposta
+        if (employee.getRole() != null) {
+            dto.setRole(roleMapper.toDto(employee.getRole()));
+        }
+
         dto.setCpf(employee.getCpf());
         dto.setEmail(employee.getEmail());
         dto.setPhone(employee.getPhone());
+        dto.setCommissionPercentage(employee.getCommissionPercentage());
+
         if (employee.getAddress() != null) {
             dto.setAddress(addressMapper.toDto(employee.getAddress()));
         }
@@ -60,21 +74,18 @@ public class EmployeeMapper {
         if (dto == null || employee == null) {
             return;
         }
-        if (dto.getName() != null) {
-            employee.setName(dto.getName());
+        if (dto.getName() != null) employee.setName(dto.getName());
+
+        if (dto.getRoleId() != null) {
+            Role role = roleService.findById(dto.getRoleId());
+            employee.setRole(role);
         }
-        if (dto.getRole() != null) {
-            employee.setRole(roleMapper.toRole(dto.getRole()));
-        }
-        if (dto.getPhone() != null) {
-            employee.setPhone(dto.getPhone());
-        }
-        if (dto.getEmail() != null) {
-            employee.setEmail(dto.getEmail());
-        }
-        if (dto.getCpf() != null) {
-            employee.setCpf(dto.getCpf());
-        }
+
+        if (dto.getPhone() != null) employee.setPhone(dto.getPhone());
+        if (dto.getEmail() != null) employee.setEmail(dto.getEmail());
+        if (dto.getCpf() != null) employee.setCpf(dto.getCpf());
+        if (dto.getCommissionPercentage() != null) employee.setCommissionPercentage(dto.getCommissionPercentage());
+
         if (dto.getAddress() != null) {
             if (employee.getAddress() == null) {
                 employee.setAddress(new AddressMapper().toAddress(dto.getAddress()));
@@ -85,25 +96,17 @@ public class EmployeeMapper {
     }
 
     public List<EmployeeResponseDto> toListDto(List<Employee> employees) {
-        if (employees == null) {
-            return null;
-        }
+        if (employees == null) return null;
         return employees.stream().map(this::toDto).collect(Collectors.toList());
     }
-
     public EmployeeProjectionDto toProjectionDto(EmployeeProjection employee) {
-        if (employee == null) {
-            return null;
-        }
+        if (employee == null) return null;
         EmployeeProjectionDto dto = new EmployeeProjectionDto();
         dto.setId(employee.getId());
         dto.setName(employee.getName());
-        dto.setRole(employee.getRole());
+        dto.setRole(employee.getRole().getName());
         dto.setEmail(employee.getEmail());
         dto.setPhone(employee.getPhone());
-        if (employee.getAddress() != null) {
-            dto.setAddress(addressMapper.toDto(employee.getAddress()));
-        }
         return dto;
     }
 }

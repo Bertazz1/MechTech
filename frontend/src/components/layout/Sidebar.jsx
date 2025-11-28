@@ -12,7 +12,8 @@ import {
     UserCog,
     LogOut,
     Building,
-    DollarSign // <--- Ícone para Comissões
+    DollarSign,
+    ShieldCheck,
 } from 'lucide-react';
 
 const Sidebar = () => {
@@ -37,6 +38,7 @@ const Sidebar = () => {
         { path: '/repair-services', label: 'Serviços', icon: Wrench },
         { path: '/employees', label: 'Funcionários', icon: UserCog },
         { path: '/roles', label: 'Cargos', icon: ShieldCheck },
+
     ];
 
     // Verifica se a rota está ativa para aplicar estilo de destaque

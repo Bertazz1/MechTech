@@ -14,13 +14,16 @@ public class EmployeeSpecification {
                 return criteriaBuilder.conjunction();
             }
 
+
             String likePattern = "%" + searchTerm.toLowerCase() + "%";
+            query.orderBy(criteriaBuilder.asc(root.get("name")));
+
 
             List<Predicate> predicates = new ArrayList<>();
             predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("name")), likePattern));
             predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("email")), likePattern));
             predicates.add(criteriaBuilder.like(root.get("cpf"), likePattern));
-            predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("role")), likePattern));
+            predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.join("role").get("name")), likePattern));
 
             return criteriaBuilder.or(predicates.toArray(new Predicate[0]));
         };

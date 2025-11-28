@@ -14,12 +14,13 @@ const RoleForm = () => {
 
     const [formData, setFormData] = useState({
         name: '',
-        description: '',
         receivesCommission: false
     });
 
     useEffect(() => {
-        if (id) loadRole();
+        if (id) {
+            loadRole();
+        }
     }, [id]);
 
     const loadRole = async () => {
@@ -27,10 +28,8 @@ const RoleForm = () => {
             const data = await roleService.getById(id);
             setFormData({
                 name: data.name,
-                description: data.description || '',
                 receivesCommission: data.receivesCommission || false
             });
-            // eslint-disable-next-line no-unused-vars
         } catch (error) {
             toast.error('Erro ao carregar cargo');
             navigate('/roles');
@@ -40,13 +39,14 @@ const RoleForm = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
+
         try {
             if (id) {
                 await roleService.update(id, formData);
-                toast.success('Cargo atualizado!');
+                toast.success('Cargo atualizado com sucesso');
             } else {
                 await roleService.create(formData);
-                toast.success('Cargo criado!');
+                toast.success('Cargo criado com sucesso');
             }
             navigate('/roles');
         } catch (error) {
@@ -69,33 +69,33 @@ const RoleForm = () => {
                         name="name"
                         value={formData.name}
                         onChange={(e) => setFormData({...formData, name: e.target.value})}
-                        placeholder="Ex: Mecânico Chefe"
+                        placeholder="Ex: Mecânico Sênior"
                         required
                         icon={ShieldCheck}
                     />
 
-                    <Input
-                        label="Descrição (Opcional)"
-                        name="description"
-                        value={formData.description}
-                        onChange={(e) => setFormData({...formData, description: e.target.value})}
-                        placeholder="Ex: Responsável pela equipe técnica..."
-                    />
-
-                    <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg border border-gray-100">
-                        <input
-                            type="checkbox"
-                            id="commission"
-                            className="w-5 h-5 text-primary-600 rounded border-gray-300 focus:ring-primary-500 cursor-pointer"
-                            checked={formData.receivesCommission}
-                            onChange={(e) => setFormData({...formData, receivesCommission: e.target.checked})}
-                        />
-                        <label htmlFor="commission" className="text-gray-700 font-medium cursor-pointer select-none">
-                            Este cargo recebe comissão sobre serviços?
-                        </label>
+                    {/* Checkbox de Comissão */}
+                    <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg border border-gray-100 hover:border-primary-200 transition-colors">
+                        <div className="flex items-center h-5">
+                            <input
+                                id="commission"
+                                type="checkbox"
+                                className="w-5 h-5 text-primary-600 border-gray-300 rounded focus:ring-primary-500 cursor-pointer"
+                                checked={formData.receivesCommission}
+                                onChange={(e) => setFormData({...formData, receivesCommission: e.target.checked})}
+                            />
+                        </div>
+                        <div className="ml-2 text-sm">
+                            <label htmlFor="commission" className="font-medium text-gray-700 cursor-pointer select-none">
+                                Elegível para Comissão?
+                            </label>
+                            <p className="text-gray-500 text-xs mt-0.5">
+                                Habilita o campo de porcentagem no cadastro de funcionários com este cargo.
+                            </p>
+                        </div>
                     </div>
 
-                    <div className="flex justify-end gap-3 pt-4">
+                    <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
                         <Button type="button" variant="secondary" onClick={() => navigate('/roles')}>
                             Cancelar
                         </Button>

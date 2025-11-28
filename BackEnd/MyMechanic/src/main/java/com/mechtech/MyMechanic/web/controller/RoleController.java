@@ -1,6 +1,7 @@
 package com.mechtech.MyMechanic.web.controller;
 
 import com.mechtech.MyMechanic.entity.Role;
+import com.mechtech.MyMechanic.repository.projection.RoleProjection;
 import com.mechtech.MyMechanic.service.RoleService;
 import com.mechtech.MyMechanic.web.dto.pageable.PageableDto;
 import com.mechtech.MyMechanic.web.dto.role.RoleCreateDto;
@@ -41,7 +42,7 @@ public class RoleController {
 
     @GetMapping
     public ResponseEntity<PageableDto> getAll(Pageable pageable) {
-        Page<Role> page = roleService.findAll(pageable);
+        Page<RoleProjection> page = roleService.findAll(pageable);
         return ResponseEntity.ok(pageableMapper.toDto(page));
     }
 
@@ -56,5 +57,10 @@ public class RoleController {
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         roleService.deleteRole(id);
         return ResponseEntity.noContent().build();
+    }
+    @GetMapping("/search")
+    public ResponseEntity<PageableDto> search(@RequestParam(name = "q") String query, Pageable pageable) {
+        Page<RoleProjection> page = roleService.search(query, pageable);
+        return ResponseEntity.ok(pageableMapper.toDto(page));
     }
 }

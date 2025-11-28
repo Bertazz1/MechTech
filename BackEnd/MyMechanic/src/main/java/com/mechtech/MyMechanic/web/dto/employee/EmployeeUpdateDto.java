@@ -10,6 +10,7 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @ToString
@@ -18,8 +19,8 @@ public class EmployeeUpdateDto {
     @Size(max = 100)
     private String name;
 
-    @Valid
-    private RoleCreateDto role;
+
+    private Long roleId;
 
     @Email
     private String email;
@@ -32,5 +33,8 @@ public class EmployeeUpdateDto {
 
     @Pattern(regexp = "^\\d{11}$", message = "CPF deve conter 11 dígitos.")
     private String cpf;
+
+
+    private BigDecimal commissionPercentage;
 
 }

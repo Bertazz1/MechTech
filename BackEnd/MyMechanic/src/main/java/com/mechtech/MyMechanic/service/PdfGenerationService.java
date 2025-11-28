@@ -387,7 +387,6 @@ public class PdfGenerationService {
             for (ServiceOrderEmployee item : serviceOrder.getEmployees()) {
                 table.addCell(new PdfPCell(new Phrase(item.getEmployee().getName(), FONT_NORMAL)));
                 table.addCell(new PdfPCell(new Phrase(item.getCommissionPercentage() + "%", FONT_NORMAL)));
-                table.addCell(new PdfPCell(new Phrase(item.getWorkedHours() != null ? item.getWorkedHours().toString() : "N/A", FONT_NORMAL)));
             }
         }
         return table;

@@ -1,7 +1,9 @@
 package com.mechtech.MyMechanic.service;
 
 import com.mechtech.MyMechanic.entity.Employee;
+import com.mechtech.MyMechanic.exception.BusinessRuleException;
 import com.mechtech.MyMechanic.exception.EntityNotFoundException;
+import com.mechtech.MyMechanic.exception.UniqueConstraintViolationException;
 import com.mechtech.MyMechanic.multiTenants.TenantContext;
 import com.mechtech.MyMechanic.repository.EmployeeRepository;
 import com.mechtech.MyMechanic.repository.projection.EmployeeProjection;
@@ -27,6 +29,15 @@ public class EmployeeService extends AbstractTenantAwareService<Employee, Long, 
     @Transactional
     public Employee create(Employee employee) {
         ValidationUtils.validateCpf(employee.getCpf());
+        if (repository.existsByCpf(employee.getCpf())){
+            throw new UniqueConstraintViolationException("Já existe um funcionário com o CPF informado.");
+        }
+        if (repository.existsByEmail(employee.getEmail())){
+            throw new UniqueConstraintViolationException("Já existe um funcionário com o email informado.");
+        }
+        if (repository.existsByPhone(employee.getPhone())){
+            throw new UniqueConstraintViolationException("Já existe um funcionário com o telefone informado.");
+        }
         employee.setTenantId(TenantContext.getTenantId());
         return repository.save(employee);
     }

@@ -12,5 +12,5 @@ import java.math.BigDecimal;
 public class ServiceOrderEmployeeResponseDto {
     private Long employeeId;
     private String employeeName;
-    private int commissionPercentage;
+    private BigDecimal commissionPercentage;
 }
