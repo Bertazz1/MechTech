@@ -39,4 +39,6 @@ public class Address extends AbstractEntity {
     @Column(name = "complement", length = 100)
     private String complement;
 
+
+
 }

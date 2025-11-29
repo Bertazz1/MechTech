@@ -6,9 +6,11 @@ public interface VehicleProjection {
 
     Long getId();
 
-    String getBrand();
+    @Value("#{target.model.brand.name}")
+    String getBrandName();
 
-    String getModel();
+    @Value("#{target.model.name}")
+    String getModelName();
 
     int getYear();
 

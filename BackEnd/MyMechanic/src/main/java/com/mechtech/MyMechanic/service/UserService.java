@@ -7,6 +7,7 @@ import com.mechtech.MyMechanic.exception.EntityNotFoundException;
 import com.mechtech.MyMechanic.exception.PasswordInvalidException;
 import com.mechtech.MyMechanic.exception.UniqueConstraintViolationException;
 import com.mechtech.MyMechanic.repository.UserRepository;
+import com.mechtech.MyMechanic.repository.projection.UserProjection;
 import com.mechtech.MyMechanic.repository.specification.UserSpecification;
 import com.mechtech.MyMechanic.web.dto.user.UserCreateDto;
 import com.mechtech.MyMechanic.web.mapper.UserMapper;
@@ -14,31 +15,35 @@ import com.mechtech.MyMechanic.web.dto.user.UserUpdateDto;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
-public class UserService extends AbstractTenantAwareService<User, Long, UserRepository> {
+public class UserService  {
 
     private final PasswordEncoder passwordEncoder;
     private final UserMapper userMapper;
     private final EmailService emailService;
     private final UserRepository userRepository;
     private final TenantService tenantService;
+    private final ProjectionFactory projectionFactory;
+
 
 
     public UserService(UserRepository repository, PasswordEncoder passwordEncoder, UserMapper userMapper, EmailService emailService,
-                       UserRepository userRepository, TenantService tenantService) {
-        super(repository);
+                       UserRepository userRepository, TenantService tenantService, ProjectionFactory projectionFactory) {
         this.passwordEncoder = passwordEncoder;
         this.userMapper = userMapper;
         this.emailService = emailService;
         this.userRepository = userRepository;
         this.tenantService = tenantService;
+        this.projectionFactory = projectionFactory;
     }
 
     @Transactional
@@ -70,37 +75,46 @@ public class UserService extends AbstractTenantAwareService<User, Long, UserRepo
             throw new PasswordInvalidException("Nova senha e confirmação não conferem");
         }
 
-        User user = findById(id); // Validação de tenant acontece aqui
+        User user = findById(id);
+
         if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
             throw new PasswordInvalidException("Senha antiga inválida");
         }
         user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user); // Save the updated user
         return user;
     }
 
-    @Transactional(readOnly = true)
-    public Page<User> findAll(Pageable pageable) {
-        return repository.findAll(pageable);
+    public User findById(Long id) {
+        Optional<User> optionalUser = userRepository.findById(id);
+        return optionalUser.orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado"));
     }
 
     @Transactional(readOnly = true)
-    public User findByEmail(String username) {
-        // A validação de tenant não se aplica na autenticação inicial, pois ainda não há contexto.
-        return repository.findByEmailAndStatus(username, User.Status.ACTIVE).orElseThrow(() ->
-                new EntityNotFoundException(String.format("User nao encontrado com username: %s", username)));
+    public Page<UserProjection> findAll(Pageable pageable) {
+        Page<User> usersPage = userRepository.findAllIgnoringTenant(pageable);
+        return usersPage.map(user -> projectionFactory.createProjection(UserProjection.class, user));
     }
 
     @Transactional(readOnly = true)
-    public User.Role findRoleByEmail(String username) {
-        return repository.findRoleByEmail(username);
+    public User findByEmail(String email) {
+        return userRepository.findByEmail(email).orElseThrow(() ->
+                new EntityNotFoundException(String.format("User nao encontrado com email: %s", email)));
     }
+
+    @Transactional(readOnly = true)
+    public User findByEmailForAuthentication(String email) {
+        return userRepository.findByEmailIgnoringTenant(email).orElseThrow(() ->
+                new EntityNotFoundException(String.format("User nao encontrado com email: %s", email)));
+    }
+
 
     @Transactional
     public User updateProfile(Long id, UserUpdateDto userUpdateDto) {
         try {
             User user = findById(id); // Validação de tenant acontece aqui
             userMapper.updateFromDTO(userUpdateDto, user);
-            return repository.save(user);
+            return userRepository.save(user);
         } catch (DataIntegrityViolationException ex) {
             throw new UniqueConstraintViolationException(ex.getMessage());
         }
@@ -108,7 +122,7 @@ public class UserService extends AbstractTenantAwareService<User, Long, UserRepo
 
     @Transactional(readOnly = true)
     public Page<User> search(String searchTerm, Pageable pageable) {
-        return repository.findAll(UserSpecification.search(searchTerm), pageable);
+        return userRepository.findAll(UserSpecification.search(searchTerm), pageable);
     }
 
     @Transactional
@@ -116,14 +130,14 @@ public class UserService extends AbstractTenantAwareService<User, Long, UserRepo
         if (user == null || user.getId() == null) {
             throw new EntityNotFoundException("Usuário nao encontrado");
         }
-        validateTenant(user);
-        repository.delete(user);
+
+        userRepository.delete(user);
     }
 
     @Transactional
-    public User createPasswordResetToken(String fullName) {
-        User user = repository.findByFullName(fullName).orElseThrow(() ->
-                new EntityNotFoundException("Usuário não encontrado com o username: " + fullName));
+    public User createPasswordResetToken(String email) {
+        User user = userRepository.findByEmail(email).orElseThrow(() ->
+                new EntityNotFoundException("Usuário não encontrado com o email: " + email));
 
         if (user.getStatus() != User.Status.ACTIVE) {
             throw new BusinessRuleException("A conta do usuário está inativa.");
@@ -139,7 +153,7 @@ public class UserService extends AbstractTenantAwareService<User, Long, UserRepo
 
         user.setPasswordResetToken(token);
         user.setPasswordResetTokenExpiresAt(expiryDate);
-        repository.save(user);
+        userRepository.save(user);
 
         emailService.sendPasswordResetEmail(user, token);
 
@@ -152,13 +166,13 @@ public class UserService extends AbstractTenantAwareService<User, Long, UserRepo
             throw new PasswordInvalidException("Nova senha e confirmação não conferem");
         }
 
-        User user = repository.findByPasswordResetToken(token).orElseThrow(() ->
+        User user = userRepository.findByPasswordResetToken(token).orElseThrow(() ->
                 new EntityNotFoundException("Token de redefinição inválido ou não encontrado."));
 
         if (user.getPasswordResetTokenExpiresAt().isBefore(LocalDateTime.now())) {
             user.setPasswordResetToken(null);
             user.setPasswordResetTokenExpiresAt(null);
-            repository.save(user);
+            userRepository.save(user);
             throw new PasswordInvalidException("Token de redefinição expirado.");
         }
 
@@ -168,6 +182,10 @@ public class UserService extends AbstractTenantAwareService<User, Long, UserRepo
         user.setPasswordResetToken(null);
         user.setPasswordResetTokenExpiresAt(null);
 
-        repository.save(user);
+        userRepository.save(user);
+    }
+
+    public User.Role findRoleByEmail(String email) {
+        return userRepository.findRoleByEmail(email);
     }
 }

@@ -7,8 +7,6 @@ CREATE TABLE tenants (
     active BOOLEAN DEFAULT TRUE,
 
     logo BYTEA,
-    logo_content_type VARCHAR(50),
+    logo_content_type VARCHAR(50)
 
-    created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW()
 );

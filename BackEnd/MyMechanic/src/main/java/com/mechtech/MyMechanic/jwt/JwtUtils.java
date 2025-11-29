@@ -44,13 +44,13 @@ public class JwtUtils {
         return Date.from(end.atZone(ZoneId.systemDefault()).toInstant());
     }
 
-    public JwtToken createToken(String username, String role, String tenantId) {
+    public JwtToken createToken(String email, String role, String tenantId) {
         Date issueDate = new Date();
         Date limit = toExpireDate(issueDate);
 
         String token = Jwts.builder()
                 .setHeaderParam("typ", "JWT")
-                .setSubject(username)
+                .setSubject(email)
                 .setIssuedAt(issueDate)
                 .setExpiration(limit)
                 .signWith(generateKey(), SignatureAlgorithm.HS256)

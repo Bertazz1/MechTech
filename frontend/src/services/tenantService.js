@@ -31,6 +31,10 @@ export const tenantService = {
         return response.data;
     },
 
+    getAll: async (params) => {
+        const response = await api.get('/tenants', { params });
+        return response.data;
+    },
 
     getLogo: async (id) => {
         const response = await api.get(`/tenants/${id}/logo`, {

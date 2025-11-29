@@ -10,6 +10,8 @@ import com.mechtech.MyMechanic.web.dto.tenant.TenantSignupDto;
 import com.mechtech.MyMechanic.web.dto.tenant.TenantUpdateDto; // Importar novo DTO
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -71,10 +73,16 @@ public class TenantService {
     public Tenant updateTenant(Long id, TenantUpdateDto dto) {
         Tenant tenant = getById(id);
 
-        tenant.setName(dto.getCompanyName());
-        tenant.setDocument(dto.getCompanyDocument());
-        tenant.setPhone(dto.getCompanyPhone());
-
+        if (dto.getCompanyName() != null){
+        tenant.setName(dto.getCompanyName());}
+        if (dto.getCompanyDocument() != null){
+            tenant.setDocument(dto.getCompanyDocument());}
+        if (dto.getCompanyPhone() != null) {
+            tenant.setPhone(dto.getCompanyPhone());
+        }
+        if (!dto.isActive()) {
+            tenant.setActive(false);
+        }
         return tenantRepository.save(tenant);
     }
 
@@ -106,5 +114,10 @@ public class TenantService {
     public Tenant findByInviteToken(String inviteToken) {
         return tenantRepository.findByInviteToken(inviteToken)
                 .orElseThrow(() -> new EntityNotFoundException("Código de convite inválido ou oficina não encontrada"));
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Tenant> findAll(Pageable pageable) {
+        return tenantRepository.findAll(pageable);
     }
 }

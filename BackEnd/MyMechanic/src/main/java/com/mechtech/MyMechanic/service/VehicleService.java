@@ -1,10 +1,14 @@
 package com.mechtech.MyMechanic.service;
 
+import com.mechtech.MyMechanic.entity.Client;
 import com.mechtech.MyMechanic.entity.Vehicle;
+import com.mechtech.MyMechanic.entity.VehicleModel;
 import com.mechtech.MyMechanic.exception.UniqueConstraintViolationException;
 import com.mechtech.MyMechanic.repository.VehicleRepository;
 import com.mechtech.MyMechanic.repository.projection.VehicleProjection;
 import com.mechtech.MyMechanic.repository.specification.VehicleSpecification;
+import com.mechtech.MyMechanic.web.dto.vehicle.VehicleCreateDto;
+import com.mechtech.MyMechanic.web.mapper.VehicleMapper;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
@@ -22,16 +26,24 @@ public class VehicleService extends AbstractTenantAwareService<Vehicle, Long, Ve
 
     private final ClientService clientService;
     private final ProjectionFactory projectionFactory;
+    private final VehicleMapper vehicleMapper;
+    private final VehicleModelService vehicleModelService;
 
-    public VehicleService(VehicleRepository repository, @Lazy ClientService clientService, ProjectionFactory projectionFactory) {
+
+    public VehicleService(VehicleRepository repository, @Lazy ClientService clientService, ProjectionFactory projectionFactory, VehicleMapper vehicleMapper, VehicleModelService vehicleModelService) {
         super(repository);
         this.clientService = clientService;
         this.projectionFactory = projectionFactory;
+        this.vehicleMapper = vehicleMapper;
+        this.vehicleModelService = vehicleModelService;
     }
 
     @Transactional
-    public Vehicle createVehicle(Vehicle vehicle) {
+    public Vehicle createVehicle(VehicleCreateDto dto) {
         try {
+            VehicleModel model = vehicleModelService.findById(dto.getModelId());
+            Client client = clientService.findById(dto.getClientId());
+            Vehicle vehicle = vehicleMapper.toVehicle(dto,client,model);
             if (vehicle.getClient() != null) {
                 vehicle.setTenantId(vehicle.getClient().getTenantId());
             }
@@ -41,19 +53,11 @@ public class VehicleService extends AbstractTenantAwareService<Vehicle, Long, Ve
             throw new UniqueConstraintViolationException(Objects.requireNonNull(ex.getRootCause()).getMessage());
         }
     }
+
     @Transactional
-    public Vehicle updateVehicle(Long id, Vehicle vehicleDetails) {
-
-        validateVehicle(vehicleDetails);
-
-        Vehicle existingVehicle = findById(id); // Validação de tenant já inclusa
-
-        existingVehicle.setYear(vehicleDetails.getYear());
-        existingVehicle.setLicensePlate(vehicleDetails.getLicensePlate());
-        existingVehicle.setModel(vehicleDetails.getModel());
-        existingVehicle.setColor(vehicleDetails.getColor());
-
-        return repository.save(existingVehicle);
+    public Vehicle updateVehicle(Vehicle vehicle) {
+        validateVehicle(vehicle);
+        return repository.save(vehicle);
     }
 
     @Transactional
@@ -71,7 +75,6 @@ public class VehicleService extends AbstractTenantAwareService<Vehicle, Long, Ve
 
     @Transactional(readOnly = true)
     public Page<VehicleProjection> findByClientId(Long clientId,Pageable pageable) {
-        // Primeiro, valida se o cliente pertence ao tenant atual.
         clientService.findById(clientId);
 
         // Se a validação passar, busca os veículos.

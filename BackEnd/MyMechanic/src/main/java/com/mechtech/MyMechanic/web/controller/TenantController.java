@@ -2,14 +2,19 @@ package com.mechtech.MyMechanic.web.controller;
 
 import com.mechtech.MyMechanic.entity.Tenant;
 import com.mechtech.MyMechanic.service.TenantService;
+import com.mechtech.MyMechanic.web.dto.pageable.PageableDto;
 import com.mechtech.MyMechanic.web.dto.tenant.TenantResponseDto;
 import com.mechtech.MyMechanic.web.dto.tenant.TenantSignupDto;
 import com.mechtech.MyMechanic.web.dto.tenant.TenantUpdateDto; // Importar
+import com.mechtech.MyMechanic.web.mapper.PageableMapper;
 import com.mechtech.MyMechanic.web.mapper.TenantMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -25,6 +30,7 @@ public class TenantController {
 
     private final TenantService tenantService;
     private final TenantMapper tenantMapper;
+    private final PageableMapper pageableMapper;
 
     @Operation(summary = "Registrar nova empresa (Sign Up)")
     @PostMapping("/register")
@@ -70,5 +76,13 @@ public class TenantController {
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(contentType != null ? contentType : "image/png"))
                 .body(logo);
+    }
+
+    @Operation(summary = "Listar todas as empresas")
+    @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<PageableDto> getAll(@PageableDefault(size = 10, sort = "name") Pageable pageable) {
+        Page<Tenant> tenants = tenantService.findAll(pageable);
+        return ResponseEntity.ok(pageableMapper.toDto(tenants.map(tenantMapper::toDto)));
     }
 }

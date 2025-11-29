@@ -27,6 +27,8 @@ import RegisterUser from "./pages/auth/RegisterUser.jsx";
 import CommissionReport from './pages/reports/CommissionReport';
 import RoleList from './pages/roles/RoleList';
 import RoleForm from './pages/roles/RoleForm';
+import UserList from './pages/admin/UserList';
+import TenantList from './pages/admin/TenantList';
 
 function App() {
     return (
@@ -87,6 +89,9 @@ function App() {
 
                         <Route path="settings/company" element={<CompanySettings />} />
                         <Route path="reports/commissions" element={<CommissionReport />} />
+
+                        <Route path="admin/users" element={<UserList />} />
+                        <Route path="admin/tenants" element={<TenantList />} />
                     </Route>
 
                     <Route path="*" element={<Navigate to="/" replace />} />

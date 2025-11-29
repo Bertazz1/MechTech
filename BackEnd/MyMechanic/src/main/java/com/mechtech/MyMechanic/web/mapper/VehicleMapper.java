@@ -2,9 +2,12 @@ package com.mechtech.MyMechanic.web.mapper;
 
 import com.mechtech.MyMechanic.entity.Client;
 import com.mechtech.MyMechanic.entity.Vehicle;
+import com.mechtech.MyMechanic.entity.VehicleBrand;
+import com.mechtech.MyMechanic.entity.VehicleModel;
 import com.mechtech.MyMechanic.web.dto.vehicle.VehicleCreateDto;
 import com.mechtech.MyMechanic.web.dto.vehicle.VehicleResponseDto;
 import com.mechtech.MyMechanic.web.dto.vehicle.VehicleUpdateDto;
+import com.mechtech.MyMechanic.web.dto.vehicle.vehiclebrand.VehicleBrandResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -18,17 +21,16 @@ public class VehicleMapper {
 
     private final ClientMapper clientMapper;
 
-    public Vehicle toVehicle(VehicleCreateDto dto, Client client) {
+    public Vehicle toVehicle(VehicleCreateDto dto, Client client, VehicleModel model) {
         if (dto == null) {
             return null;
         }
         Vehicle vehicle = new Vehicle();
         vehicle.setYear(dto.getYear());
         vehicle.setLicensePlate(dto.getLicensePlate());
-        vehicle.setModel(dto.getModel());
+        vehicle.setModel(model);
         vehicle.setColor(dto.getColor());
         vehicle.setClient(client);
-        vehicle.setBrand(dto.getBrand());
         return vehicle;
     }
 
@@ -40,15 +42,12 @@ public class VehicleMapper {
         if (dto.getLicensePlate() != null) {
             vehicle.setLicensePlate(dto.getLicensePlate());
         }
-        if (dto.getModel() != null) {
-            vehicle.setModel(dto.getModel());
-        }
+
+
         if (dto.getColor() != null) {
             vehicle.setColor(dto.getColor());
         }
-        if (dto.getBrand() != null) {
-            vehicle.setBrand(dto.getBrand());
-        }
+
         if (dto.getClientId() != null) {
             Client client = new Client();
             client.setId(dto.getClientId());
@@ -65,9 +64,15 @@ public class VehicleMapper {
         dto.setId(vehicle.getId());
         dto.setYear(vehicle.getYear());
         dto.setLicensePlate(vehicle.getLicensePlate());
-        dto.setModel(vehicle.getModel());
+        if (vehicle.getModel() != null) {
+            dto.setModel(new com.mechtech.MyMechanic.web.dto.vehicle.vehiclemodel.VehicleModelResponseDto(
+                    vehicle.getModel().getId(),
+                    vehicle.getModel().getName(),
+                    vehicle.getModel().getBrand().getName()
+            ));
+        }
+
         dto.setColor(vehicle.getColor());
-        dto.setBrand(vehicle.getBrand());
         if(vehicle.getClient() != null) {
             dto.setClient(clientMapper.toDto(vehicle.getClient()));
         }

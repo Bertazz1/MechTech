@@ -4,6 +4,7 @@ package com.mechtech.MyMechanic.web.controller;
 import com.mechtech.MyMechanic.config.security.IsAdmin;
 import com.mechtech.MyMechanic.config.security.IsAdminOrOwner;
 import com.mechtech.MyMechanic.entity.User;
+import com.mechtech.MyMechanic.repository.projection.UserProjection;
 import com.mechtech.MyMechanic.service.UserService;
 import com.mechtech.MyMechanic.web.dto.user.*;
 import com.mechtech.MyMechanic.web.mapper.UserMapper;
@@ -47,10 +48,10 @@ public class UserController {
 
     @IsAdmin
     @GetMapping
-    public ResponseEntity<PageableDto> getAllUsers(@PageableDefault(size = 5, sort = "username") Pageable pageable) {
-            Page<User> userPage = userService.findAll(pageable);
-            Page<UserResponseDto> userResponseDTOPageable = userPage.map(userMapper::toDto);
-            return ResponseEntity.ok(pageableMapper.toDto(userResponseDTOPageable));
+    public ResponseEntity<PageableDto> getAllUsers(@PageableDefault(size = 10, sort = "full_name") Pageable pageable) {
+
+        Page<UserProjection> users = userService.findAll(pageable);
+        return ResponseEntity.ok(pageableMapper.toDto(users));
         }
 
     @IsAdminOrOwner(id = "id")
@@ -93,7 +94,7 @@ public class UserController {
 
     @PostMapping("/forgot-password")
     public ResponseEntity<Void> forgotPassword(@Valid @RequestBody UserForgotPasswordDto dto) {
-        User user = userService.createPasswordResetToken(dto.getUsername());
+        User user = userService.createPasswordResetToken(dto.getEmail());
         return ResponseEntity.noContent().build();
     }
 
