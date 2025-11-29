@@ -15,18 +15,19 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/parts")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('ADMIN') or @securityService.isTenantMember(#id)")
 public class PartController {
 
     private final PartService partService;
     private final PartMapper partMapper;
     private final PageableMapper pageableMapper;
 
-    @IsAdminOrClient
     @PostMapping
     public ResponseEntity<PartResponseDto> create(@Valid @RequestBody PartCreateDto dto) {
         Part part = partMapper.toPart(dto);
@@ -34,28 +35,24 @@ public class PartController {
         return ResponseEntity.ok(partMapper.toDto(created));
     }
 
-    @IsAdminOrClient
     @GetMapping("/{id}")
     public ResponseEntity<PartResponseDto> findById(@PathVariable Long id) {
         Part part = partService.findById(id);
         return ResponseEntity.ok(partMapper.toDto(part));
     }
 
-    @IsAdminOrClient
     @GetMapping("/code/{code}")
     public ResponseEntity<PartResponseDto> findByCode(@PathVariable String code) {
         Part part = partService.findByCode(code);
         return ResponseEntity.ok(partMapper.toDto(part));
     }
 
-    @IsAdminOrClient
     @GetMapping
     public ResponseEntity<PageableDto> findAll(Pageable pageable) {
         Page<PartProjection> partsPage = partService.findAll(pageable);
         return ResponseEntity.ok(pageableMapper.toDto(partsPage));
     }
 
-    @IsAdminOrClient
     @PutMapping("/{id}")
     public ResponseEntity<PartResponseDto> update(@PathVariable Long id,
                                                   @Valid @RequestBody PartUpdateDto dto) {
@@ -66,7 +63,6 @@ public class PartController {
 
     }
 
-    @IsAdminOrClient
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         Part part = partService.findById(id);
@@ -74,7 +70,6 @@ public class PartController {
         return ResponseEntity.noContent().build();
     }
 
-    @IsAdminOrClient
     @GetMapping("/search")
     public ResponseEntity<PageableDto> search(@RequestParam(name = "q", required = false) String query, Pageable pageable) {
         Page<PartProjection> partsPage = partService.search(query, pageable);

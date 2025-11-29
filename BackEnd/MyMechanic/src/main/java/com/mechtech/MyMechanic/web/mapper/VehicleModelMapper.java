@@ -16,9 +16,11 @@ import java.util.stream.Collectors;
 public class VehicleModelMapper {
 
     private final VehicleBrandService vehicleBrandService;
+    private final VehicleBrandMapper vehicleBrandMapper;
 
-    public VehicleModelMapper(VehicleBrandService vehicleBrandService) {
+    public VehicleModelMapper(VehicleBrandService vehicleBrandService, VehicleBrandMapper vehicleBrandMapper) {
         this.vehicleBrandService = vehicleBrandService;
+        this.vehicleBrandMapper = vehicleBrandMapper;
     }
 
 
@@ -56,7 +58,7 @@ public class VehicleModelMapper {
         dto.setId(vehicleModel.getId());
         dto.setName(vehicleModel.getName());
         if (vehicleModel.getBrand() != null) {
-            dto.setBrandName(vehicleModel.getBrand().getName());
+            dto.setBrand(vehicleBrandMapper.toDto(vehicleModel.getBrand()));
         }
         return dto;
     }

@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/v1/vehicle-brands")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('ADMIN')")
+@PreAuthorize("hasRole('ADMIN') or @securityService.isTenantMember(#id)")
 public class VehicleBrandController {
 
     private final VehicleBrandService vehicleBrandService;

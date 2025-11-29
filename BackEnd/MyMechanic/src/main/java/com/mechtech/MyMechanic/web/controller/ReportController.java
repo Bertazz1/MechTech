@@ -17,13 +17,13 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/reports")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('ADMIN') or @securityService.isTenantMember(#id)")
 public class ReportController {
 
     private final ReportService reportService;
 
     @Operation(summary = "Relatório de Comissões por Período")
     @GetMapping("/commissions")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<CommissionReportDto>> getCommissions(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {

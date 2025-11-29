@@ -21,6 +21,8 @@ public class VehicleMapper {
 
     private final ClientMapper clientMapper;
 
+
+
     public Vehicle toVehicle(VehicleCreateDto dto, Client client, VehicleModel model) {
         if (dto == null) {
             return null;
@@ -48,11 +50,6 @@ public class VehicleMapper {
             vehicle.setColor(dto.getColor());
         }
 
-        if (dto.getClientId() != null) {
-            Client client = new Client();
-            client.setId(dto.getClientId());
-            vehicle.setClient(client);
-        }
 
     }
 
@@ -68,7 +65,7 @@ public class VehicleMapper {
             dto.setModel(new com.mechtech.MyMechanic.web.dto.vehicle.vehiclemodel.VehicleModelResponseDto(
                     vehicle.getModel().getId(),
                     vehicle.getModel().getName(),
-                    vehicle.getModel().getBrand().getName()
+                    new VehicleBrandResponseDto(vehicle.getModel().getBrand().getId(), vehicle.getModel().getBrand().getName())
             ));
         }
 

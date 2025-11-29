@@ -17,11 +17,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
 import com.mechtech.MyMechanic.config.security.IsAdmin;
 import com.mechtech.MyMechanic.config.security.IsAdminOrClient;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/v1/employees")
+@PreAuthorize("hasRole('ADMIN') or @securityService.isTenantMember(#id)")
 public class EmployeeController {
 
     private final EmployeeService employeeService;
@@ -30,27 +32,24 @@ public class EmployeeController {
 
 
     @PostMapping
-    @IsAdminOrClient
     public ResponseEntity<EmployeeResponseDto> createEmployee(@Valid @RequestBody EmployeeCreateDto dto) {
         Employee created = employeeService.create(employeeMapper.toEmployee(dto));
         return ResponseEntity.status(HttpStatus.CREATED).body(employeeMapper.toDto(created));
     }
 
     @GetMapping("/{id}")
-    @IsAdminOrClient
     public ResponseEntity<EmployeeResponseDto> getEmployeeById(@PathVariable Long id) {
         Employee employee = employeeService.findById(id);
         return ResponseEntity.ok(employeeMapper.toDto(employee));
     }
 
     @GetMapping
-    @IsAdminOrClient
     public ResponseEntity<PageableDto> getAllEmployees(Pageable pageable) {
         Page<EmployeeProjection> employeePage = employeeService.findAll(pageable);
         return ResponseEntity.ok(pageableMapper.toDto(employeePage));
     }
 
-    @IsAdminOrClient
+
     @PutMapping("/{id}")
     public ResponseEntity<EmployeeResponseDto> updateEmployee(@PathVariable Long id,
                                                               @Valid @RequestBody EmployeeUpdateDto dto) {
@@ -60,7 +59,6 @@ public class EmployeeController {
         return ResponseEntity.ok(employeeMapper.toDto(updated));
     }
 
-    @IsAdminOrClient
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteEmployee(@PathVariable Long id) {
         employeeService.delete(id);
@@ -68,21 +66,18 @@ public class EmployeeController {
     }
 
     @GetMapping("/cpf/{cpf}")
-    @IsAdminOrClient
     public ResponseEntity<EmployeeResponseDto> findByCpf(@PathVariable String cpf) {
         Employee employee = employeeService.findByCpf(cpf);
         return ResponseEntity.ok(employeeMapper.toDto(employee));
     }
 
     @GetMapping("/email/{email}")
-    @IsAdminOrClient
     public ResponseEntity<EmployeeResponseDto> findByEmail(@PathVariable String email) {
         Employee employee = employeeService.findByEmail(email);
         return ResponseEntity.ok(employeeMapper.toDto(employee));
     }
 
     @GetMapping("/search")
-    @IsAdmin
     public ResponseEntity<PageableDto> search(@RequestParam(name = "q", required = false) String query, Pageable pageable) {
         Page<EmployeeProjection> employeePage = employeeService.search(query, pageable);
         return ResponseEntity.ok(pageableMapper.toDto(employeePage));

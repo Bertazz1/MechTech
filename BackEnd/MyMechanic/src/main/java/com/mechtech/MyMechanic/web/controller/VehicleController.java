@@ -28,8 +28,8 @@ public class VehicleController {
 
     @PostMapping
     public ResponseEntity<VehicleResponseDto> createVehicle(@Valid @RequestBody VehicleCreateDto vehicleCreateDto) {
-        Vehicle savedVehicle = vehicleService.createVehicle(vehicleCreateDto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(vehicleMapper.toDto(savedVehicle));
+        Vehicle createdVehicle = vehicleService.createVehicle(vehicleCreateDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(vehicleMapper.toDto(createdVehicle));
     }
 
     @GetMapping("/{id}")
@@ -58,9 +58,7 @@ public class VehicleController {
 
     @PutMapping("/{id}")
     public ResponseEntity<VehicleResponseDto> updateVehicle(@PathVariable Long id, @Valid @RequestBody VehicleUpdateDto vehicleUpdateDto) {
-        Vehicle vehicleToUpdate = vehicleService.findById(id);
-        vehicleMapper.updateVehicleFromDto(vehicleUpdateDto, vehicleToUpdate);
-        Vehicle updatedVehicle = vehicleService.updateVehicle(vehicleToUpdate);
+        Vehicle updatedVehicle = vehicleService.updateVehicle(id, vehicleUpdateDto);
         return ResponseEntity.ok(vehicleMapper.toDto(updatedVehicle));
     }
 

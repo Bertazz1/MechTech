@@ -15,9 +15,6 @@ public class VehicleUpdateDto {
     private String licensePlate;
 
     @Positive
-    private Long brandId;
-
-    @Positive
     private Long modelId;
 
     @Size(max = 20)

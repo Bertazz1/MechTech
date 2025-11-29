@@ -29,6 +29,12 @@ import RoleList from './pages/roles/RoleList';
 import RoleForm from './pages/roles/RoleForm';
 import UserList from './pages/admin/UserList';
 import TenantList from './pages/admin/TenantList';
+import VehicleBrandList from './pages/vehicles/brand/VehicleBrandList';
+import VehicleBrandForm from './pages/vehicles/brand/VehicleBrandForm';
+import VehicleModelList from './pages/vehicles/models/VehicleModelList';
+import VehicleModelForm from './pages/vehicles/models/VehicleModelForm';
+
+
 
 function App() {
     return (
@@ -59,6 +65,14 @@ function App() {
                         <Route path="vehicles" element={<VehicleList />} />
                         <Route path="vehicles/new" element={<VehicleForm />} />
                         <Route path="vehicles/edit/:id" element={<VehicleForm />} />
+
+                        <Route path="vehicle-brands" element={<VehicleBrandList />} />
+                        <Route path="vehicle-brands/new" element={<VehicleBrandForm />} />
+                        <Route path="vehicle-brands/edit/:id" element={<VehicleBrandForm />} />
+
+                        <Route path="vehicle-models" element={<VehicleModelList />} />
+                        <Route path="vehicle-models/new" element={<VehicleModelForm />} />
+                        <Route path="vehicle-models/edit/:id" element={<VehicleModelForm />} />
 
                         <Route path="employees" element={<EmployeeList />} />
                         <Route path="employees/new" element={<EmployeeForm />} />

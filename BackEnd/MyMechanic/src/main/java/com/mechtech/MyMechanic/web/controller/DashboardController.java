@@ -15,13 +15,14 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1/dashboard")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('ADMIN') or @securityService.isTenantMember(#id)")
+
 public class DashboardController {
 
     private final DashboardService dashboardService;
 
     @Operation(summary = "Obter estatísticas gerais")
     @GetMapping("/stats")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('EMPLOYEE')")
     public ResponseEntity<DashboardStatsDto> getStats() {
         return ResponseEntity.ok(dashboardService.getStats());
     }

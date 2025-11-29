@@ -16,32 +16,31 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/service-orders")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('ADMIN') or @securityService.isTenantMember(#id)")
 public class ServiceOrderController {
 
     private final ServiceOrderService serviceOrderService;
     private final ServiceOrderMapper serviceOrderMapper;
     private final PageableMapper pageableMapper;
 
-    @IsAdminOrClient
     @PostMapping("/from-quotation/{quotationId}")
     public ResponseEntity<ServiceOrderResponseDto> createFromQuotation(@PathVariable Long quotationId) {
         ServiceOrder serviceOrder = serviceOrderService.createFromQuotation(quotationId);
         return ResponseEntity.status(HttpStatus.CREATED).body(serviceOrderMapper.toDto(serviceOrder));
     }
 
-    @IsAdminOrClient
     @PostMapping
     public ResponseEntity<ServiceOrderResponseDto> createDirect(@Valid @RequestBody ServiceOrderCreateDto dto) {
         ServiceOrder serviceOrder = serviceOrderService.createDirect(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(serviceOrderMapper.toDto(serviceOrder));
     }
 
-    @IsAdminOrClient
     @GetMapping("/{id}")
     public ResponseEntity<ServiceOrderResponseDto> getById(@PathVariable Long id) {
         ServiceOrder serviceOrder = serviceOrderService.findById(id);
@@ -49,7 +48,6 @@ public class ServiceOrderController {
     }
 
 
-    @IsAdminOrClient
     @GetMapping
     public ResponseEntity<PageableDto> getAll(Pageable pageable) {
         Page<ServiceOrderProjection> page = serviceOrderService.findAll(pageable);
@@ -57,14 +55,12 @@ public class ServiceOrderController {
     }
 
 
-    @IsAdminOrClient
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         serviceOrderService.delete(id);
         return ResponseEntity.noContent().build();
     }
 
-    @IsAdminOrClient
     @GetMapping("/search")
     public ResponseEntity<PageableDto> search(@RequestParam(name = "q", required = false) String query, Pageable pageable) {
         Page<ServiceOrderProjection> serviceOrderPage = serviceOrderService.search(query, pageable);
@@ -72,13 +68,11 @@ public class ServiceOrderController {
     }
 
     @PatchMapping("/{id}")
-    @IsAdminOrClient
     public ResponseEntity<ServiceOrderResponseDto> updateServiceOrder(@PathVariable Long id, @Valid @RequestBody ServiceOrderUpdateDto dto) { // Mudar para @PathVariable e @RequestBody
         ServiceOrder updatedServiceOrder = serviceOrderService.update(id, dto);
         return ResponseEntity.ok(serviceOrderMapper.toDto(updatedServiceOrder));
     }
 
-    @IsAdminOrClient
     @GetMapping("/{id}/pdf")
     public ResponseEntity<byte[]> getServiceOrderPdf(@PathVariable Long id) {
         byte[] pdfContents = serviceOrderService.getServiceOrderAsPdf(id);

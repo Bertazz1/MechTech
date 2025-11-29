@@ -55,6 +55,7 @@ public class TenantService {
         adminUser.setEmail(dto.getAdminEmail());
         adminUser.setPassword(passwordEncoder.encode(dto.getAdminPassword()));
         adminUser.setFullName(dto.getAdminName());
+        adminUser.setPhone(dto.getCompanyPhone());
         adminUser.setRole(User.Role.ROLE_CLIENT);
         adminUser.setTenantId(String.valueOf(tenant.getId()));
 

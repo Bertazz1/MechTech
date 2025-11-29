@@ -14,6 +14,8 @@ import {
     Building,
     DollarSign,
     ShieldCheck,
+    Tag,
+    Layers
 } from 'lucide-react';
 
 const Sidebar = () => {
@@ -31,13 +33,16 @@ const Sidebar = () => {
         { path: '/service-orders', label: 'Ordens de Serviço', icon: ClipboardList },
         { path: '/quotations', label: 'Orçamentos', icon: FileText },
         { path: '/invoices', label: 'Faturas', icon: Receipt },
-        { path: '/reports/commissions', label: 'Comissões', icon: DollarSign }, // <--- NOVO ITEM
+        { path: '/reports/commissions', label: 'Comissões', icon: DollarSign },
         { path: '/clients', label: 'Clientes', icon: Users },
         { path: '/vehicles', label: 'Veículos', icon: Car },
+        { path: '/vehicle-brands', label: 'Marcas', icon: Tag },
+        { path: '/vehicle-models', label: 'Modelos', icon: Layers }, // Novo
         { path: '/parts', label: 'Peças', icon: Package },
         { path: '/repair-services', label: 'Serviços', icon: Wrench },
         { path: '/employees', label: 'Funcionários', icon: UserCog },
         { path: '/roles', label: 'Cargos', icon: ShieldCheck },
+
 
     ];
 

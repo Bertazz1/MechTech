@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/v1/roles")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('ADMIN')") // Apenas Admins podem gerenciar Roles
+@PreAuthorize("hasRole('ADMIN') or @securityService.isTenantMember(#id)")
 public class RoleController {
 
     private final RoleService roleService;

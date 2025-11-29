@@ -16,18 +16,19 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/v1/quotations")
+@PreAuthorize("hasRole('ADMIN') or @securityService.isTenantMember(#id)")
 public class QuotationController {
     private final QuotationService quotationService;
     private final QuotationMapper quotationMapper;
     private final PageableMapper pageableMapper;
 
-    @IsAdminOrClient
     @PostMapping
     public ResponseEntity<QuotationResponseDto> createQuotation(@Valid @RequestBody QuotationCreateDto quotationCreateDto) {
         Quotation quotation = quotationMapper.toQuotation(quotationCreateDto);
@@ -40,28 +41,24 @@ public class QuotationController {
         return ResponseEntity.status(HttpStatus.CREATED).body(quotationMapper.toDto(savedQuotation));
     }
 
-    @IsAdminOrClient
     @GetMapping("/{id}")
     public ResponseEntity<QuotationResponseDto> findById(@Valid @PathVariable Long id) {
         Quotation savedQuotation = quotationService.findById(id);
         return ResponseEntity.ok(quotationMapper.toDto(savedQuotation));
     }
 
-    @IsAdminOrClient
     @GetMapping
     public ResponseEntity<PageableDto> getAllQuotations(Pageable pageable) {
         Page<QuotationProjection> page = quotationService.findAll(pageable);
         return ResponseEntity.ok(pageableMapper.toDto(page));
     }
 
-    @IsAdminOrClient
     @GetMapping("/vehicle/{vehicleId}")
     public ResponseEntity<List<QuotationResponseDto>> getQuotationsByVehicleId(@PathVariable Long vehicleId) {
         List<Quotation> quotations = quotationService.findByVehicleId(vehicleId);
         return ResponseEntity.ok(quotationMapper.toListDto(quotations));
     }
 
-    @IsAdminOrClient
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteQuotation(@PathVariable Long id) {
         Quotation deleted = quotationService.findById(id);
@@ -69,7 +66,6 @@ public class QuotationController {
         return ResponseEntity.noContent().build();
     }
 
-    @IsAdminOrClient
     @PutMapping("/{id}")
     public ResponseEntity<QuotationResponseDto> updateQuotation(@PathVariable Long id,
                                                                 @Valid @RequestBody QuotationUpdateDto dto) {
@@ -77,14 +73,12 @@ public class QuotationController {
         return ResponseEntity.ok(quotationMapper.toDto(updated));
     }
 
-    @IsAdminOrClient
     @GetMapping("/search")
     public ResponseEntity<PageableDto> search(@RequestParam(name = "q", required = false) String query, Pageable pageable) {
         Page<QuotationProjection> quotationPage = quotationService.search(query, pageable);
         return ResponseEntity.ok(pageableMapper.toDto(quotationPage));
     }
 
-    @IsAdminOrClient
     @GetMapping("/{id}/pdf")
     public ResponseEntity<byte[]> getQuotationPdf(@PathVariable Long id) {
         byte[] pdfContents = quotationService.getQuotationAsPdf(id);
