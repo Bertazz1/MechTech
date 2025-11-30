@@ -27,7 +27,7 @@ public class Vehicle extends AbstractEntity implements Serializable, com.mechtec
     @Serial
     private static final long serialVersionUID = 1L;
 
-    @jakarta.persistence.Id
+    @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Long id;
@@ -41,14 +41,12 @@ public class Vehicle extends AbstractEntity implements Serializable, com.mechtec
     @Column(name = "license_plate", unique = true, nullable = false)
     private String licensePlate;
 
-    @Column(name = "model", nullable = false)
-    private String model;
-
     @Column(name = "color", nullable = false)
     private String color;
 
-    @Column(name = "brand", nullable = false )
-    private String brand;
+    @ManyToOne
+    @JoinColumn(name = "model_id", nullable = false)
+    private VehicleModel model;
 
     @ManyToOne
     @JoinColumn(name = "client_id", nullable = false)

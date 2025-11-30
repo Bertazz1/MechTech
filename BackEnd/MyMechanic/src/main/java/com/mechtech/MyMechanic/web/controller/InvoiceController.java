@@ -15,11 +15,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/invoices")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('ADMIN') or @securityService.isTenantMember(#id)")
 public class InvoiceController {
 
     private final InvoiceService invoiceService;
@@ -27,34 +29,29 @@ public class InvoiceController {
     private final PageableMapper pageableMapper;
 
     @PostMapping("/from-service-order/{serviceOrderId}")
-    @IsAdminOrClient
     public ResponseEntity<InvoiceResponseDto> createFromServiceOrder(@PathVariable Long serviceOrderId) {
         Invoice invoice = invoiceService.createFromServiceOrder(serviceOrderId);
         return ResponseEntity.status(HttpStatus.CREATED).body(invoiceMapper.toDto(invoice));
     }
 
-    @IsAdminOrClient
     @GetMapping
     public ResponseEntity<PageableDto> getAll(Pageable pageable) {
         Page<InvoiceProjection> page = invoiceService.findAll(pageable);
         return ResponseEntity.ok(pageableMapper.toDto(page));
     }
 
-    @IsAdminOrClient
     @GetMapping("/search")
     public ResponseEntity<PageableDto> search(@RequestParam(name = "q") String query, Pageable pageable) {
         Page<InvoiceProjection> invoicePage = invoiceService.search(query, pageable);
         return ResponseEntity.ok(pageableMapper.toDto(invoicePage));
     }
 
-    @IsAdminOrClient
     @PatchMapping("/{id}")
     public ResponseEntity<InvoiceResponseDto> updatePaymentStatus(@PathVariable Long id, @Valid @RequestBody InvoiceUpdatePaymentDto dto) {
         Invoice updatedInvoice = invoiceService.updatePaymentStatus(id, dto.getPaymentStatus());
         return ResponseEntity.ok(invoiceMapper.toDto(updatedInvoice));
     }
 
-    @IsAdminOrClient
     @GetMapping("/{id}/pdf")
     public ResponseEntity<byte[]> getInvoicePdf(@PathVariable Long id) {
         byte[] pdfContents = invoiceService.getInvoiceAsPdf(id);

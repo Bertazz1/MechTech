@@ -28,7 +28,7 @@ export const serviceOrderService = {
         return response.data;
     },
     generateInvoice: async (id) => {
-        const response = await api.post(`/service-orders/${id}/invoice`);
+        const response = await api.post(`/invoices/from-service-order/${id}`);
         return response.data;
     }
 };

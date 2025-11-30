@@ -15,18 +15,19 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/repair-services")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('ADMIN') or @securityService.isTenantMember(#id)")
 public class RepairServiceController {
 
     private final RepairServiceService repairServiceService;
     private final RepairServiceMapper repairServiceMapper;
     private final PageableMapper pageableMapper;
 
-    @IsAdminOrClient
     @PostMapping
     public ResponseEntity<RepairServiceResponseDto> create(@Valid @RequestBody RepairServiceCreateDto createDto) {
         RepairService newService = repairServiceMapper.toRepairService(createDto);
@@ -34,21 +35,18 @@ public class RepairServiceController {
         return ResponseEntity.status(HttpStatus.CREATED).body(repairServiceMapper.toDto(createdService));
     }
 
-    @IsAdminOrClient
     @GetMapping("/{id}")
     public ResponseEntity<RepairServiceResponseDto> getById(@PathVariable Long id) {
         RepairService service = repairServiceService.findById(id);
         return ResponseEntity.ok(repairServiceMapper.toDto(service));
     }
 
-    @IsAdminOrClient
     @GetMapping
     public ResponseEntity<PageableDto> getAll(Pageable pageable) {
         Page<RepairServiceProjection> servicePage = repairServiceService.findAll(pageable);
         return ResponseEntity.ok(pageableMapper.toDto(servicePage));
     }
 
-    @IsAdminOrClient
     @PutMapping("/{id}")
     public ResponseEntity<RepairServiceResponseDto> update(@PathVariable Long id, @Valid @RequestBody RepairServiceCreateDto updateDto) {
         RepairService existingService = repairServiceService.findById(id);
@@ -57,14 +55,12 @@ public class RepairServiceController {
         return ResponseEntity.ok(repairServiceMapper.toDto(updatedService));
     }
 
-    @IsAdminOrClient
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         repairServiceService.delete(id);
         return ResponseEntity.noContent().build();
     }
 
-    @IsAdminOrClient
     @GetMapping("/search")
     public ResponseEntity<PageableDto> search(@RequestParam(name = "q", required = false) String query, Pageable pageable) {
         Page<RepairServiceProjection> servicePage = repairServiceService.search(query, pageable);

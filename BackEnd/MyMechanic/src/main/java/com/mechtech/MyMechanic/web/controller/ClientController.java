@@ -18,11 +18,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/v1/clients")
+@PreAuthorize("hasRole('ADMIN') or @securityService.isTenantMember(#id)")
 public class ClientController {
 
     private final ClientService clientService;
@@ -30,21 +32,18 @@ public class ClientController {
     private final PageableMapper pageableMapper;
 
     @PostMapping
-    @IsAdminOrClient
     public ResponseEntity<ClientResponseDto> createClient(@Valid @RequestBody ClientCreateDto dto) {
         Client createdClient = clientService.createClient(clientMapper.toClient(dto));
         return ResponseEntity.status(HttpStatus.CREATED).body(clientMapper.toDto(createdClient));
     }
 
     @GetMapping("/{id}")
-    @IsAdminOrOwner(id = "#id")
     public ResponseEntity<ClientResponseDto> getClientById(@PathVariable Long id) {
         Client client = clientService.findById(id);
         return ResponseEntity.ok(clientMapper.toDto(client));
     }
 
     @GetMapping
-    @IsAdmin
     public ResponseEntity<PageableDto> getAllClients(Pageable pageable) {
         Page<ClientProjection> clientPage = clientService.findAll(pageable);
         return ResponseEntity.ok(pageableMapper.toDto(clientPage));
@@ -58,7 +57,6 @@ public class ClientController {
     }
 
     @PutMapping("/{id}")
-    @IsAdminOrOwner(id = "#id")
     public ResponseEntity<ClientResponseDto> updateClient(@PathVariable Long id,
                                                           @Valid @RequestBody ClientUpdateDto dto) {
         Client client = clientService.findById(id);

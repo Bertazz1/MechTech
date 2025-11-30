@@ -13,7 +13,7 @@ public class JwtUserDetails extends User {
     private com.mechtech.MyMechanic.entity.User user;
 
     public JwtUserDetails(com.mechtech.MyMechanic.entity.User user) {
-        super(user.getUsername(), user.getPassword(), AuthorityUtils.createAuthorityList(user.getRole().name()));
+        super(user.getEmail(), user.getPassword(), AuthorityUtils.createAuthorityList(user.getRole().name()));
         this.user = user;
     }
 

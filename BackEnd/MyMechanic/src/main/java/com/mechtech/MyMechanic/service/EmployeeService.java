@@ -1,7 +1,9 @@
 package com.mechtech.MyMechanic.service;
 
 import com.mechtech.MyMechanic.entity.Employee;
+import com.mechtech.MyMechanic.exception.BusinessRuleException;
 import com.mechtech.MyMechanic.exception.EntityNotFoundException;
+import com.mechtech.MyMechanic.exception.UniqueConstraintViolationException;
 import com.mechtech.MyMechanic.multiTenants.TenantContext;
 import com.mechtech.MyMechanic.repository.EmployeeRepository;
 import com.mechtech.MyMechanic.repository.projection.EmployeeProjection;
@@ -27,7 +29,15 @@ public class EmployeeService extends AbstractTenantAwareService<Employee, Long, 
     @Transactional
     public Employee create(Employee employee) {
         ValidationUtils.validateCpf(employee.getCpf());
-
+        if (repository.existsByCpf(employee.getCpf())){
+            throw new UniqueConstraintViolationException("Já existe um funcionário com o CPF informado.");
+        }
+        if (repository.existsByEmail(employee.getEmail())){
+            throw new UniqueConstraintViolationException("Já existe um funcionário com o email informado.");
+        }
+        if (repository.existsByPhone(employee.getPhone())){
+            throw new UniqueConstraintViolationException("Já existe um funcionário com o telefone informado.");
+        }
         employee.setTenantId(TenantContext.getTenantId());
         return repository.save(employee);
     }
@@ -39,26 +49,16 @@ public class EmployeeService extends AbstractTenantAwareService<Employee, Long, 
     }
 
     @Transactional
-    public Employee update(Long id, Employee employee) {
-        Employee existingEmployee = findById(id); // Validação de tenant acontece aqui
+    public Employee update(Employee employee) {
         if (employee.getCpf() != null ) {
             ValidationUtils.validateCpf(employee.getCpf());
         }
-        existingEmployee.setName(employee.getName());
-        existingEmployee.setRole(employee.getRole());
-        existingEmployee.setCpf(employee.getCpf());
-        existingEmployee.setEmail(employee.getEmail());
-        existingEmployee.setPhone(employee.getPhone());
-        existingEmployee.setAddress(employee.getAddress());
-        return repository.save(existingEmployee);
+        return repository.save(employee);
     }
 
     @Transactional
-    public void delete(Employee employee) {
-        if (employee == null || employee.getId() == null) {
-            throw new EntityNotFoundException("Empregado não encontrado");
-        }
-        validateTenant(employee);
+    public void delete(Long id) {
+        Employee employee = findById(id);
         repository.delete(employee);
     }
 

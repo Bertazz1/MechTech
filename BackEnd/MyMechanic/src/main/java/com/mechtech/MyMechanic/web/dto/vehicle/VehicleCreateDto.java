@@ -3,6 +3,8 @@ package com.mechtech.MyMechanic.web.dto.vehicle;
 import jakarta.validation.constraints.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @ToString
 public class VehicleCreateDto {
 
@@ -14,13 +16,8 @@ public class VehicleCreateDto {
     @Pattern(regexp = "^[A-Z]{3}[0-9][A-Z0-9][0-9]{2}$", message = "Formato de matrícula inválido. Use o padrão Mercosul (ABC1D23) ou o antigo (ABC1234).")
     private String licensePlate;
 
-    @NotBlank
-    @Size(max = 45)
-    private String model;
-
-    @NotBlank
-    @Size(max = 45)
-    private String brand;
+    @NotNull
+    private Long modelId;
 
     @NotBlank
     @Size(max = 20)

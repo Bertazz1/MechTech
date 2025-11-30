@@ -11,6 +11,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
@@ -38,8 +39,9 @@ public class Employee extends AbstractEntity implements Serializable, TenantOwne
     @Column(name = "name", nullable = false, length = 100)
     private String name;
 
-    @Column(name = "role", nullable = false)
-    private String role;
+    @ManyToOne
+    @JoinColumn(name = "role_id")
+    private Role role;
 
     @Column(name = "email", nullable = false, unique = true, length = 150)
     private String email;
@@ -49,6 +51,9 @@ public class Employee extends AbstractEntity implements Serializable, TenantOwne
 
     @Column(name = "cpf", nullable = false, unique = true, length = 11)
     private String cpf;
+
+    @Column(name = "commission_percentage")
+    private BigDecimal commissionPercentage;
 
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "address_id", referencedColumnName = "id")

@@ -21,7 +21,6 @@ public class ServiceOrderCreateDto {
     @Size(max = 500, message = "A descrição não pode exceder 500 caracteres")
     private String description;
 
-    @NotNull(message = "A data de entrada não pode ser nula")
     private LocalDateTime entryDate;
 
     @Valid
@@ -29,4 +28,10 @@ public class ServiceOrderCreateDto {
 
     @Valid
     private List<ServiceOrderServiceDto> serviceItems;
+
+    @Valid
+    private List<ServiceOrderEmployeeDto> employees;
+
+    private Integer initialMileage;
+
 }

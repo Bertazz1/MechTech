@@ -74,8 +74,8 @@ public class PdfGenerationService {
         vehicleCell.setBorder(Rectangle.NO_BORDER);
         vehicleCell.addElement(new Paragraph("Veículo:", FONT_SUBTITULO));
         String vehicleInfo = String.format("%s %s - Matrícula: %s",
-                invoice.getServiceOrder().getVehicle().getBrand(),
-                invoice.getServiceOrder().getVehicle().getModel(),
+                invoice.getServiceOrder().getVehicle().getModel().getBrand().getName(),
+                invoice.getServiceOrder().getVehicle().getModel().getName(),
                 invoice.getServiceOrder().getVehicle().getLicensePlate());
         vehicleCell.addElement(new Paragraph(vehicleInfo, FONT_NORMAL));
 
@@ -177,8 +177,8 @@ public class PdfGenerationService {
         vehicleCell.setBorder(Rectangle.NO_BORDER);
         vehicleCell.addElement(new Paragraph("Veículo:", FONT_SUBTITULO));
         String vehicleInfo = String.format("%s %s - Matrícula: %s",
-                quotation.getVehicle().getBrand(),
-                quotation.getVehicle().getModel(),
+                quotation.getVehicle().getModel().getBrand().getName(),
+                quotation.getVehicle().getModel().getName(),
                 quotation.getVehicle().getLicensePlate());
         vehicleCell.addElement(new Paragraph(vehicleInfo, FONT_NORMAL));
 
@@ -322,8 +322,8 @@ public class PdfGenerationService {
         vehicleCell.setBorder(Rectangle.NO_BORDER);
         vehicleCell.addElement(new Paragraph("Veículo:", FONT_SUBTITULO));
         String vehicleInfo = String.format("%s %s - Matrícula: %s",
-                serviceOrder.getVehicle().getBrand(),
-                serviceOrder.getVehicle().getModel(),
+                serviceOrder.getVehicle().getModel().getBrand().getName(),
+                serviceOrder.getVehicle().getModel().getName(),
                 serviceOrder.getVehicle().getLicensePlate());
         vehicleCell.addElement(new Paragraph(vehicleInfo, FONT_NORMAL));
 
@@ -387,7 +387,6 @@ public class PdfGenerationService {
             for (ServiceOrderEmployee item : serviceOrder.getEmployees()) {
                 table.addCell(new PdfPCell(new Phrase(item.getEmployee().getName(), FONT_NORMAL)));
                 table.addCell(new PdfPCell(new Phrase(item.getCommissionPercentage() + "%", FONT_NORMAL)));
-                table.addCell(new PdfPCell(new Phrase(item.getWorkedHours() != null ? item.getWorkedHours().toString() : "N/A", FONT_NORMAL)));
             }
         }
         return table;

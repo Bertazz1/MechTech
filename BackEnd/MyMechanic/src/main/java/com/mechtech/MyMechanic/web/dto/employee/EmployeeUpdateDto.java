@@ -2,6 +2,7 @@ package com.mechtech.MyMechanic.web.dto.employee;
 
 
 import com.mechtech.MyMechanic.web.dto.client.AddressDto;
+import com.mechtech.MyMechanic.web.dto.role.RoleCreateDto;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -9,6 +10,7 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @ToString
@@ -17,7 +19,8 @@ public class EmployeeUpdateDto {
     @Size(max = 100)
     private String name;
 
-    private String role;
+
+    private Long roleId;
 
     @Email
     private String email;
@@ -30,5 +33,8 @@ public class EmployeeUpdateDto {
 
     @Pattern(regexp = "^\\d{11}$", message = "CPF deve conter 11 dígitos.")
     private String cpf;
+
+
+    private BigDecimal commissionPercentage;
 
 }

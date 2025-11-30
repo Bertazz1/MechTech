@@ -31,8 +31,9 @@ public class ServiceOrderSpecification {
             predicates.add(criteriaBuilder.like(criteriaBuilder.lower(clientJoin.get("name")), likePattern));
             predicates.add(criteriaBuilder.like(criteriaBuilder.lower(clientJoin.get("email")), likePattern));
             predicates.add(criteriaBuilder.like(criteriaBuilder.lower(vehicleJoin.get("licensePlate")), likePattern));
-            predicates.add(criteriaBuilder.like(criteriaBuilder.lower(vehicleJoin.get("model")), likePattern));
-            predicates.add(criteriaBuilder.like(criteriaBuilder.lower(vehicleJoin.get("brand")), likePattern));
+            predicates.add(criteriaBuilder.like(criteriaBuilder.lower(vehicleJoin.get("model").get("name")), likePattern));
+            predicates.add(criteriaBuilder.like(criteriaBuilder.lower(vehicleJoin.get("model").get("brand").get("name")), likePattern));
+
 
 
 

@@ -22,6 +22,9 @@ public interface ServiceOrderProjection {
     @Value("#{target.vehicle.licensePlate}")
     String getVehicleLicensePlate();
 
+    @Value("#{target.vehicle.model.name}")
+    String getVehicleModelName();
+
     @Value("#{target.client.name}")
     String getClientName();
 }

@@ -4,6 +4,7 @@ package com.mechtech.MyMechanic.web.controller;
 import com.mechtech.MyMechanic.config.security.IsAdmin;
 import com.mechtech.MyMechanic.config.security.IsAdminOrOwner;
 import com.mechtech.MyMechanic.entity.User;
+import com.mechtech.MyMechanic.repository.projection.UserProjection;
 import com.mechtech.MyMechanic.service.UserService;
 import com.mechtech.MyMechanic.web.dto.user.*;
 import com.mechtech.MyMechanic.web.mapper.UserMapper;
@@ -17,6 +18,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import com.mechtech.MyMechanic.jwt.JwtUserDetails;
@@ -33,7 +35,7 @@ public class UserController {
 
     @PostMapping
     public ResponseEntity<UserResponseDto> createUser(@Valid @RequestBody UserCreateDto userCreateDto) {
-        User savedUser = userService.createUser(userMapper.toUser(userCreateDto));
+        User savedUser = userService.createUser(userCreateDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(userMapper.toDto(savedUser));
     }
 
@@ -46,10 +48,10 @@ public class UserController {
 
     @IsAdmin
     @GetMapping
-    public ResponseEntity<PageableDto> getAllUsers(@PageableDefault(size = 5, sort = "username") Pageable pageable) {
-            Page<User> userPage = userService.findAll(pageable);
-            Page<UserResponseDto> userResponseDTOPageable = userPage.map(userMapper::toDto);
-            return ResponseEntity.ok(pageableMapper.toDto(userResponseDTOPageable));
+    public ResponseEntity<PageableDto> getAllUsers(@PageableDefault(size = 10, sort = "full_name") Pageable pageable) {
+
+        Page<UserProjection> users = userService.findAll(pageable);
+        return ResponseEntity.ok(pageableMapper.toDto(users));
         }
 
     @IsAdminOrOwner(id = "id")
@@ -59,7 +61,7 @@ public class UserController {
         return ResponseEntity.noContent().build();
     }
 
-    @IsAdminOrOwner(id = "id")
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/me")
     public ResponseEntity<UserResponseDto> getCurrentUser(@AuthenticationPrincipal JwtUserDetails userDetails) {
         User currentUser = userService.findById(userDetails.getId());
@@ -92,7 +94,7 @@ public class UserController {
 
     @PostMapping("/forgot-password")
     public ResponseEntity<Void> forgotPassword(@Valid @RequestBody UserForgotPasswordDto dto) {
-        User user = userService.createPasswordResetToken(dto.getUsername());
+        User user = userService.createPasswordResetToken(dto.getEmail());
         return ResponseEntity.noContent().build();
     }
 

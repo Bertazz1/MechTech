@@ -18,13 +18,13 @@ public class  JwtUserDetailsService implements UserDetailsService {
     private final JwtUtils jwtUtils;
 
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-       User user = userService.findByUsername(username);
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+       User user = userService.findByEmail(email);
         return new JwtUserDetails(user);
     }
 
-    public JwtToken getTokenAuthenticated(String username, String tenantId) {
-       User.Role role = userService.findRoleByUsername(username);
-        return jwtUtils.createToken(username, role.name().substring("ROLE_".length()), tenantId);
+    public JwtToken getTokenAuthenticated(String email, String tenantId) {
+       User.Role role = userService.findRoleByEmail(email);
+        return jwtUtils.createToken(email, role.name().substring("ROLE_".length()), tenantId);
     }
 }

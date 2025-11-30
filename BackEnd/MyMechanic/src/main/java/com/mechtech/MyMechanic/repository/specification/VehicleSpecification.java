@@ -17,8 +17,8 @@ public class VehicleSpecification {
             String likePattern = "%" + searchTerm.toLowerCase() + "%";
 
             List<Predicate> predicates = new ArrayList<>();
-            predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("model")), likePattern));
-            predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("brand")), likePattern));
+            predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("model").get("name")), likePattern));
+            predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("model").get("brand").get("name")), likePattern));
             predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("licensePlate")), likePattern));
             predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("color")), likePattern));
             predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("client").get("name")), likePattern));

@@ -14,6 +14,7 @@ import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
@@ -51,7 +52,8 @@ public class ServiceOrderService extends AbstractTenantAwareService<ServiceOrder
         serviceOrder.setTenantId(vehicle.getTenantId());
         serviceOrder.setVehicle(vehicle);
         serviceOrder.setClient(vehicle.getClient());
-        serviceOrder.setDescription(dto.getDescription());
+        if (dto.getDescription() != null) {
+            serviceOrder.setDescription(dto.getDescription());}
         if (dto.getEntryDate() != null) {
             serviceOrder.setEntryDate(dto.getEntryDate());
         } else {
@@ -97,6 +99,36 @@ public class ServiceOrderService extends AbstractTenantAwareService<ServiceOrder
         }
         serviceOrder.setServiceItems(soServiceItems);
 
+        // Processar itens de funcionário
+        Set<ServiceOrderEmployee> soEmployeeItems = new HashSet<>();
+        if (dto.getEmployees() != null) {
+            for (ServiceOrderEmployeeDto employeeDto : dto.getEmployees()) {
+                Employee employee = employeeService.findById(employeeDto.getId());
+
+                if (employeeDto.getCommissionPercentage() != null && employeeDto.getCommissionPercentage().compareTo(BigDecimal.ZERO) > 0) {
+                    if (employee.getRole() == null || !employee.getRole().isReceivesCommission()) {
+                        throw new BusinessRuleException("O funcionário '" + employee.getName() + "' com a função '" + (employee.getRole() != null ? employee.getRole().getName() : "N/A") + "' não pode receber comissão.");
+                    }
+                }
+
+                ServiceOrderEmployee soEmployeeItem = new ServiceOrderEmployee();
+                soEmployeeItem.setServiceOrder(serviceOrder);
+                soEmployeeItem.setEmployee(employee);
+                if (employeeDto.getCommissionPercentage() != null){
+                soEmployeeItem.setCommissionPercentage(employeeDto.getCommissionPercentage());}
+                else {
+                    soEmployeeItem.setCommissionPercentage(employee.getCommissionPercentage());
+                }
+                soEmployeeItems.add(soEmployeeItem);
+            }
+        }
+        serviceOrder.setEmployees(soEmployeeItems);
+
+        if (dto.getInitialMileage() != null) {
+            serviceOrder.setInitialMileage(dto.getInitialMileage());
+        }
+
+
         // Calcular o custo total
         serviceOrder.calculateTotalCost();
 
@@ -135,7 +167,8 @@ public class ServiceOrderService extends AbstractTenantAwareService<ServiceOrder
         serviceOrder.setQuotation(quotation);
         serviceOrder.setClient(quotation.getClient());
         serviceOrder.setVehicle(quotation.getVehicle());
-        serviceOrder.setDescription(quotation.getDescription());
+        if (quotation.getDescription() != null){
+             serviceOrder.setDescription(quotation.getDescription());}
         serviceOrder.setEntryDate(LocalDateTime.now());
         serviceOrder.setStatus(ServiceOrder.ServiceOrderStatus.PENDENTE); // Status default
         serviceOrder.setTotalCost(quotation.getTotalCost()); // O preço já foi calculado no orçamento
@@ -193,7 +226,6 @@ public class ServiceOrderService extends AbstractTenantAwareService<ServiceOrder
     public ServiceOrder update(Long id, ServiceOrderUpdateDto dto) {
         ServiceOrder serviceOrder = findById(id);
 
-        // Validar transição de status
         if (dto.getStatus() != null) {
             ServiceOrder.ServiceOrderStatus newStatus = ServiceOrder.ServiceOrderStatus.valueOf(dto.getStatus());
             validateStatusTransition(serviceOrder.getStatus(), newStatus);
@@ -212,17 +244,20 @@ public class ServiceOrderService extends AbstractTenantAwareService<ServiceOrder
         }
 
         if (dto.getEmployees() != null) {
-            // Limpa os funcionários antigos para garantir que a lista seja substituída
             serviceOrder.getEmployees().clear();
+            dto.getEmployees().forEach(employeeDto -> {
+                Employee employee = employeeService.findById(employeeDto.getId());
 
-            // Adiciona os novos funcionários com a sua comissão e horas
-            dto.getEmployees().forEach(EmployeeDto -> {
-                Employee employee = employeeService.findById(EmployeeDto.getId());
+                if (employeeDto.getCommissionPercentage() != null && employeeDto.getCommissionPercentage().compareTo(BigDecimal.ZERO) > 0) {
+                    if (employee.getRole() == null || !employee.getRole().isReceivesCommission()) {
+                        throw new BusinessRuleException("O funcionário '" + employee.getName() + "' com a função '" + (employee.getRole() != null ? employee.getRole().getName() : "N/A") + "' não pode receber comissão.");
+                    }
+                }
+
                 ServiceOrderEmployee soEmployeeItem = new ServiceOrderEmployee();
                 soEmployeeItem.setServiceOrder(serviceOrder);
                 soEmployeeItem.setEmployee(employee);
-                soEmployeeItem.setCommissionPercentage(EmployeeDto.getCommissionPercentage());
-                soEmployeeItem.setWorkedHours(EmployeeDto.getWorkedHours());
+                soEmployeeItem.setCommissionPercentage(employeeDto.getCommissionPercentage());
                 serviceOrder.getEmployees().add(soEmployeeItem);
             });
         }
@@ -231,11 +266,8 @@ public class ServiceOrderService extends AbstractTenantAwareService<ServiceOrder
             serviceOrder.setDescription(dto.getDescription());
         }
 
-        //  Usar clear() e add() na coleção gerenciada (partItems)
         if (dto.getPartItems() != null) {
-            // 1. Limpa a coleção gerenciada para marcar os antigos para remoção (ORPHAN REMOVAL)
             serviceOrder.getPartItems().clear();
-
             for (ServiceOrderPartDto partItemDto : dto.getPartItems()) {
                 Part part = partService.findById(partItemDto.getId());
                 ServiceOrderPartItem soItem = new ServiceOrderPartItem();
@@ -251,12 +283,8 @@ public class ServiceOrderService extends AbstractTenantAwareService<ServiceOrder
             }
         }
 
-        //  Usar clear() e add() na coleção gerenciada (serviceItems)
         if (dto.getServiceItems() != null) {
-            // 1. Limpa a coleção gerenciada para marcar os antigos para remoção
             serviceOrder.getServiceItems().clear();
-
-
             for (ServiceOrderServiceDto serviceItemDto : dto.getServiceItems()) {
                 RepairService service = repairServiceService.findById(serviceItemDto.getId());
                 ServiceOrderServiceItem soItem = new ServiceOrderServiceItem();
@@ -270,7 +298,6 @@ public class ServiceOrderService extends AbstractTenantAwareService<ServiceOrder
                 }
                 serviceOrder.getServiceItems().add(soItem);
             }
-
         }
 
         // Recalcular o custo total se houver atualização de itens
@@ -285,7 +312,6 @@ public class ServiceOrderService extends AbstractTenantAwareService<ServiceOrder
                 serviceOrder.setExitDate(LocalDateTime.now());
             }
         } else if (serviceOrder.getStatus() != ServiceOrder.ServiceOrderStatus.COMPLETO) {
-            // Garante que a data de saída seja nula se o status voltar para EM_PROGRESSO ou PENDENTE
             serviceOrder.setExitDate(null);
         }
 

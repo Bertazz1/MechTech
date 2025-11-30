@@ -1,17 +1,28 @@
 import api from '../config/api';
 
 export const authService = {
-  login: async (username, password) => {
-    const response = await api.post('/auth', { username, password });
-    return response.data;
-  },
+    login: async (email, password) => {
+        const response = await api.post('/auth', { email, password });
+        return response.data;
+    },
 
-  logout: () => {
-    localStorage.removeItem('token');
-    window.location.href = '/auth';
-  },
+    getCurrentUser: async () => {
+        const response = await api.get('/users/me');
+        return response.data;
+    },
 
-  isAuthenticated: () => {
-    return !!localStorage.getItem('token');
-  },
+    logout: () => {
+        localStorage.removeItem('token');
+        window.location.href = '/auth';
+    },
+
+    isAuthenticated: () => {
+        const token = localStorage.getItem('token');
+        return !!token; // Retorna true se tiver token
+    },
+
+    signup: async (userData) => {
+        const response = await api.post('/users', userData);
+        return response.data;
+    },
 };

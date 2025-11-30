@@ -14,19 +14,12 @@ public class VehicleUpdateDto {
     @Pattern(regexp = "^[A-Z]{3}[0-9][A-Z0-9][0-9]{2}$", message = "Formato de matrícula inválido. Use o padrão Mercosul (ABC1D23) ou o antigo (ABC1234).")
     private String licensePlate;
 
-    @Size(max = 45)
-    private String model;
-
-
-    @Size(max = 45)
-    private String brand;
-
+    @Positive
+    private Long modelId;
 
     @Size(max = 20)
     private String color;
 
     @Positive
     private Long clientId;
-
-
 }

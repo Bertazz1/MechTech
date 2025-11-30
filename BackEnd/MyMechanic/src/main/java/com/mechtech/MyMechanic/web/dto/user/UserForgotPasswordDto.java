@@ -8,6 +8,6 @@ import lombok.Setter;
 @Setter
 public class UserForgotPasswordDto {
 
-    @NotBlank(message = "Username não pode estar em branco")
-    private String username;
+    @NotBlank(message = "Email não pode estar em branco")
+    private String email;
 }

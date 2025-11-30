@@ -135,9 +135,10 @@ const ServiceOrderList = () => {
             toast.success('Fatura gerada com sucesso');
             navigate('/invoices');
         } catch (error) {
-            toast.error('Erro ao gerar fatura');
+            toast.error(parseApiError(error));
         }
     };
+
 
     return (
         <div>
@@ -161,7 +162,8 @@ const ServiceOrderList = () => {
                         <thead className="bg-gray-50">
                         <tr>
                             <SortableTh label="ID" sortKey="id" />
-                            <SortableTh label="Veículo" sortKey="vehicle.licensePlate" />
+                            <SortableTh label="Veículo" sortKey="vehicle.model.name" />
+                            <SortableTh label="Placa" sortKey="vehicle.licensePlate" />
                             <SortableTh label="Cliente" sortKey="client.name" />
                             <SortableTh label="Status" sortKey="status" />
                             <SortableTh label="Total" sortKey="totalCost" />
@@ -186,8 +188,12 @@ const ServiceOrderList = () => {
                                             #{order.id}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            {order.vehicleModelName || '-'}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             {order.vehicleLicensePlate || '-'}
                                         </td>
+
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             {order.clientName || '-'}
                                         </td>

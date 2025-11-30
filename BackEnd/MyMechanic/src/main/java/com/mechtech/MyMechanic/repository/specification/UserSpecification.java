@@ -15,9 +15,7 @@ public class UserSpecification {
             }
             String likePattern = "%" + searchTerm.toLowerCase() + "%";
             List<Predicate> predicates = new ArrayList<>();
-            predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("username")), likePattern));
-            predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("firstName")), likePattern));
-            predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("lastName")), likePattern));
+            predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("fullName")), likePattern));
             predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("email")), likePattern));
             return criteriaBuilder.or(predicates.toArray(new Predicate[0]));
         };

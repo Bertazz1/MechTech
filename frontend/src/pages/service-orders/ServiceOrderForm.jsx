@@ -11,22 +11,19 @@ import Button from '../../components/common/Button';
 import Select from '../../components/common/Select';
 import AsyncSelect from '../../components/common/AsyncSelect';
 import toast from 'react-hot-toast';
-import { Trash2, Calculator, User, Wrench, Package, Info, Plus, X } from 'lucide-react';
+import { Trash2, Calculator, User, Wrench, Package, Info, Plus, X, CheckCircle } from 'lucide-react';
 import { parseApiError } from '../../utils/errorUtils';
+import { confirmAction } from '../../utils/alert';
 
 const ServiceOrderForm = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
 
-    // Estados para os AsyncSelects principais
     const [selectedClient, setSelectedClient] = useState(null);
     const [selectedVehicle, setSelectedVehicle] = useState(null);
-
-    // Estado temporário para seleção de funcionário antes de adicionar à lista
     const [tempEmployee, setTempEmployee] = useState(null);
 
-    // Função auxiliar para pegar data atual formatada para input datetime-local
     function getLocalDateTime() {
         const now = new Date();
         now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
@@ -39,7 +36,7 @@ const ServiceOrderForm = () => {
         description: '',
         status: 'PENDENTE',
         initialMileage: '',
-        entryDate: getLocalDateTime(), // Inicializa com data atual
+        entryDate: getLocalDateTime(),
         partItems: [],
         serviceItems: [],
         employees: [],
@@ -56,7 +53,6 @@ const ServiceOrderForm = () => {
         }, 0);
 
         const subtotal = partsTotal + servicesTotal;
-        // Se tiver desconto futuro, implementar aqui: const total = subtotal - discount;
         const total = subtotal;
 
         return { partsTotal, servicesTotal, subtotal, total };
@@ -75,7 +71,7 @@ const ServiceOrderForm = () => {
         }
     }, [id]);
 
-    // --- Funções de Busca (Adapters para AsyncSelect) ---
+    // --- Funções de Busca ---
 
     const fetchClients = async (query) => {
         try {
@@ -93,7 +89,7 @@ const ServiceOrderForm = () => {
                 value: v.id,
                 label: `${v.brand} ${v.model} - ${v.licensePlate}`,
                 subLabel: v.client ? `Proprietário: ${v.client.name}` : null,
-                client: v.client // Passa o objeto cliente para auto-seleção
+                client: v.client
             }));
         } catch (e) { return []; }
     };
@@ -131,7 +127,8 @@ const ServiceOrderForm = () => {
             return list.map(e => ({
                 value: e.id,
                 label: e.name,
-                subLabel: e.role
+                // CORREÇÃO AQUI: Acessa o .name do objeto role
+                subLabel: e.role?.name || 'Sem Cargo'
             }));
         } catch (e) { return []; }
     };
@@ -142,7 +139,6 @@ const ServiceOrderForm = () => {
         try {
             const data = await serviceOrderService.getById(id);
 
-            // Preenche Selects Principais
             if (data.client) {
                 setSelectedClient({ value: data.client.id, label: data.client.name, subLabel: data.client.cpf });
             }
@@ -150,18 +146,15 @@ const ServiceOrderForm = () => {
                 setSelectedVehicle({ value: data.vehicle.id, label: `${data.vehicle.model} - ${data.vehicle.licensePlate}` });
             }
 
-            // Formata a data vinda do backend para o input
             let formattedEntryDate = getLocalDateTime();
             if (data.entryDate) {
                 formattedEntryDate = data.entryDate.length > 16 ? data.entryDate.slice(0, 16) : data.entryDate;
             }
 
-            // Preenche Itens com dados para AsyncSelect
             const loadedParts = (data.partItems || []).map(item => ({
                 partId: item.partId || item.part?.id,
                 quantity: item.quantity,
-                unitCost: item.unitCost,
-                // Objeto para o AsyncSelect da linha
+                unitCost: item.unitCost || item.unitPrice || item.price,
                 selectedOption: {
                     value: item.partId || item.part?.id,
                     label: item.partName || item.part?.name || 'Peça carregada'
@@ -171,15 +164,13 @@ const ServiceOrderForm = () => {
             const loadedServices = (data.serviceItems || []).map(item => ({
                 serviceId: item.serviceId || item.repairService?.id,
                 quantity: item.quantity,
-                unitCost: item.serviceCost || item.unitCost,
-                // Objeto para o AsyncSelect da linha
+                unitCost: item.serviceCost || item.unitCost || item.cost,
                 selectedOption: {
                     value: item.serviceId || item.repairService?.id,
                     label: item.serviceName || item.repairService?.name || 'Serviço carregado'
                 }
             }));
 
-            // Preenche Funcionários com labels para exibição
             const loadedEmployees = (data.employees || []).map(e => ({
                 id: e.employeeId || e.id,
                 name: e.employeeName || e.name,
@@ -193,7 +184,7 @@ const ServiceOrderForm = () => {
                 description: data.description || '',
                 status: data.status || 'PENDENTE',
                 initialMileage: data.initialMileage || '',
-                entryDate: formattedEntryDate, // Define a data carregada
+                entryDate: formattedEntryDate,
                 partItems: loadedParts,
                 serviceItems: loadedServices,
                 employees: loadedEmployees,
@@ -205,8 +196,6 @@ const ServiceOrderForm = () => {
         }
     };
 
-    // --- Handlers ---
-
     const handleClientChange = (option) => {
         setSelectedClient(option);
         setFormData(prev => ({ ...prev, clientId: option ? option.value : '' }));
@@ -216,7 +205,6 @@ const ServiceOrderForm = () => {
         setSelectedVehicle(option);
         if (option) {
             setFormData(prev => ({ ...prev, vehicleId: option.value }));
-            // Auto-seleciona o cliente se vier no objeto do veículo e ainda não tiver cliente selecionado
             if (option.client && !selectedClient) {
                 const clientOption = { value: option.client.id, label: option.client.name, subLabel: option.client.cpf };
                 setSelectedClient(clientOption);
@@ -227,14 +215,11 @@ const ServiceOrderForm = () => {
         }
     };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setLoading(true);
-
-        const dataToSend = {
+    const prepareDataToSend = (statusOverride = null) => {
+        return {
             ...formData,
+            status: statusOverride || formData.status,
             initialMileage: formData.initialMileage ? parseInt(formData.initialMileage) : null,
-            // Envia a data de entrada
             entryDate: formData.entryDate,
 
             partItems: formData.partItems
@@ -259,6 +244,12 @@ const ServiceOrderForm = () => {
                 workedHours: Number(emp.workedHours || 0)
             }))
         };
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        const dataToSend = prepareDataToSend();
 
         try {
             if (id) {
@@ -276,7 +267,27 @@ const ServiceOrderForm = () => {
         }
     };
 
-    // -- Peças e Serviços (Lógica de Lista) --
+    const handleFinishOrder = async () => {
+        const isConfirmed = await confirmAction(
+            'Finalizar Serviço?',
+            'Isso encerrará a OS, registrará a data de saída e permitirá gerar a fatura. Deseja continuar?',
+            'Sim, Finalizar',
+            '#16a34a'
+        );
+        if (!isConfirmed) return;
+        setLoading(true);
+        const dataToSend = prepareDataToSend('COMPLETO');
+
+        try {
+            await serviceOrderService.update(id, dataToSend);
+            toast.success('Serviço finalizado com sucesso!');
+            navigate('/service-orders');
+        } catch (error) {
+            toast.error(parseApiError(error));
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const addPartItem = () => setFormData({ ...formData, partItems: [...formData.partItems, { selectedOption: null, quantity: 1, unitCost: 0 }] });
     const removePartItem = (index) => setFormData({ ...formData, partItems: formData.partItems.filter((_, i) => i !== index) });
@@ -310,23 +321,18 @@ const ServiceOrderForm = () => {
         setFormData({ ...formData, serviceItems: newItems });
     };
 
-    // -- Funcionários (Lógica de Adicionar/Remover da Lista) --
-
     const handleAddEmployee = () => {
         if (!tempEmployee) return;
-
         if (formData.employees.some(e => e.id === tempEmployee.value)) {
             toast.error('Funcionário já adicionado.');
             return;
         }
-
         const newEmployee = {
             id: tempEmployee.value,
             name: tempEmployee.label,
             commissionPercentage: 0,
             workedHours: 0
         };
-
         setFormData(prev => ({ ...prev, employees: [...prev.employees, newEmployee] }));
         setTempEmployee(null);
     };
@@ -354,7 +360,6 @@ const ServiceOrderForm = () => {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
-                {/* BLOCO 1: Informações Gerais */}
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                     <h2 className="text-lg font-semibold mb-4 text-gray-800 flex items-center gap-2">
                         <Info className="w-5 h-5 text-primary-500" /> Detalhes da OS
@@ -369,7 +374,6 @@ const ServiceOrderForm = () => {
                             required
                             disabled={isReadOnly}
                         />
-
                         <AsyncSelect
                             label="Cliente"
                             placeholder="Buscar por nome..."
@@ -379,8 +383,6 @@ const ServiceOrderForm = () => {
                             required
                             disabled={isReadOnly}
                         />
-
-                        {/* Novo Campo de Data */}
                         <Input
                             label="Data de Entrada"
                             type="datetime-local"
@@ -390,7 +392,6 @@ const ServiceOrderForm = () => {
                             required
                             disabled={isReadOnly}
                         />
-
                         <Input
                             label="Quilometragem Inicial (KM)"
                             name="initialMileage"
@@ -412,12 +413,10 @@ const ServiceOrderForm = () => {
                     </div>
                 </div>
 
-                {/* BLOCO 2: Funcionários */}
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                     <h2 className="text-lg font-semibold mb-4 text-gray-800 flex items-center gap-2">
                         <User className="w-5 h-5 text-primary-500" /> Equipe Responsável
                     </h2>
-
                     {!isReadOnly && (
                         <div className="flex gap-3 items-end mb-4">
                             <div className="flex-grow max-w-md">
@@ -434,7 +433,6 @@ const ServiceOrderForm = () => {
                             </Button>
                         </div>
                     )}
-
                     <div className="space-y-2">
                         {formData.employees.length === 0 && <p className="text-sm text-gray-400 italic">Nenhum funcionário atribuído.</p>}
                         {formData.employees.map((emp) => (
@@ -451,7 +449,6 @@ const ServiceOrderForm = () => {
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {/* BLOCO 3: Peças */}
                     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                         <div className="flex justify-between items-center mb-4">
                             <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
@@ -464,7 +461,6 @@ const ServiceOrderForm = () => {
                             )}
                         </div>
                         {formData.partItems.length === 0 && <p className="text-sm text-gray-400 italic text-center py-4">Nenhuma peça adicionada.</p>}
-
                         <div className="space-y-3">
                             {formData.partItems.map((item, index) => (
                                 <div key={index} className="flex gap-2 items-start bg-gray-50 p-3 rounded-lg border border-gray-100">
@@ -504,7 +500,6 @@ const ServiceOrderForm = () => {
                         </div>
                     </div>
 
-                    {/* BLOCO 4: Serviços */}
                     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                         <div className="flex justify-between items-center mb-4">
                             <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
@@ -517,7 +512,6 @@ const ServiceOrderForm = () => {
                             )}
                         </div>
                         {formData.serviceItems.length === 0 && <p className="text-sm text-gray-400 italic text-center py-4">Nenhum serviço adicionado.</p>}
-
                         <div className="space-y-3">
                             {formData.serviceItems.map((item, index) => (
                                 <div key={index} className="flex gap-2 items-start bg-gray-50 p-3 rounded-lg border border-gray-100">
@@ -558,7 +552,6 @@ const ServiceOrderForm = () => {
                     </div>
                 </div>
 
-                {/* BLOCO 5: Totais */}
                 <div className="bg-white rounded-xl shadow-md p-6 border-t-4 border-primary-500">
                     <h2 className="text-lg font-semibold mb-4 text-gray-700 flex items-center gap-2">
                         <Calculator className="w-5 h-5" /> Resumo Financeiro
@@ -569,7 +562,6 @@ const ServiceOrderForm = () => {
                             <p className="flex justify-between gap-8"><span>Mão de Obra:</span> <span>R$ {totals.servicesTotal.toFixed(2)}</span></p>
                             <p className="flex justify-between gap-8 font-semibold"><span>Subtotal:</span> <span>R$ {totals.total.toFixed(2)}</span></p>
                         </div>
-
                         <div className="bg-gray-50 px-8 py-4 rounded-xl text-center border border-gray-200 w-full md:w-auto">
                             <p className="text-xs text-gray-500 uppercase font-bold tracking-wide mb-1">Total Final</p>
                             <p className="text-3xl font-bold text-primary-600">R$ {totals.total.toFixed(2)}</p>
@@ -581,9 +573,16 @@ const ServiceOrderForm = () => {
                     <Button type="button" variant="secondary" onClick={() => navigate('/service-orders')}>
                         Voltar
                     </Button>
-                    {!isReadOnly && (
-                        <Button type="submit" disabled={loading}>
+
+                    {!isReadOnly && formData.status !== 'COMPLETO' && (
+                        <Button type="submit" disabled={loading} variant="secondary">
                             {loading ? 'Salvando...' : 'Salvar Alterações'}
+                        </Button>
+                    )}
+
+                    {formData.status === 'EM_PROGRESSO' && (
+                        <Button type="button" disabled={loading} onClick={handleFinishOrder} className="bg-green-600 hover:bg-green-700 text-white border-green-600">
+                            <CheckCircle className="w-5 h-5 mr-2" /> Finalizar Serviço
                         </Button>
                     )}
                 </div>
