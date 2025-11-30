@@ -30,7 +30,6 @@ public class ReportService {
                 endDate.atTime(23, 59, 59)
         );
 
-        // Mapa para agrupar comissões por ID de funcionário
         Map<Long, CommissionReportDto> reportMap = new HashMap<>();
 
         for (ServiceOrder order : orders) {
