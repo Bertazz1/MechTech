@@ -22,7 +22,6 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/v1/service-orders")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('ADMIN') or @securityService.isTenantMember(#id)")
 public class ServiceOrderController {
 
     private final ServiceOrderService serviceOrderService;

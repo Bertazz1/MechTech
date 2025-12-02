@@ -60,7 +60,7 @@ public class QuotationService extends AbstractTenantAwareService<Quotation, Long
             throw new IllegalArgumentException("Orçamento sem itens");
         }
         Vehicle vehicle = vehicleService.findById(vehicleId);
-        quotation.setTenantId(vehicle.getTenantId());
+        quotation.setTenant(vehicle.getTenant());
         quotation.setVehicle(vehicle);
         quotation.setClient(vehicle.getClient());
         quotation.setStatus(Quotation.QuotationStatus.AWAITING_CONVERSION);

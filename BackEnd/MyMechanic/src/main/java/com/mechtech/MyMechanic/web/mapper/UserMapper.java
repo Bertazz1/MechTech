@@ -35,8 +35,8 @@ public class UserMapper {
             dto.setRole(user.getRole().name());
         }
 
-        if (user.getTenantId() != null) {
-            dto.setTenantId(user.getTenantId());
+        if (user.getTenant() != null) {
+            dto.setTenantId(user.getTenant().getId());
         }
 
         if (user.getStatus() != null) {

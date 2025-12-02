@@ -33,8 +33,9 @@ public class Employee extends AbstractEntity implements Serializable, TenantOwne
     @GeneratedValue
     private Long id;
 
-    @Column(name = "tenant_id", nullable = false, updatable = false)
-    private String tenantId;
+    @ManyToOne
+    @JoinColumn(name = "tenant_id", nullable = false, updatable = false)
+    private Tenant tenant;
 
     @Column(name = "name", nullable = false, length = 100)
     private String name;
@@ -91,4 +92,8 @@ public class Employee extends AbstractEntity implements Serializable, TenantOwne
     }
 
 
+    @Override
+    public Tenant getTenant() {
+        return this.tenant;
+    }
 }

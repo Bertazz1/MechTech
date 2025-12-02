@@ -19,7 +19,7 @@ public class UserResponseDto {
 
     private String role;
 
-    private String tenantId;
+    private Long tenantId;
 
     private String Status;
 }

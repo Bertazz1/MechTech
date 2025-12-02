@@ -30,9 +30,9 @@ public abstract class AbstractTenantAwareService<T extends TenantOwned, ID, R ex
     }
 
     protected void validateTenant(T entity) {
-        String currentTenantId = TenantContext.getTenantId();
+        Long currentTenantId = TenantContext.getTenant().getId();
         // A validacao so é feita se houver um tenant no contexto
-        if (currentTenantId != null && !currentTenantId.equals(entity.getTenantId())) {
+        if (currentTenantId != null && !currentTenantId.equals(entity.getTenant().getId())) {
             throw new AccessDeniedException("Acesso negado. Este recurso não pertence ao seu tenant.");
         }
     }

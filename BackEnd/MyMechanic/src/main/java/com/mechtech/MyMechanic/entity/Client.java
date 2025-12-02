@@ -37,8 +37,9 @@ public class Client extends AbstractEntity implements Serializable, TenantOwned 
     @Column(name = "id")
     private Long id;
 
-    @Column(name = "tenant_id", nullable = false, updatable = false)
-    private String tenantId;
+    @ManyToOne
+    @JoinColumn(name = "tenant_id", nullable = false, updatable = false)
+    private Tenant tenant;
 
     @Column(name = "name", nullable = false,length = 100)
     private String name;
@@ -91,7 +92,7 @@ public class Client extends AbstractEntity implements Serializable, TenantOwned 
     }
 
     @Override
-    public String getTenantId() {
-        return tenantId;
+    public Tenant getTenant() {
+        return this.tenant;
     }
 }

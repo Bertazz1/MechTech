@@ -32,8 +32,9 @@ public class Vehicle extends AbstractEntity implements Serializable, com.mechtec
     @Column(name = "id")
     private Long id;
 
-    @Column(name = "tenant_id", nullable = false, updatable = false)
-    private String tenantId;
+    @ManyToOne
+    @JoinColumn(name = "tenant_id", nullable = false, updatable = false)
+    private Tenant tenant;
 
     @Column(name = "\"year\"", nullable = false, length = 4)
     private int year;
@@ -80,5 +81,10 @@ public class Vehicle extends AbstractEntity implements Serializable, com.mechtec
     @Override
     public int hashCode() {
         return id != null ? id.hashCode() : 0;
+    }
+
+    @Override
+    public Tenant getTenant() {
+        return this.tenant;
     }
 }

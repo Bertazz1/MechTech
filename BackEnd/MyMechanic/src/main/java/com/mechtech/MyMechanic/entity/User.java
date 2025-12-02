@@ -1,11 +1,13 @@
 package com.mechtech.MyMechanic.entity;
 
-
-import com.mechtech.MyMechanic.multiTenants.TenantOwned;
 import jakarta.persistence.*;
-import lombok.*;
-import org.hibernate.annotations.Filter;
-import org.springframework.data.annotation.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.io.Serial;
@@ -17,19 +19,19 @@ import java.util.Objects;
 @Getter @Setter @NoArgsConstructor
 @Entity(name = "User")
 @Table(name = "users")
-@Filter(name = "tenantFilter", condition = "tenant_id = :tenantId")
-public class User extends AbstractEntity implements Serializable, TenantOwned {
+public class User extends AbstractEntity implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 1L;
 
-    @jakarta.persistence.Id
+    @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Long id;
 
-    @Column(name = "tenant_id", nullable = false, updatable = false)
-    private String tenantId;
+    @ManyToOne
+    @JoinColumn(name = "tenant_id", updatable = false)
+    private Tenant tenant;
 
     @Column(name = "full_name", nullable = false, unique = true)
     private String fullName;
@@ -68,8 +70,6 @@ public class User extends AbstractEntity implements Serializable, TenantOwned {
     @CreatedBy
     @Column(name = "created_by")
     private String createdBy;
-
-
 
     @LastModifiedBy
     @Column(name = "updated_by")

@@ -21,7 +21,6 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/v1/repair-services")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('ADMIN') or @securityService.isTenantMember(#id)")
 public class RepairServiceController {
 
     private final RepairServiceService repairServiceService;

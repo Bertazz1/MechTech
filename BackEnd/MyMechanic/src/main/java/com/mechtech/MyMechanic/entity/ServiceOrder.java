@@ -37,8 +37,9 @@ public class ServiceOrder extends AbstractEntity implements Serializable, Tenant
     @Column(name = "id")
   private Long id;
 
-    @Column(name = "tenant_id", nullable = false, updatable = false)
-    private String tenantId;
+    @ManyToOne
+    @JoinColumn(name = "tenant_id", nullable = false, updatable = false)
+    private Tenant tenant;
 
     @Column(name = "entry_date", nullable = false)
   private LocalDateTime entryDate;
@@ -135,4 +136,9 @@ public class ServiceOrder extends AbstractEntity implements Serializable, Tenant
     }
     this.totalCost = total;
   }
+
+    @Override
+    public Tenant getTenant() {
+        return this.tenant;
+    }
 }

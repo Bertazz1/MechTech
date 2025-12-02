@@ -4,7 +4,8 @@ import { repairService } from '../../services/repairService';
 import Input from '../../components/common/Input';
 import Button from '../../components/common/Button';
 import toast from 'react-hot-toast';
-import { parseApiError, getValidationErrors } from '../../utils/errorUtils'; // Importe os utilitários
+import { parseApiError, getValidationErrors } from '../../utils/errorUtils';
+import { capitalizeFirstLetter } from '../../utils/textUtils';
 
 const RepairServiceForm = () => {
     const { id } = useParams();
@@ -41,20 +42,22 @@ const RepairServiceForm = () => {
     const handleChange = (e) => {
         const { name, value } = e.target;
 
-        // Limpa o erro do campo quando o usuário digita
         if (fieldErrors[name]) {
             setFieldErrors(prev => ({ ...prev, [name]: null }));
         }
 
-        setFormData({ ...formData, [name]: value });
+        if (name === 'name') {
+            setFormData({ ...formData, [name]: capitalizeFirstLetter(value) });
+        } else {
+            setFormData({ ...formData, [name]: value });
+        }
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
-        setFieldErrors({}); // Limpa erros anteriores
+        setFieldErrors({});
 
-        // Prepara dados (garante que custo é número)
         const dataToSend = {
             ...formData,
             cost: parseFloat(formData.cost)
@@ -73,7 +76,6 @@ const RepairServiceForm = () => {
             const message = parseApiError(error);
             toast.error(message);
 
-            // Pega os erros de validação (ex: cost: "O custo não pode ser nulo")
             const validationErrors = getValidationErrors(error);
             if (Object.keys(validationErrors).length > 0) {
                 setFieldErrors(validationErrors);
@@ -84,7 +86,7 @@ const RepairServiceForm = () => {
     };
 
     return (
-        <div>
+        <div className="max-w-2xl mx-auto">
             <h1 className="text-3xl font-bold text-gray-800 mb-6">
                 {id ? 'Editar Serviço' : 'Novo Serviço'}
             </h1>
@@ -96,7 +98,7 @@ const RepairServiceForm = () => {
                         name="name"
                         value={formData.name}
                         onChange={handleChange}
-                        error={fieldErrors.name} // Mostra erro vermehlo se houver
+                        error={fieldErrors.name}
                         required
                     />
 

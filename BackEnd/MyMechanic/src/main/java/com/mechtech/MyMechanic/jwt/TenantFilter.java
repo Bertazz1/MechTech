@@ -1,6 +1,7 @@
 package com.mechtech.MyMechanic.jwt;
 
 import com.mechtech.MyMechanic.multiTenants.TenantContext;
+import com.mechtech.MyMechanic.service.TenantService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -16,6 +17,10 @@ public class TenantFilter extends OncePerRequestFilter {
 
     @Autowired
     private JwtUtils jwtUtils;
+
+    @Autowired
+    private TenantService tenantService;
+
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -35,7 +40,7 @@ public class TenantFilter extends OncePerRequestFilter {
         String tenantId = jwtUtils.getTenantFromToken(token);
 
         if (tenantId != null && !tenantId.isEmpty()) {
-            TenantContext.setTenantId(tenantId);
+            TenantContext.setTenant(tenantService.getById(Long.parseLong(tenantId)));
         }
 
         try {

@@ -38,7 +38,7 @@ public class EmployeeService extends AbstractTenantAwareService<Employee, Long, 
         if (repository.existsByPhone(employee.getPhone())){
             throw new UniqueConstraintViolationException("Já existe um funcionário com o telefone informado.");
         }
-        employee.setTenantId(TenantContext.getTenantId());
+        employee.setTenant(TenantContext.getTenant());
         return repository.save(employee);
     }
 

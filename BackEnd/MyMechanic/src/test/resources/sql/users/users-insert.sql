@@ -1,3 +1,0 @@
-insert into USERS (id, username, password, role, tenant_id) values (100, 'joao@gmail.com', '$2a$12$d97TTYzpqnqslpMRRzAEGOI4JGy.fMR2jTVY4a/BD.FFZ8Ant.pX2', 'ROLE_ADMIN', 'tenant-1');
-insert into USERS (id, username, password, role, tenant_id) values (101, 'maria@gmail.com', '$2a$12$d97TTYzpqnqslpMRRzAEGOI4JGy.fMR2jTVY4a/BD.FFZ8Ant.pX2', 'ROLE_CLIENT', 'tenant-1');
-insert into USERS (id, username, password, role, tenant_id) values (102, 'pedro@gmail.com', '$2a$12$d97TTYzpqnqslpMRRzAEGOI4JGy.fMR2jTVY4a/BD.FFZ8Ant.pX2', 'ROLE_CLIENT', 'tenant-2');

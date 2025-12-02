@@ -1,7 +1,7 @@
 
 @FilterDef(
         name = "tenantFilter",
-        parameters = @ParamDef(name = "tenantId", type = String.class)
+        parameters = @ParamDef(name = "tenantId", type = Long.class)
 )
 @FilterDef(
         name = "deletedFilter",

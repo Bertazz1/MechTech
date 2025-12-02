@@ -49,7 +49,7 @@ public class ServiceOrderService extends AbstractTenantAwareService<ServiceOrder
         Vehicle vehicle = vehicleService.findById(dto.getVehicleId());
 
         ServiceOrder serviceOrder = new ServiceOrder();
-        serviceOrder.setTenantId(vehicle.getTenantId());
+        serviceOrder.setTenant(vehicle.getTenant());
         serviceOrder.setVehicle(vehicle);
         serviceOrder.setClient(vehicle.getClient());
         if (dto.getDescription() != null) {
@@ -163,7 +163,7 @@ public class ServiceOrderService extends AbstractTenantAwareService<ServiceOrder
         }
 
         ServiceOrder serviceOrder = new ServiceOrder();
-        serviceOrder.setTenantId(quotation.getTenantId());
+        serviceOrder.setTenant(quotation.getTenant());
         serviceOrder.setQuotation(quotation);
         serviceOrder.setClient(quotation.getClient());
         serviceOrder.setVehicle(quotation.getVehicle());

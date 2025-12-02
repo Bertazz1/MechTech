@@ -1,17 +1,18 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { clientService } from '../../services/clientService';
-import { addressService } from '../../services/addressService'; // <--- Importe o novo serviço
+import { addressService } from '../../services/addressService';
 import Input from '../../components/common/Input';
 import Button from '../../components/common/Button';
 import toast from 'react-hot-toast';
 import { parseApiError, getValidationErrors } from '../../utils/errorUtils';
+import { capitalizeFirstLetter } from '../../utils/textUtils';
 
 const ClientForm = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
-    const [loadingCep, setLoadingCep] = useState(false); // <--- Estado de carregamento do CEP
+    const [loadingCep, setLoadingCep] = useState(false);
     const [fieldErrors, setFieldErrors] = useState({});
 
     const [formData, setFormData] = useState({
@@ -23,8 +24,8 @@ const ClientForm = () => {
         city: '',
         state: '',
         zipCode: '',
-        number: '',      // Adicionei campo Número se não existir
-        neighborhood: '' // Adicionei campo Bairro se quiser usar
+        number: '',
+        neighborhood: ''
     });
 
     useEffect(() => {
@@ -37,14 +38,11 @@ const ClientForm = () => {
         try {
             const data = await clientService.getById(id);
 
-            // Prepara o objeto para o formulário (Flattening)
             const formDataObj = {
                 name: data.name,
                 email: data.email,
                 phone: data.phone,
                 cpf: data.cpf ? formatCPF(data.cpf) : '',
-
-                // Extrai dados do objeto address aninhado, se existir
                 street: data.address?.street || '',
                 city: data.address?.city || '',
                 state: data.address?.state || '',
@@ -70,7 +68,6 @@ const ClientForm = () => {
             .replace(/(-\d{2})\d+?$/, '$1');
     };
 
-    // Função para formatar o CEP visualmente (00000-000)
     const formatCEP = (value) => {
         return value
             .replace(/\D/g, '')
@@ -78,11 +75,10 @@ const ClientForm = () => {
             .substr(0, 9);
     };
 
-    //  Busca o CEP na API ---
     const handleCepBlur = async (e) => {
         const cep = e.target.value.replace(/\D/g, '');
 
-        if (cep.length !== 8) return; // Só busca se tiver 8 dígitos
+        if (cep.length !== 8) return;
 
         try {
             setLoadingCep(true);
@@ -91,16 +87,12 @@ const ClientForm = () => {
             if (addressData) {
                 setFormData(prev => ({
                     ...prev,
-                    // Mapeie aqui os campos conforme o retorno do seu DTO Java (CepResponseDto)
                     street: addressData.street || addressData.logradouro || prev.street,
                     city: addressData.city || addressData.localidade || prev.city,
                     state: addressData.state || addressData.uf || prev.state,
                     neighborhood: addressData.neighborhood || addressData.bairro || prev.neighborhood,
-
                 }));
                 toast.success('Endereço encontrado!');
-
-                // Focar no campo de número após encontrar (opcional, requer ref)
                 document.getElementById('number')?.focus();
             }
         } catch (error) {
@@ -122,6 +114,8 @@ const ClientForm = () => {
             setFormData({ ...formData, [name]: formatCPF(value) });
         } else if (name === 'zipCode') {
             setFormData({ ...formData, [name]: formatCEP(value) });
+        } else if (name === 'name') {
+            setFormData({ ...formData, [name]: capitalizeFirstLetter(value) });
         } else {
             setFormData({ ...formData, [name]: value });
         }
@@ -132,29 +126,26 @@ const ClientForm = () => {
         setLoading(true);
         setFieldErrors({});
 
-        // 1. Cria o objeto AddressDto separado
         const addressData = {
             street: formData.street,
             city: formData.city,
             state: formData.state,
-            zipCode: formData.zipCode.replace(/\D/g, ''), // Remove formatação
+            zipCode: formData.zipCode.replace(/\D/g, ''),
             neighborhood: formData.neighborhood,
             number: formData.number,
-            complement: formData.complement || '' // Se tiver campo complemento
+            complement: formData.complement || ''
         };
 
-        // 2. Monta o ClientCreateDto com o objeto address aninhado
         const dataToSend = {
             name: formData.name,
             email: formData.email,
-            phone: formData.phone.replace(/\D/g, ''), // Limpa telefone se necessário
+            phone: formData.phone.replace(/\D/g, ''),
             cpf: formData.cpf.replace(/\D/g, ''),
-            address: addressData // <--- AQUI ESTÁ A CORREÇÃO
+            address: addressData
         };
 
         try {
             if (id) {
-                // Nota: Verifique se o DTO de Update também exige aninhamento
                 await clientService.update(id, dataToSend);
                 toast.success('Cliente atualizado com sucesso');
             } else {
@@ -168,7 +159,7 @@ const ClientForm = () => {
             const formattedErrors = {};
             Object.keys(validationErrors).forEach(key => {
                 if (key.startsWith('address.')) {
-                    const fieldName = key.split('.')[1]; // Pega o nome após o ponto
+                    const fieldName = key.split('.')[1];
                     formattedErrors[fieldName] = validationErrors[key];
                 } else {
                     formattedErrors[key] = validationErrors[key];
@@ -184,7 +175,7 @@ const ClientForm = () => {
     };
 
     return (
-        <div>
+        <div className="max-w-4xl mx-auto">
             <h1 className="text-3xl font-bold text-gray-800 mb-6">
                 {id ? 'Editar Cliente' : 'Novo Cliente'}
             </h1>
@@ -241,7 +232,7 @@ const ClientForm = () => {
                                 name="zipCode"
                                 value={formData.zipCode}
                                 onChange={handleChange}
-                                onBlur={handleCepBlur} // GATILHO DA BUSCA
+                                onBlur={handleCepBlur}
                                 placeholder="00000-000"
                                 error={fieldErrors.zipCode}
                             />

@@ -37,7 +37,7 @@ public class AuthenticationController {
         UsernamePasswordAuthenticationToken authenticationToken =
                 new UsernamePasswordAuthenticationToken(userLoginDto.getEmail(), userLoginDto.getPassword());
         authenticationManager.authenticate(authenticationToken); // Se falhar, lança AuthenticationException
-        JwtToken jwtToken = jwtUserDetailsService.getTokenAuthenticated(userLoginDto.getEmail(), userAux.getTenantId());
+        JwtToken jwtToken = jwtUserDetailsService.getTokenAuthenticated(userLoginDto.getEmail(), String.valueOf(userAux.getTenant().getId()));
         return ResponseEntity.ok(jwtToken);
       }
 

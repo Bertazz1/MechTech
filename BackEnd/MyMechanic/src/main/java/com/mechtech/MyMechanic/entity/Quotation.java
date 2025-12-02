@@ -38,8 +38,9 @@ public class Quotation extends AbstractEntity implements Serializable, TenantOwn
     @Column(name = "id")
     private Long id;
 
-    @Column(name = "tenant_id", nullable = false, updatable = false)
-    private String tenantId;
+    @ManyToOne
+    @JoinColumn(name = "tenant_id", nullable = false, updatable = false)
+    private Tenant tenant;
 
     @Column(name = "description", length = 300)
     private String description;
@@ -125,6 +126,11 @@ public class Quotation extends AbstractEntity implements Serializable, TenantOwn
     @Override
     public int hashCode() {
         return 31;
+    }
+
+    @Override
+    public Tenant getTenant() {
+        return this.tenant;
     }
 
     public enum QuotationStatus {

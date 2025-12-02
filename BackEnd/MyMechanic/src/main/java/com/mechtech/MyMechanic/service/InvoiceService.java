@@ -45,7 +45,7 @@ public class InvoiceService extends AbstractTenantAwareService<Invoice, Long, In
         }
 
         Invoice invoice = new Invoice();
-        invoice.setTenantId(serviceOrder.getTenantId());
+        invoice.setTenant(serviceOrder.getTenant());
         invoice.setServiceOrder(serviceOrder);
         invoice.setTotalAmount(serviceOrder.getTotalCost());
         invoice.setIssueDate(LocalDateTime.now());

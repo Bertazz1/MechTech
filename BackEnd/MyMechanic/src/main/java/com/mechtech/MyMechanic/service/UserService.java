@@ -62,7 +62,7 @@ public class UserService  {
         user.setRole(User.Role.ROLE_CLIENT);
 
         // Define o Tenant ID encontrado via token
-        user.setTenantId(String.valueOf(tenant.getId()));
+        user.setTenant(tenant);
 
         user.setStatus(User.Status.ACTIVE); // Garante que nasce ativo
 
@@ -92,7 +92,7 @@ public class UserService  {
 
     @Transactional(readOnly = true)
     public Page<UserProjection> findAll(Pageable pageable) {
-        Page<User> usersPage = userRepository.findAllIgnoringTenant(pageable);
+        Page<User> usersPage = userRepository.findAll(pageable);
         return usersPage.map(user -> projectionFactory.createProjection(UserProjection.class, user));
     }
 
@@ -104,7 +104,7 @@ public class UserService  {
 
     @Transactional(readOnly = true)
     public User findByEmailForAuthentication(String email) {
-        return userRepository.findByEmailIgnoringTenant(email).orElseThrow(() ->
+        return userRepository.findByEmail(email).orElseThrow(() ->
                 new EntityNotFoundException(String.format("User nao encontrado com email: %s", email)));
     }
 

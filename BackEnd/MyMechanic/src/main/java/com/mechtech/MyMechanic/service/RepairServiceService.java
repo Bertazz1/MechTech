@@ -24,7 +24,7 @@ public class RepairServiceService extends AbstractTenantAwareService<RepairServi
 
     @Transactional
     public RepairService create(RepairService repairService) {
-        repairService.setTenantId(TenantContext.getTenantId());
+        repairService.setTenant(TenantContext.getTenant());
         return repository.save(repairService);
     }
 
