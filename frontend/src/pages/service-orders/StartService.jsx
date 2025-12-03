@@ -16,7 +16,6 @@ const StartService = () => {
     const [osData, setOsData] = useState(null);
     const [initialMileage, setInitialMileage] = useState('');
 
-    // Estados para Funcionários
     const [selectedEmployees, setSelectedEmployees] = useState([]);
     const [tempEmployee, setTempEmployee] = useState(null);
 
@@ -31,23 +30,17 @@ const StartService = () => {
             const data = await serviceOrderService.getById(id);
             setOsData(data);
 
-            // 1. Carrega a quilometragem se já estiver salva
             if (data.initialMileage) {
                 setInitialMileage(data.initialMileage);
             }
 
-            // 2. Carrega funcionários já vinculados à OS
             if (data.employees && Array.isArray(data.employees)) {
                 const formattedEmployees = data.employees.map(item => {
-                    // O item pode ser o ServiceOrderEmployee (vínculo) que contém o 'employee'
-                    const empData = item.employee || item;
-
+                    const empData =  item;
                     return {
-                        id: empData.id,
-                        name: empData.name,
-                        // Correção: Acessa .name pois Role agora é um objeto
-                        role: empData.role?.name || 'Sem Cargo',
-                        // Preserva a comissão se já estiver definida no vínculo
+                        id: item.employeeId,
+                        name: item.name,
+                        role: item.roleName || 'Sem Cargo',
                         commissionPercentage: item.commissionPercentage || 0
                     };
                 });
@@ -60,7 +53,6 @@ const StartService = () => {
         }
     };
 
-    // Busca para o seletor (AsyncSelect)
     const fetchEmployees = async (query) => {
         try {
             const response = await employeeService.search(query);
@@ -68,9 +60,7 @@ const StartService = () => {
             return list.map(e => ({
                 value: e.id,
                 label: e.name,
-                // Correção: Acessa .name para não quebrar o React com objeto
                 subLabel: e.role?.name || 'Sem Cargo',
-                // Guarda infos extras para usar ao selecionar
                 fullData: e
             }));
         } catch (e) {
@@ -78,24 +68,21 @@ const StartService = () => {
         }
     };
 
-    // Adicionar funcionário à lista visual
     const handleAddEmployee = () => {
         if (!tempEmployee) return;
 
-        // Evita duplicados
         if (selectedEmployees.some(e => e.id === tempEmployee.value)) {
             toast.error('Funcionário já adicionado.');
             return;
         }
 
-        // Pega a role do objeto selecionado ou do dado completo
         const roleName = tempEmployee.subLabel;
 
         const newEmployee = {
             id: tempEmployee.value,
             name: tempEmployee.label,
             role: roleName,
-            commissionPercentage: 0 // Default ao adicionar por aqui
+            commissionPercentage: 0
         };
 
         setSelectedEmployees([...selectedEmployees, newEmployee]);
@@ -119,11 +106,10 @@ const StartService = () => {
             const updateData = {
                 status: 'EM_PROGRESSO',
                 initialMileage: parseInt(initialMileage),
-                // Envia a lista atualizada de funcionários
                 employees: selectedEmployees.map(emp => ({
                     id: emp.id,
                     commissionPercentage: emp.commissionPercentage || 0,
-                    workedHours: 0 // Zera horas ao iniciar (serão preenchidas depois)
+                    workedHours: 0
                 }))
             };
 
@@ -164,7 +150,7 @@ const StartService = () => {
                         <div>
                             <p className="text-xs font-semibold text-gray-500 uppercase">Veículo</p>
                             <p className="font-medium text-gray-900">
-                                {osData.vehicle?.model} <span className="text-gray-400">|</span> {osData.vehicle?.licensePlate}
+                                {osData.vehicle?.model?.brand?.name} {osData.vehicle?.model?.name} <span className="text-gray-400">|</span> {osData.vehicle?.licensePlate}
                             </p>
                         </div>
                     </div>

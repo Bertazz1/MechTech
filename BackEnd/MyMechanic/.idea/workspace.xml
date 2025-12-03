@@ -1,0 +1,349 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="8f38587f-4ddd-4c60-80e9-8c120bdfc9fe" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/compiler.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/copilot.data.migration.agent.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/copilot.data.migration.ask.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/copilot.data.migration.ask2agent.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/copilot.data.migration.edit.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dbnavigator.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/encodings.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/jarRepositories.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/jpa.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Enum" />
+        <option value="AnnotationType" />
+        <option value="com.intellij.jpb.JpaEntity" />
+        <option value="Exception" />
+        <option value="Record" />
+        <option value="Class" />
+        <option value="Interface" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$/../.." value="main" />
+      </map>
+    </option>
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/../.." />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;Bertazz1&quot;
+  }
+}</component>
+  <component name="GitToolBoxStore">
+    <option name="recentBranches">
+      <RecentBranches>
+        <option name="branchesForRepo">
+          <list>
+            <RecentBranchesForRepo>
+              <option name="branches">
+                <list>
+                  <RecentBranch>
+                    <option name="branchName" value="develop" />
+                    <option name="lastUsedInstant" value="1764590060" />
+                  </RecentBranch>
+                  <RecentBranch>
+                    <option name="branchName" value="main" />
+                    <option name="lastUsedInstant" value="1764590042" />
+                  </RecentBranch>
+                </list>
+              </option>
+              <option name="repositoryRootUrl" value="file://$PROJECT_DIR$/../.." />
+            </RecentBranchesForRepo>
+          </list>
+        </option>
+      </RecentBranches>
+    </option>
+  </component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/Bertazz1/MechTech.git&quot;,
+    &quot;accountId&quot;: &quot;c874d134-ea98-40f8-a436-08cb8545cf92&quot;
+  }
+}</component>
+  <component name="HighlightingSettingsPerFile">
+    <setting file="jar://$MAVEN_REPOSITORY$/org/springframework/data/spring-data-commons/3.5.1/spring-data-commons-3.5.1.jar!/org/springframework/data/repository/PagingAndSortingRepository.class" root0="SKIP_INSPECTION" />
+  </component>
+  <component name="LogFilters">
+    <option name="FILTER_ERRORS" value="false" />
+    <option name="FILTER_WARNINGS" value="false" />
+    <option name="FILTER_INFO" value="true" />
+    <option name="FILTER_DEBUG" value="true" />
+    <option name="CUSTOM_FILTER" />
+  </component>
+  <component name="MavenImportPreferences">
+    <option name="generalSettings">
+      <MavenGeneralSettings>
+        <option name="mavenHomeTypeForPersistence" value="WRAPPER" />
+      </MavenGeneralSettings>
+    </option>
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 0
+}</component>
+  <component name="ProjectId" id="2zlmyuv70p1BYRpGjsTCxTODwsD" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Application.MyMachanic.executor&quot;: &quot;Run&quot;,
+    &quot;Application.MyMechanicApplication.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.AuthenticationIT.authenticate_WithValidCredentials_ReturnsToken.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.AuthenticationIT.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.ClientIT.testCreateClient_ReturnClientCreatedWithStatus201.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.UserIT.testCreateUser_ReturnUserCreatedWithStatus201.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.VehicleControllerTest.createVehicle_WithDuplicateLicensePlate_ReturnsConflict.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.VehicleControllerTest.createVehicle_WithNonExistentClient_ReturnsNotFound.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.VehicleControllerTest.createVehicle_WithValidData_ReturnsCreated.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.VehicleControllerTest.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.VehicleControllerTest.getVehicleById_VehicleBelongsToAnotherTenant_ReturnsNotFound.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.VehicleControllerTest.getVehicleById_WithNonExistentId_ReturnsNotFound.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.VehicleControllerTest.getVehicleById_WithValidId_ReturnsVehicle.executor&quot;: &quot;Run&quot;,
+    &quot;Maven.MyMechanic [clean].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.MyMechanic [install].executor&quot;: &quot;Run&quot;,
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;develop&quot;,
+    &quot;ignore.preview.features.used&quot;: &quot;true&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;last_directory_selection&quot;: &quot;C:/Users/gusta/OneDrive/Documentos/GitHub/mechtech/BackEnd/MyMechanic/src/main/java/com/mechtech/MyMechanic&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/gusta/OneDrive/Documentos/GitHub/Project/MechTech/BackEnd/MyMechanic&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;SDKs&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;File.Encoding&quot;
+  }
+}</component>
+  <component name="RecentsManager">
+    <key name="CreateClassDialog.RecentsKey">
+      <recent name="com.mechtech.MyMechanic.entity" />
+      <recent name="com.mechtech.MyMechanic.service" />
+      <recent name="com.mechtech.MyMechanic.exception" />
+      <recent name="com.mechtech.MyMechanic.web.dto.responseDtos" />
+      <recent name="com.mechtech.MyMechanic.repository.projection" />
+    </key>
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\gusta\OneDrive\Documentos\GitHub\mechtech\BackEnd\MyMechanic\src\main\java\com\mechtech\MyMechanic\web\dto" />
+      <recent name="C:\Users\gusta\OneDrive\Documentos\GitHub\mechtech\BackEnd\MyMechanic\src\test\resources\sql\" />
+      <recent name="C:\Users\gusta\OneDrive\Documentos\GitHub\mechtech\BackEnd\MyMechanic\src\test\resources\sql\users" />
+      <recent name="C:\Users\gusta\OneDrive\Documentos\GitHub\mechtech\BackEnd\MyMechanic\src\test\java\com\mechtech\MyMechanic" />
+      <recent name="C:\Users\gusta\OneDrive\Documentos\GitHub\mechtech\BackEnd\MyMechanic\src\test\resources\sql" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\gusta\OneDrive\Documentos\GitHub\mechtech\BackEnd\MyMechanic\src\main\java\com\mechtech\MyMechanic" />
+    </key>
+    <key name="MoveClassesOrPackagesDialog.RECENTS_KEY">
+      <recent name="com.mechtech.MyMechanic.web.controller" />
+      <recent name="com.mechtech.MyMechanic" />
+      <recent name="com.mechtech.MyMechanic.exception" />
+    </key>
+    <key name="CopyClassDialog.RECENTS_KEY">
+      <recent name="com.mechtech.MyMechanic.web.controller" />
+      <recent name="com.mechtech.MyMechanic.web.dto" />
+      <recent name="com.mechtech.MyMechanic.web.dto.mapper" />
+      <recent name="com.mechtech.MyMechanic" />
+      <recent name="com.mechtech.MyMechanic.service" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Application.MyMachanic">
+    <configuration name="MyMachanic" type="Application" factoryName="Application">
+      <option name="ALTERNATIVE_JRE_PATH" value="$PROJECT_DIR$/../../../../../../../../../Program Files/Java/jdk-21" />
+      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
+      <envs>
+        <env name="DB_PASSWORD" value="postgres" />
+        <env name="DB_USERNAME" value="postgres" />
+        <env name="JWT_SECRET" value="0123456789-0123456789-0123456789" />
+        <env name="MAIL_HOST" value="mail.wideck.com.br" />
+        <env name="MAIL_PASSWORD" value=")8*5{OGgxUFd_z84" />
+        <env name="MAIL_USERNAME" value="mechtech@wideck.com.br" />
+        <env name="MAIL_PORT" value="587" />
+        <env name="DB_URL" value="jdbc:postgresql://localhost:5432/mechtech" />
+      </envs>
+      <option name="MAIN_CLASS_NAME" value="com.mechtech.MyMechanic.MyMechanicApplication" />
+      <module name="MyMechanic" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="VehicleControllerTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="MyMechanic" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.mechtech.MyMechanic.web.controller.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="com.mechtech.MyMechanic.web.controller" />
+      <option name="MAIN_CLASS_NAME" value="com.mechtech.MyMechanic.web.controller.VehicleControllerTest" />
+      <option name="TEST_OBJECT" value="class" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="VehicleControllerTest.createVehicle_WithDuplicateLicensePlate_ReturnsConflict" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="MyMechanic" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.mechtech.MyMechanic.web.controller.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="com.mechtech.MyMechanic.web.controller" />
+      <option name="MAIN_CLASS_NAME" value="com.mechtech.MyMechanic.web.controller.VehicleControllerTest" />
+      <option name="METHOD_NAME" value="createVehicle_WithDuplicateLicensePlate_ReturnsConflict" />
+      <option name="TEST_OBJECT" value="method" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="VehicleControllerTest.getVehicleById_VehicleBelongsToAnotherTenant_ReturnsNotFound" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="MyMechanic" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.mechtech.MyMechanic.web.controller.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="com.mechtech.MyMechanic.web.controller" />
+      <option name="MAIN_CLASS_NAME" value="com.mechtech.MyMechanic.web.controller.VehicleControllerTest" />
+      <option name="METHOD_NAME" value="getVehicleById_VehicleBelongsToAnotherTenant_ReturnsNotFound" />
+      <option name="TEST_OBJECT" value="method" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="VehicleControllerTest.getVehicleById_WithNonExistentId_ReturnsNotFound" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="MyMechanic" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.mechtech.MyMechanic.web.controller.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="com.mechtech.MyMechanic.web.controller" />
+      <option name="MAIN_CLASS_NAME" value="com.mechtech.MyMechanic.web.controller.VehicleControllerTest" />
+      <option name="METHOD_NAME" value="getVehicleById_WithNonExistentId_ReturnsNotFound" />
+      <option name="TEST_OBJECT" value="method" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="VehicleControllerTest.getVehicleById_WithValidId_ReturnsVehicle" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="MyMechanic" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.mechtech.MyMechanic.web.controller.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="com.mechtech.MyMechanic.web.controller" />
+      <option name="MAIN_CLASS_NAME" value="com.mechtech.MyMechanic.web.controller.VehicleControllerTest" />
+      <option name="METHOD_NAME" value="getVehicleById_WithValidId_ReturnsVehicle" />
+      <option name="TEST_OBJECT" value="method" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <list>
+      <item itemvalue="Application.MyMachanic" />
+      <item itemvalue="JUnit.VehicleControllerTest" />
+      <item itemvalue="JUnit.VehicleControllerTest.createVehicle_WithDuplicateLicensePlate_ReturnsConflict" />
+      <item itemvalue="JUnit.VehicleControllerTest.getVehicleById_VehicleBelongsToAnotherTenant_ReturnsNotFound" />
+      <item itemvalue="JUnit.VehicleControllerTest.getVehicleById_WithNonExistentId_ReturnsNotFound" />
+      <item itemvalue="JUnit.VehicleControllerTest.getVehicleById_WithValidId_ReturnsVehicle" />
+    </list>
+    <recent_temporary>
+      <list>
+        <item itemvalue="JUnit.VehicleControllerTest.getVehicleById_WithValidId_ReturnsVehicle" />
+        <item itemvalue="JUnit.VehicleControllerTest.getVehicleById_WithNonExistentId_ReturnsNotFound" />
+        <item itemvalue="JUnit.VehicleControllerTest.getVehicleById_VehicleBelongsToAnotherTenant_ReturnsNotFound" />
+        <item itemvalue="JUnit.VehicleControllerTest.createVehicle_WithDuplicateLicensePlate_ReturnsConflict" />
+        <item itemvalue="JUnit.VehicleControllerTest" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="8f38587f-4ddd-4c60-80e9-8c120bdfc9fe" name="Changes" comment="" />
+      <created>1752314292132</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1752314292132</updated>
+    </task>
+    <servers />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/mechtech/MyMechanic/service/ClientService.java</url>
+          <line>38</line>
+          <option name="timeStamp" value="6" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/mechtech/MyMechanic/web/mapper/ClientMapper.java</url>
+          <line>33</line>
+          <option name="timeStamp" value="7" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/mechtech/MyMechanic/service/AbstractTenantAwareService.java</url>
+          <line>28</line>
+          <option name="timeStamp" value="10" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
+  </component>
+  <component name="com.intellij.coverage.CoverageDataManagerImpl">
+    <SUITE FILE_PATH="coverage/MyMechanic$VehicleControllerTest.ic" NAME="VehicleControllerTest Coverage Results" MODIFIED="1761002031235" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="idea" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="true">
+      <FILTER>com.mechtech.MyMechanic.web.controller.*</FILTER>
+    </SUITE>
+    <SUITE FILE_PATH="coverage/MyMechanic$VehicleControllerTest_createVehicle_WithNonExistentClient_ReturnsNotFound.ic" NAME="VehicleControllerTest.createVehicle_WithNonExistentClient_ReturnsNotFound Coverage Results" MODIFIED="1760889411281" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="idea" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="true">
+      <FILTER>com.mechtech.MyMechanic.web.controller.*</FILTER>
+    </SUITE>
+  </component>
+  <component name="github-copilot-workspace">
+    <instructionFileLocations>
+      <option value=".github/instructions" />
+    </instructionFileLocations>
+    <promptFileLocations>
+      <option value=".github/prompts" />
+    </promptFileLocations>
+  </component>
+</project>

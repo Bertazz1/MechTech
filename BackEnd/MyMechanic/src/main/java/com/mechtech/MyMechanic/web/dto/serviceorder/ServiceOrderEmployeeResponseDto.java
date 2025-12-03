@@ -10,7 +10,9 @@ import java.math.BigDecimal;
 @Setter
 @AllArgsConstructor
 public class ServiceOrderEmployeeResponseDto {
+    private Long id;
     private Long employeeId;
-    private String employeeName;
+    private String name;
     private BigDecimal commissionPercentage;
+    private String roleName;
 }

@@ -38,9 +38,11 @@ public class ServiceOrderMapper {
         if (serviceOrder.getEmployees() != null) {
             dto.setEmployees(serviceOrder.getEmployees().stream()
                     .map(soEmployee -> new ServiceOrderEmployeeResponseDto(
+                            soEmployee.getId(),
                             soEmployee.getEmployee().getId(),
                             soEmployee.getEmployee().getName(),
-                            soEmployee.getCommissionPercentage()
+                            soEmployee.getCommissionPercentage(),
+                            soEmployee.getEmployee().getRole().getName()
                     ))
                     .collect(Collectors.toList()));
         }

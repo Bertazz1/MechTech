@@ -8,7 +8,6 @@ import { repairService } from '../../services/repairService';
 import { employeeService } from '../../services/employeeService';
 import Input from '../../components/common/Input';
 import Button from '../../components/common/Button';
-import Select from '../../components/common/Select';
 import AsyncSelect from '../../components/common/AsyncSelect';
 import toast from 'react-hot-toast';
 import { Trash2, Calculator, User, Wrench, Package, Info, Plus, X, CheckCircle } from 'lucide-react';
@@ -71,8 +70,6 @@ const ServiceOrderForm = () => {
         }
     }, [id]);
 
-    // --- Funções de Busca ---
-
     const fetchClients = async (query) => {
         try {
             const response = await clientService.search(query);
@@ -87,7 +84,7 @@ const ServiceOrderForm = () => {
             const list = Array.isArray(response) ? response : (response.content || []);
             return list.map(v => ({
                 value: v.id,
-                label: `${v.brand} ${v.model} - ${v.licensePlate}`,
+                label: `${v.brandName || 'Marca'} ${v.modelName || 'Modelo'} - ${v.licensePlate}`,
                 subLabel: v.client ? `Proprietário: ${v.client.name}` : null,
                 client: v.client
             }));
@@ -127,13 +124,10 @@ const ServiceOrderForm = () => {
             return list.map(e => ({
                 value: e.id,
                 label: e.name,
-                // CORREÇÃO AQUI: Acessa o .name do objeto role
                 subLabel: e.role?.name || 'Sem Cargo'
             }));
         } catch (e) { return []; }
     };
-
-    // --- Carregamento de Dados ---
 
     const loadServiceOrder = async () => {
         try {
@@ -143,7 +137,10 @@ const ServiceOrderForm = () => {
                 setSelectedClient({ value: data.client.id, label: data.client.name, subLabel: data.client.cpf });
             }
             if (data.vehicle) {
-                setSelectedVehicle({ value: data.vehicle.id, label: `${data.vehicle.model} - ${data.vehicle.licensePlate}` });
+                setSelectedVehicle({ 
+                    value: data.vehicle.id, 
+                    label: `${data.vehicle.model?.brand?.name || 'Marca'} ${data.vehicle.model?.name || 'Modelo'} - ${data.vehicle.licensePlate}` 
+                });
             }
 
             let formattedEntryDate = getLocalDateTime();
@@ -311,7 +308,9 @@ const ServiceOrderForm = () => {
     const handleServiceSelect = (index, option) => {
         const newItems = [...formData.serviceItems];
         newItems[index].selectedOption = option;
-        if (option) newItems[index].unitCost = option.price || 0;
+        if (option) {
+            newItems[index].unitCost = option.price || 0;
+        }
         setFormData({ ...formData, serviceItems: newItems });
     };
 
