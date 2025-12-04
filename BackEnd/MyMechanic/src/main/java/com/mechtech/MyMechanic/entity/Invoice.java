@@ -64,7 +64,8 @@ public class Invoice extends AbstractEntity implements Serializable, TenantOwned
     public enum PaymentStatus {
         PENDING,
         PAID,
-        OVERDUE
+        OVERDUE,
+        CANCELED
     }
 
     @Override

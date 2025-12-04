@@ -30,5 +30,11 @@ export const serviceOrderService = {
     generateInvoice: async (id) => {
         const response = await api.post(`/invoices/from-service-order/${id}`);
         return response.data;
+    },
+    getPdf: async (id) => {
+        const response = await api.get(`/service-orders/${id}/pdf`, {
+            responseType: 'blob' // Importante para arquivos binários
+        });
+        return response.data;
     }
 };

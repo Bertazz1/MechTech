@@ -35,18 +35,6 @@ public class ServiceOrderMapper {
             dto.setQuotationId(serviceOrder.getQuotation().getId());
         }
 
-        if (serviceOrder.getEmployees() != null) {
-            dto.setEmployees(serviceOrder.getEmployees().stream()
-                    .map(soEmployee -> new ServiceOrderEmployeeResponseDto(
-                            soEmployee.getId(),
-                            soEmployee.getEmployee().getId(),
-                            soEmployee.getEmployee().getName(),
-                            soEmployee.getCommissionPercentage(),
-                            soEmployee.getEmployee().getRole().getName()
-                    ))
-                    .collect(Collectors.toList()));
-        }
-
         // Mapeia os itens de peças para os seus DTOs de resposta
         if (serviceOrder.getPartItems() != null) {
             dto.setPartItems(serviceOrder.getPartItems().stream()
@@ -69,7 +57,9 @@ public class ServiceOrderMapper {
                             item.getRepairService().getId(),
                             item.getRepairService().getName(),
                             item.getQuantity(),
-                            item.getServiceCost()
+                            item.getServiceCost(),
+                            item.getEmployee() != null ? item.getEmployee().getId() : null,
+                            item.getEmployee() != null ? item.getEmployee().getName() : null
                     ))
                     .collect(Collectors.toList()));
         }

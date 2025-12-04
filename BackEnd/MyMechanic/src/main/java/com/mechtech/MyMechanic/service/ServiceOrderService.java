@@ -53,7 +53,8 @@ public class ServiceOrderService extends AbstractTenantAwareService<ServiceOrder
         serviceOrder.setVehicle(vehicle);
         serviceOrder.setClient(vehicle.getClient());
         if (dto.getDescription() != null) {
-            serviceOrder.setDescription(dto.getDescription());}
+            serviceOrder.setDescription(dto.getDescription());
+        }
         if (dto.getEntryDate() != null) {
             serviceOrder.setEntryDate(dto.getEntryDate());
         } else {
@@ -94,35 +95,19 @@ public class ServiceOrderService extends AbstractTenantAwareService<ServiceOrder
                 } else {
                     soItem.setServiceCost(service.getCost()); // Usa o custo padrão do serviço se não for fornecido
                 }
+                if (serviceItemDto.getEmployeeId() != null) {
+                    Employee employee = employeeService.findById(serviceItemDto.getEmployeeId());
+                    soItem.setEmployee(employee);
+                } else {
+                    soItem.setEmployee(null);
+                }
+
+
                 soServiceItems.add(soItem);
             }
         }
         serviceOrder.setServiceItems(soServiceItems);
 
-        // Processar itens de funcionário
-        Set<ServiceOrderEmployee> soEmployeeItems = new HashSet<>();
-        if (dto.getEmployees() != null) {
-            for (ServiceOrderEmployeeDto employeeDto : dto.getEmployees()) {
-                Employee employee = employeeService.findById(employeeDto.getId());
-
-                if (employeeDto.getCommissionPercentage() != null && employeeDto.getCommissionPercentage().compareTo(BigDecimal.ZERO) > 0) {
-                    if (employee.getRole() == null || !employee.getRole().isReceivesCommission()) {
-                        throw new BusinessRuleException("O funcionário '" + employee.getName() + "' com a função '" + (employee.getRole() != null ? employee.getRole().getName() : "N/A") + "' não pode receber comissão.");
-                    }
-                }
-
-                ServiceOrderEmployee soEmployeeItem = new ServiceOrderEmployee();
-                soEmployeeItem.setServiceOrder(serviceOrder);
-                soEmployeeItem.setEmployee(employee);
-                if (employeeDto.getCommissionPercentage() != null){
-                soEmployeeItem.setCommissionPercentage(employeeDto.getCommissionPercentage());}
-                else {
-                    soEmployeeItem.setCommissionPercentage(employee.getCommissionPercentage());
-                }
-                soEmployeeItems.add(soEmployeeItem);
-            }
-        }
-        serviceOrder.setEmployees(soEmployeeItems);
 
         if (dto.getInitialMileage() != null) {
             serviceOrder.setInitialMileage(dto.getInitialMileage());
@@ -167,8 +152,9 @@ public class ServiceOrderService extends AbstractTenantAwareService<ServiceOrder
         serviceOrder.setQuotation(quotation);
         serviceOrder.setClient(quotation.getClient());
         serviceOrder.setVehicle(quotation.getVehicle());
-        if (quotation.getDescription() != null){
-             serviceOrder.setDescription(quotation.getDescription());}
+        if (quotation.getDescription() != null) {
+            serviceOrder.setDescription(quotation.getDescription());
+        }
         serviceOrder.setEntryDate(LocalDateTime.now());
         serviceOrder.setStatus(ServiceOrder.ServiceOrderStatus.PENDENTE); // Status default
         serviceOrder.setTotalCost(quotation.getTotalCost()); // O preço já foi calculado no orçamento
@@ -192,6 +178,8 @@ public class ServiceOrderService extends AbstractTenantAwareService<ServiceOrder
             soItem.setRepairService(qItem.getRepairService());
             soItem.setServiceCost(qItem.getServiceCost());
             soServiceItems.add(soItem);
+
+
         }
         serviceOrder.setServiceItems(soServiceItems);
 
@@ -239,28 +227,12 @@ public class ServiceOrderService extends AbstractTenantAwareService<ServiceOrder
         if (ServiceOrder.ServiceOrderStatus.valueOf(dto.getStatus()) == ServiceOrder.ServiceOrderStatus.EM_PROGRESSO
                 && serviceOrder.getStatus() == ServiceOrder.ServiceOrderStatus.PENDENTE) {
             if (dto.getInitialMileage() == null && serviceOrder.getInitialMileage() == null) {
-                 throw new BusinessRuleException("A quilometragem inicial é obrigatória para iniciar o serviço.");
+                throw new BusinessRuleException("A quilometragem inicial é obrigatória para iniciar o serviço.");
             }
         }
 
-        if (dto.getEmployees() != null) {
-            serviceOrder.getEmployees().clear();
-            dto.getEmployees().forEach(employeeDto -> {
-                Employee employee = employeeService.findById(employeeDto.getId());
 
-                if (employeeDto.getCommissionPercentage() != null && employeeDto.getCommissionPercentage().compareTo(BigDecimal.ZERO) > 0) {
-                    if (employee.getRole() == null || !employee.getRole().isReceivesCommission()) {
-                        throw new BusinessRuleException("O funcionário '" + employee.getName() + "' com a função '" + (employee.getRole() != null ? employee.getRole().getName() : "N/A") + "' não pode receber comissão.");
-                    }
-                }
 
-                ServiceOrderEmployee soEmployeeItem = new ServiceOrderEmployee();
-                soEmployeeItem.setServiceOrder(serviceOrder);
-                soEmployeeItem.setEmployee(employee);
-                soEmployeeItem.setCommissionPercentage(employeeDto.getCommissionPercentage());
-                serviceOrder.getEmployees().add(soEmployeeItem);
-            });
-        }
 
         if (dto.getDescription() != null) {
             serviceOrder.setDescription(dto.getDescription());
@@ -296,6 +268,15 @@ public class ServiceOrderService extends AbstractTenantAwareService<ServiceOrder
                 } else {
                     soItem.setServiceCost(service.getCost());
                 }
+
+                if (serviceItemDto.getEmployeeId() != null) {
+                    soItem.setEmployee(employeeService.findById(serviceItemDto.getEmployeeId()));
+                } else {
+                    if (ServiceOrder.ServiceOrderStatus.valueOf(dto.getStatus()) == ServiceOrder.ServiceOrderStatus.COMPLETO )
+                        throw new BusinessRuleException("O funcionário é obrigatório para itens de serviço ao completar a OS.");
+                    soItem.setEmployee(null);
+                }
+
                 serviceOrder.getServiceItems().add(soItem);
             }
         }
@@ -319,7 +300,7 @@ public class ServiceOrderService extends AbstractTenantAwareService<ServiceOrder
     }
 
 
-     private void validateStatusTransition(ServiceOrder.ServiceOrderStatus oldStatus, ServiceOrder.ServiceOrderStatus newStatus) {
+    private void validateStatusTransition(ServiceOrder.ServiceOrderStatus oldStatus, ServiceOrder.ServiceOrderStatus newStatus) {
         if (oldStatus == newStatus) {
             return;
         }

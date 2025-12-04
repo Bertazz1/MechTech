@@ -36,6 +36,10 @@ public class ServiceOrderServiceItem extends AbstractEntity implements Serializa
     @Column(name = "quantity", nullable = false)
     private int quantity;
 
+    @ManyToOne
+    @JoinColumn(name = "employee_id")
+    private Employee employee;
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

@@ -111,7 +111,7 @@ public class Quotation extends AbstractEntity implements Serializable, TenantOwn
             return BigDecimal.ZERO;
         }
         return serviceItems.stream()
-                .map(QuotationServiceItem::getServiceCost)
+                .map(item -> item.getServiceCost().multiply(new BigDecimal(item.getQuantity())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 

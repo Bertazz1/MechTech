@@ -29,7 +29,6 @@ public class ServiceOrderResponseDto {
     private Long quotationId;
     private VehicleResponseDto vehicle;
     private ClientResponseDto client;
-    private List<ServiceOrderEmployeeResponseDto> employees;
     private List<ServiceOrderServiceItemResponseDto> serviceItems;
     private List<ServiceOrderPartItemResponseDto> partItems;
 }

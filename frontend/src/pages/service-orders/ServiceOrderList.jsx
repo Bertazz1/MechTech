@@ -4,7 +4,7 @@ import { serviceOrderService } from '../../services/serviceOrderService';
 import SearchBar from '../../components/common/SearchBar';
 import Button from '../../components/common/Button';
 import toast from 'react-hot-toast';
-import { Plus, Edit, Trash2, Receipt, ArrowUpDown, ArrowUp, ArrowDown, Play, Ban } from 'lucide-react';
+import { Plus, Edit, Trash2, Receipt, ArrowUpDown, ArrowUp, ArrowDown, Play, Ban, Printer } from 'lucide-react';
 import { confirmDelete, confirmAction, showAlert } from '../../utils/alert';
 import { parseApiError } from '../../utils/errorUtils';
 
@@ -139,6 +139,22 @@ const ServiceOrderList = () => {
         }
     };
 
+    const handlePrintPdf = async (id) => {
+        try {
+            const blob = await serviceOrderService.getPdf(id);
+
+            const url = window.URL.createObjectURL(blob);
+
+            window.open(url, '_blank');
+
+            setTimeout(() => window.URL.revokeObjectURL(url), 1000);
+
+        } catch (error) {
+            console.error(error);
+            toast.error('Erro ao gerar PDF da Ordem de Serviço');
+        }
+    };
+
 
     return (
         <div>
@@ -210,6 +226,14 @@ const ServiceOrderList = () => {
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                             <div className="flex justify-end gap-2">
+
+                                                <button
+                                                    onClick={() => handlePrintPdf(order.id)}
+                                                    className="text-gray-500 hover:text-gray-800 p-1 hover:bg-gray-100 rounded"
+                                                    title="Gerar PDF "
+                                                >
+                                                    <Printer className="w-5 h-5" />
+                                                </button>
 
                                                 {(order.status === 'PENDENTE' || order.status === 'INCOMPLETO') && (
                                                     <button

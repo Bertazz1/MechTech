@@ -10,7 +10,7 @@ import Input from '../../components/common/Input';
 import Button from '../../components/common/Button';
 import AsyncSelect from '../../components/common/AsyncSelect';
 import toast from 'react-hot-toast';
-import { Trash2, Calculator, User, Wrench, Package, Info, Plus, X, CheckCircle } from 'lucide-react';
+import { Trash2, Calculator, Wrench, Package, Info, CheckCircle } from 'lucide-react';
 import { parseApiError } from '../../utils/errorUtils';
 import { confirmAction } from '../../utils/alert';
 
@@ -19,9 +19,12 @@ const ServiceOrderForm = () => {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
 
+    // Estados para os AsyncSelects principais
     const [selectedClient, setSelectedClient] = useState(null);
     const [selectedVehicle, setSelectedVehicle] = useState(null);
-    const [tempEmployee, setTempEmployee] = useState(null);
+
+    // Lista de todos os funcionários para os seletores de itens
+    const [allEmployees, setAllEmployees] = useState([]);
 
     function getLocalDateTime() {
         const now = new Date();
@@ -38,7 +41,6 @@ const ServiceOrderForm = () => {
         entryDate: getLocalDateTime(),
         partItems: [],
         serviceItems: [],
-        employees: [],
         discount: 0
     });
 
@@ -65,10 +67,23 @@ const ServiceOrderForm = () => {
     ];
 
     useEffect(() => {
+        loadDependencies();
         if (id) {
             loadServiceOrder();
         }
     }, [id]);
+
+    const loadDependencies = async () => {
+        try {
+            const data = await employeeService.getAll();
+            const list = Array.isArray(data) ? data : (data.content || []);
+            setAllEmployees(list);
+        } catch (e) {
+            console.error("Erro ao carregar funcionários", e);
+        }
+    };
+
+    // --- Funções de Busca (Adapters) ---
 
     const fetchClients = async (query) => {
         try {
@@ -78,16 +93,22 @@ const ServiceOrderForm = () => {
         } catch (e) { return []; }
     };
 
+    // CORREÇÃO: Exibição correta de Marca/Modelo
     const fetchVehicles = async (query) => {
         try {
             const response = await vehicleService.search(query);
             const list = Array.isArray(response) ? response : (response.content || []);
-            return list.map(v => ({
-                value: v.id,
-                label: `${v.brandName || 'Marca'} ${v.modelName || 'Modelo'} - ${v.licensePlate}`,
-                subLabel: v.client ? `Proprietário: ${v.client.name}` : null,
-                client: v.client
-            }));
+            return list.map(v => {
+                // Tenta pegar do objeto aninhado model.brand ou campos planos se existirem
+                const brandName = v.model?.brand?.name || v.brandName || '';
+                const modelName = v.model?.name || v.modelName || '';
+                return {
+                    value: v.id,
+                    label: `${brandName} ${modelName} - ${v.licensePlate}`,
+                    subLabel: `Proprietário: ${v.clientName}`,
+                    clientData: { id: v.clientId, name: v.clientName }
+                };
+            });
         } catch (e) { return []; }
     };
 
@@ -117,18 +138,7 @@ const ServiceOrderForm = () => {
         } catch (e) { return []; }
     };
 
-    const fetchEmployees = async (query) => {
-        try {
-            const response = await employeeService.search(query);
-            const list = Array.isArray(response) ? response : (response.content || []);
-            return list.map(e => ({
-                value: e.id,
-                label: e.name,
-                subLabel: e.role?.name || 'Sem Cargo'
-            }));
-        } catch (e) { return []; }
-    };
-
+    // --- Carregamento da OS ---
     const loadServiceOrder = async () => {
         try {
             const data = await serviceOrderService.getById(id);
@@ -136,10 +146,14 @@ const ServiceOrderForm = () => {
             if (data.client) {
                 setSelectedClient({ value: data.client.id, label: data.client.name, subLabel: data.client.cpf });
             }
+
+            // Preenche seletor de veículo com os dados aninhados
             if (data.vehicle) {
-                setSelectedVehicle({ 
-                    value: data.vehicle.id, 
-                    label: `${data.vehicle.model?.brand?.name || 'Marca'} ${data.vehicle.model?.name || 'Modelo'} - ${data.vehicle.licensePlate}` 
+                const brandName = data.vehicle.model?.brand?.name || '';
+                const modelName = data.vehicle.model?.name || '';
+                setSelectedVehicle({
+                    value: data.vehicle.id,
+                    label: `${brandName} ${modelName} - ${data.vehicle.licensePlate}`
                 });
             }
 
@@ -162,17 +176,11 @@ const ServiceOrderForm = () => {
                 serviceId: item.serviceId || item.repairService?.id,
                 quantity: item.quantity,
                 unitCost: item.serviceCost || item.unitCost || item.cost,
+                employeeId: item.employeeId || '',
                 selectedOption: {
                     value: item.serviceId || item.repairService?.id,
                     label: item.serviceName || item.repairService?.name || 'Serviço carregado'
                 }
-            }));
-
-            const loadedEmployees = (data.employees || []).map(e => ({
-                id: e.employeeId || e.id,
-                name: e.employeeName || e.name,
-                commissionPercentage: e.commissionPercentage || 0,
-                workedHours: e.workedHours || 0
             }));
 
             setFormData({
@@ -184,7 +192,6 @@ const ServiceOrderForm = () => {
                 entryDate: formattedEntryDate,
                 partItems: loadedParts,
                 serviceItems: loadedServices,
-                employees: loadedEmployees,
                 discount: data.discount || 0
             });
         } catch (error) {
@@ -192,6 +199,8 @@ const ServiceOrderForm = () => {
             navigate('/service-orders');
         }
     };
+
+    // --- Handlers ---
 
     const handleClientChange = (option) => {
         setSelectedClient(option);
@@ -202,10 +211,17 @@ const ServiceOrderForm = () => {
         setSelectedVehicle(option);
         if (option) {
             setFormData(prev => ({ ...prev, vehicleId: option.value }));
-            if (option.client && !selectedClient) {
-                const clientOption = { value: option.client.id, label: option.client.name, subLabel: option.client.cpf };
+
+            // Seleciona o cliente automaticamente usando os dados planos
+            if (option.clientData && option.clientData.id) {
+                const clientOption = {
+                    value: option.clientData.id,
+                    label: option.clientData.name,
+                    subLabel: 'Vinculado ao veículo'
+                };
                 setSelectedClient(clientOption);
-                setFormData(prev => ({ ...prev, clientId: option.client.id }));
+                setFormData(prev => ({ ...prev, clientId: option.clientData.id }));
+                toast.success(`Cliente definido: ${option.clientData.name}`);
             }
         } else {
             setFormData(prev => ({ ...prev, vehicleId: '' }));
@@ -224,7 +240,7 @@ const ServiceOrderForm = () => {
                 .map(item => ({
                     id: item.selectedOption.value,
                     quantity: Number(item.quantity),
-                    price: Number(item.unitCost)
+                    unitCost: Number(item.unitCost) // Envia unitCost editável
                 })),
 
             serviceItems: formData.serviceItems
@@ -232,14 +248,9 @@ const ServiceOrderForm = () => {
                 .map(item => ({
                     id: item.selectedOption.value,
                     quantity: Number(item.quantity),
-                    cost: Number(item.unitCost)
-                })),
-
-            employees: formData.employees.map(emp => ({
-                id: emp.id,
-                commissionPercentage: Number(emp.commissionPercentage || 0),
-                workedHours: Number(emp.workedHours || 0)
-            }))
+                    unitCost: Number(item.unitCost), // Envia unitCost editável
+                    employeeId: item.employeeId ? Number(item.employeeId) : null
+                }))
         };
     };
 
@@ -286,6 +297,7 @@ const ServiceOrderForm = () => {
         }
     };
 
+    // -- Manipulação de Itens (Peças) --
     const addPartItem = () => setFormData({ ...formData, partItems: [...formData.partItems, { selectedOption: null, quantity: 1, unitCost: 0 }] });
     const removePartItem = (index) => setFormData({ ...formData, partItems: formData.partItems.filter((_, i) => i !== index) });
 
@@ -302,15 +314,14 @@ const ServiceOrderForm = () => {
         setFormData({ ...formData, partItems: newItems });
     };
 
-    const addServiceItem = () => setFormData({ ...formData, serviceItems: [...formData.serviceItems, { selectedOption: null, quantity: 1, unitCost: 0 }] });
+    // -- Manipulação de Itens (Serviços) --
+    const addServiceItem = () => setFormData({ ...formData, serviceItems: [...formData.serviceItems, { selectedOption: null, quantity: 1, unitCost: 0, employeeId: '' }] });
     const removeServiceItem = (index) => setFormData({ ...formData, serviceItems: formData.serviceItems.filter((_, i) => i !== index) });
 
     const handleServiceSelect = (index, option) => {
         const newItems = [...formData.serviceItems];
         newItems[index].selectedOption = option;
-        if (option) {
-            newItems[index].unitCost = option.price || 0;
-        }
+        if (option) newItems[index].unitCost = option.price || 0;
         setFormData({ ...formData, serviceItems: newItems });
     };
 
@@ -320,24 +331,10 @@ const ServiceOrderForm = () => {
         setFormData({ ...formData, serviceItems: newItems });
     };
 
-    const handleAddEmployee = () => {
-        if (!tempEmployee) return;
-        if (formData.employees.some(e => e.id === tempEmployee.value)) {
-            toast.error('Funcionário já adicionado.');
-            return;
-        }
-        const newEmployee = {
-            id: tempEmployee.value,
-            name: tempEmployee.label,
-            commissionPercentage: 0,
-            workedHours: 0
-        };
-        setFormData(prev => ({ ...prev, employees: [...prev.employees, newEmployee] }));
-        setTempEmployee(null);
-    };
-
-    const handleRemoveEmployee = (empId) => {
-        setFormData(prev => ({ ...prev, employees: prev.employees.filter(e => e.id !== empId) }));
+    const handleServiceEmployeeChange = (index, employeeId) => {
+        const newItems = [...formData.serviceItems];
+        newItems[index].employeeId = employeeId;
+        setFormData({ ...formData, serviceItems: newItems });
     };
 
     const isReadOnly = formData.status === 'COMPLETO' || formData.status === 'CANCELADO';
@@ -359,6 +356,8 @@ const ServiceOrderForm = () => {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
+
+                {/* BLOCO 1: Detalhes */}
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                     <h2 className="text-lg font-semibold mb-4 text-gray-800 flex items-center gap-2">
                         <Info className="w-5 h-5 text-primary-500" /> Detalhes da OS
@@ -366,7 +365,7 @@ const ServiceOrderForm = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                         <AsyncSelect
                             label="Veículo"
-                            placeholder="Buscar por placa ou modelo..."
+                            placeholder="Buscar..."
                             fetchOptions={fetchVehicles}
                             value={selectedVehicle}
                             onChange={handleVehicleChange}
@@ -375,31 +374,35 @@ const ServiceOrderForm = () => {
                         />
                         <AsyncSelect
                             label="Cliente"
-                            placeholder="Buscar por nome..."
+                            placeholder="Buscar..."
                             fetchOptions={fetchClients}
                             value={selectedClient}
                             onChange={handleClientChange}
                             required
                             disabled={isReadOnly}
                         />
-                        <Input
-                            label="Data de Entrada"
-                            type="datetime-local"
-                            name="entryDate"
-                            value={formData.entryDate}
-                            onChange={(e) => setFormData({ ...formData, entryDate: e.target.value })}
-                            required
-                            disabled={isReadOnly}
-                        />
-                        <Input
-                            label="Quilometragem Inicial (KM)"
-                            name="initialMileage"
-                            type="number"
-                            value={formData.initialMileage}
-                            onChange={(e) => setFormData({ ...formData, initialMileage: e.target.value })}
-                            placeholder="Ex: 50000"
-                            disabled={isReadOnly}
-                        />
+                        {id && formData.status !== 'PENDENTE' && (
+                            <>
+                                <Input
+                                    label="Data de Entrada"
+                                    type="datetime-local"
+                                    name="entryDate"
+                                    value={formData.entryDate}
+                                    onChange={(e) => setFormData({ ...formData, entryDate: e.target.value })}
+                                    required
+                                    disabled={isReadOnly}
+                                />
+                                <Input
+                                    label="Quilometragem Inicial (KM)"
+                                    name="initialMileage"
+                                    type="number"
+                                    value={formData.initialMileage}
+                                    onChange={(e) => setFormData({ ...formData, initialMileage: e.target.value })}
+                                    placeholder="Ex: 50000"
+                                    disabled={isReadOnly}
+                                />
+                            </>
+                        )}
                     </div>
                     <div className="mt-2">
                         <Input
@@ -407,47 +410,15 @@ const ServiceOrderForm = () => {
                             name="description"
                             value={formData.description}
                             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                            required
                             disabled={isReadOnly}
                         />
                     </div>
                 </div>
 
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                    <h2 className="text-lg font-semibold mb-4 text-gray-800 flex items-center gap-2">
-                        <User className="w-5 h-5 text-primary-500" /> Equipe Responsável
-                    </h2>
-                    {!isReadOnly && (
-                        <div className="flex gap-3 items-end mb-4">
-                            <div className="flex-grow max-w-md">
-                                <AsyncSelect
-                                    label="Adicionar Técnico"
-                                    placeholder="Buscar funcionário..."
-                                    fetchOptions={fetchEmployees}
-                                    value={tempEmployee}
-                                    onChange={setTempEmployee}
-                                />
-                            </div>
-                            <Button type="button" onClick={handleAddEmployee} disabled={!tempEmployee} className="mb-4 h-[42px]">
-                                <Plus className="w-5 h-5" />
-                            </Button>
-                        </div>
-                    )}
-                    <div className="space-y-2">
-                        {formData.employees.length === 0 && <p className="text-sm text-gray-400 italic">Nenhum funcionário atribuído.</p>}
-                        {formData.employees.map((emp) => (
-                            <div key={emp.id} className="flex justify-between items-center bg-gray-50 px-4 py-2 rounded-lg border border-gray-100">
-                                <span className="font-medium text-gray-700">{emp.name}</span>
-                                {!isReadOnly && (
-                                    <button type="button" onClick={() => handleRemoveEmployee(emp.id)} className="text-red-400 hover:text-red-600">
-                                        <X className="w-4 h-4" />
-                                    </button>
-                                )}
-                            </div>
-                        ))}
-                    </div>
-                </div>
-
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+                    {/* BLOCO 2: Peças */}
                     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                         <div className="flex justify-between items-center mb-4">
                             <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
@@ -459,7 +430,6 @@ const ServiceOrderForm = () => {
                                 </Button>
                             )}
                         </div>
-                        {formData.partItems.length === 0 && <p className="text-sm text-gray-400 italic text-center py-4">Nenhuma peça adicionada.</p>}
                         <div className="space-y-3">
                             {formData.partItems.map((item, index) => (
                                 <div key={index} className="flex gap-2 items-start bg-gray-50 p-3 rounded-lg border border-gray-100">
@@ -481,10 +451,22 @@ const ServiceOrderForm = () => {
                                             required
                                             className="mb-0 text-sm"
                                             disabled={isReadOnly}
+                                            placeholder="Qtd"
                                         />
                                     </div>
-                                    <div className="w-24 pt-2 text-right font-medium text-sm text-gray-600">
-                                        R$ {(item.quantity * item.unitCost).toFixed(2)}
+                                    {/* CORREÇÃO: Campo de preço editável */}
+                                    <div className="w-24">
+                                        <Input
+                                            type="number"
+                                            min="0"
+                                            step="0.01"
+                                            value={item.unitCost}
+                                            onChange={(e) => updatePartItem(index, 'unitCost', e.target.value)}
+                                            required
+                                            className="mb-0 text-sm"
+                                            disabled={isReadOnly}
+                                            placeholder="R$"
+                                        />
                                     </div>
                                     {!isReadOnly && (
                                         <button type="button" onClick={() => removePartItem(index)} className="text-red-400 hover:text-red-600 pt-2">
@@ -499,6 +481,7 @@ const ServiceOrderForm = () => {
                         </div>
                     </div>
 
+                    {/* BLOCO 3: Serviços */}
                     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                         <div className="flex justify-between items-center mb-4">
                             <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
@@ -510,38 +493,69 @@ const ServiceOrderForm = () => {
                                 </Button>
                             )}
                         </div>
-                        {formData.serviceItems.length === 0 && <p className="text-sm text-gray-400 italic text-center py-4">Nenhum serviço adicionado.</p>}
                         <div className="space-y-3">
                             {formData.serviceItems.map((item, index) => (
-                                <div key={index} className="flex gap-2 items-start bg-gray-50 p-3 rounded-lg border border-gray-100">
-                                    <div className="flex-grow">
-                                        <AsyncSelect
-                                            fetchOptions={fetchServices}
-                                            value={item.selectedOption}
-                                            onChange={(val) => handleServiceSelect(index, val)}
-                                            placeholder="Buscar serviço..."
-                                            disabled={isReadOnly}
-                                        />
+                                <div key={index} className="flex flex-col gap-2 bg-gray-50 p-3 rounded-lg border border-gray-100">
+                                    <div className="flex gap-2 items-start">
+                                        <div className="flex-grow">
+                                            <AsyncSelect
+                                                fetchOptions={fetchServices}
+                                                value={item.selectedOption}
+                                                onChange={(val) => handleServiceSelect(index, val)}
+                                                placeholder="Buscar serviço..."
+                                                disabled={isReadOnly}
+                                            />
+                                        </div>
+                                        <div className="w-16">
+                                            <Input
+                                                type="number"
+                                                min="1"
+                                                value={item.quantity}
+                                                onChange={(e) => updateServiceItem(index, 'quantity', e.target.value)}
+                                                required
+                                                className="mb-0 text-sm"
+                                                disabled={isReadOnly}
+                                                placeholder="Qtd"
+                                            />
+                                        </div>
+                                        {/* CORREÇÃO: Campo de custo editável */}
+                                        <div className="w-24">
+                                            <Input
+                                                type="number"
+                                                min="0"
+                                                step="0.01"
+                                                value={item.unitCost}
+                                                onChange={(e) => updateServiceItem(index, 'unitCost', e.target.value)}
+                                                required
+                                                className="mb-0 text-sm"
+                                                disabled={isReadOnly}
+                                                placeholder="R$"
+                                            />
+                                        </div>
+                                        {!isReadOnly && (
+                                            <button type="button" onClick={() => removeServiceItem(index)} className="text-red-400 hover:text-red-600 pt-2">
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+                                        )}
                                     </div>
-                                    <div className="w-16">
-                                        <Input
-                                            type="number"
-                                            min="1"
-                                            value={item.quantity}
-                                            onChange={(e) => updateServiceItem(index, 'quantity', e.target.value)}
-                                            required
-                                            className="mb-0 text-sm"
-                                            disabled={isReadOnly}
-                                        />
+
+                                    <div className="flex justify-between items-center mt-1">
+                                        <div className="w-full">
+                                            <select
+                                                className="w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm py-1.5"
+                                                value={item.employeeId}
+                                                onChange={(e) => handleServiceEmployeeChange(index, e.target.value)}
+                                                disabled={isReadOnly}
+                                            >
+                                                <option value="">Selecione o Técnico Responsável</option>
+                                                {allEmployees.map(emp => (
+                                                    <option key={emp.id} value={emp.id}>
+                                                        {emp.name} {emp.role?.name ? `(${emp.role.name})` : ''}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
                                     </div>
-                                    <div className="w-24 pt-2 text-right font-medium text-sm text-gray-600">
-                                        R$ {(item.quantity * item.unitCost).toFixed(2)}
-                                    </div>
-                                    {!isReadOnly && (
-                                        <button type="button" onClick={() => removeServiceItem(index)} className="text-red-400 hover:text-red-600 pt-2">
-                                            <Trash2 className="w-4 h-4" />
-                                        </button>
-                                    )}
                                 </div>
                             ))}
                         </div>
@@ -551,6 +565,7 @@ const ServiceOrderForm = () => {
                     </div>
                 </div>
 
+                {/* Totais */}
                 <div className="bg-white rounded-xl shadow-md p-6 border-t-4 border-primary-500">
                     <h2 className="text-lg font-semibold mb-4 text-gray-700 flex items-center gap-2">
                         <Calculator className="w-5 h-5" /> Resumo Financeiro
@@ -580,8 +595,14 @@ const ServiceOrderForm = () => {
                     )}
 
                     {formData.status === 'EM_PROGRESSO' && (
-                        <Button type="button" disabled={loading} onClick={handleFinishOrder} className="bg-green-600 hover:bg-green-700 text-white border-green-600">
-                            <CheckCircle className="w-5 h-5 mr-2" /> Finalizar Serviço
+                        <Button
+                            type="button"
+                            disabled={loading}
+                            onClick={handleFinishOrder}
+                            className="bg-green-600 hover:bg-green-700 text-white border-green-600"
+                        >
+                            <CheckCircle className="w-5 h-5 mr-2" />
+                            Finalizar Serviço
                         </Button>
                     )}
                 </div>

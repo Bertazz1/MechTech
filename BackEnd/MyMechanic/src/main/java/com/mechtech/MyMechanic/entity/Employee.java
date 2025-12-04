@@ -60,9 +60,6 @@ public class Employee extends AbstractEntity implements Serializable, TenantOwne
     @JoinColumn(name = "address_id", referencedColumnName = "id")
     private Address address;
 
-    @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<ServiceOrderEmployee> serviceOrders = new HashSet<>();
-
     @CreatedDate
     @Column(name = "created_at")
     private LocalDateTime createdAt;

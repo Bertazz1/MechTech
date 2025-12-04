@@ -79,9 +79,6 @@ public class ServiceOrder extends AbstractEntity implements Serializable, Tenant
   @OneToMany(mappedBy = "serviceOrder", cascade = CascadeType.ALL, orphanRemoval = true)
   private Set<ServiceOrderServiceItem> serviceItems = new HashSet<>();
 
-  @OneToMany(mappedBy = "serviceOrder", cascade = CascadeType.ALL, orphanRemoval = true)
-  private Set<ServiceOrderEmployee> employees = new HashSet<>();
-
 
   @OneToOne(mappedBy = "serviceOrder", cascade = CascadeType.ALL)
   private Invoice invoice;

@@ -18,8 +18,7 @@ public class ServiceOrderUpdateDto {
 
     private Integer initialMileage;
 
-    @Valid
-    private Set<ServiceOrderEmployeeDto> employees;
+
 
     @Valid
     private Set<ServiceOrderPartDto> partItems;
