@@ -2,8 +2,12 @@ package com.mechtech.MyMechanic.service;
 
 import com.mechtech.MyMechanic.entity.ServiceOrder;
 import com.mechtech.MyMechanic.entity.ServiceOrderServiceItem;
+import com.mechtech.MyMechanic.exception.BusinessRuleException;
 import com.mechtech.MyMechanic.repository.ServiceOrderRepository;
+import com.mechtech.MyMechanic.repository.specification.ServiceOrderSpecification;
 import com.mechtech.MyMechanic.web.dto.report.CommissionReportDto;
+import com.mechtech.MyMechanic.web.dto.report.ServiceOrderFilter;
+import com.mechtech.MyMechanic.web.dto.report.ServiceOrderReportDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,6 +19,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -66,5 +71,48 @@ public class ReportService {
             }
         }
         return new ArrayList<>(reportMap.values());
+    }
+
+    @Transactional(readOnly = true)
+    public List<ServiceOrderReportDto> generateServiceOrderReport(ServiceOrderFilter filter) {
+        // Validação de datas
+        if (filter.getStartDate() != null && filter.getEndDate() != null && filter.getStartDate().isAfter(filter.getEndDate())) {
+            throw new BusinessRuleException("A data inicial não pode ser posterior à data final.");
+        }
+
+        // Busca com Specification
+        List<ServiceOrder> orders = serviceOrderRepository.findAll(ServiceOrderSpecification.withFilter(filter));
+
+        return orders.stream()
+                .map(this::mapToReportDto)
+                .collect(Collectors.toList());
+    }
+
+    // Helper para mapeamento e cálculos financeiros precisos
+    private ServiceOrderReportDto mapToReportDto(ServiceOrder os) {
+        BigDecimal partsTotal = os.getPartItems().stream()
+                .map(item -> item.getUnitPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal servicesTotal = os.getServiceItems().stream()
+                .map(item -> item.getServiceCost().multiply(BigDecimal.valueOf(item.getQuantity())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        // Total = (Peças + Serviços)
+        BigDecimal total = partsTotal.add(servicesTotal);
+
+        return ServiceOrderReportDto.builder()
+                .id(os.getId())
+                .clientName(os.getClient() != null ? os.getClient().getName() : "N/A")
+                .vehiclePlate(os.getVehicle() != null ? os.getVehicle().getLicensePlate() : "N/A")
+                .vehicleModel(os.getVehicle() != null && os.getVehicle().getModel() != null
+                        ? os.getVehicle().getModel().getName() : "N/A")
+                .entryDate(os.getEntryDate())
+                .exitDate(os.getExitDate())
+                .status(os.getStatus().name())
+                .partsTotal(partsTotal)
+                .servicesTotal(servicesTotal)
+                .totalAmount(total)
+                .build();
     }
 }

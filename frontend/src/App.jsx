@@ -33,6 +33,7 @@ import VehicleBrandList from './pages/vehicles/brand/VehicleBrandList';
 import VehicleBrandForm from './pages/vehicles/brand/VehicleBrandForm';
 import VehicleModelList from './pages/vehicles/models/VehicleModelList';
 import VehicleModelForm from './pages/vehicles/models/VehicleModelForm';
+import ServiceOrderReport from './pages/reports/ServiceOrderReport';
 
 
 
@@ -103,6 +104,7 @@ function App() {
 
                         <Route path="settings/company" element={<CompanySettings />} />
                         <Route path="reports/commissions" element={<CommissionReport />} />
+                        <Route path="reports/service-orders" element={<ServiceOrderReport />} />
 
                         <Route path="admin/users" element={<UserList />} />
                         <Route path="admin/tenants" element={<TenantList />} />
