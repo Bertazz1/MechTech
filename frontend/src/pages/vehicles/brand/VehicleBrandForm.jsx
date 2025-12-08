@@ -6,6 +6,7 @@ import Button from '../../../components/common/Button';
 import toast from 'react-hot-toast';
 import { Tag } from 'lucide-react';
 import { parseApiError } from '../../../utils/errorUtils';
+import { capitalizeFirstLetter } from '../../../utils/textUtils';
 
 const VehicleBrandForm = () => {
     const { id } = useParams();
@@ -57,7 +58,7 @@ const VehicleBrandForm = () => {
                         label="Nome da Marca"
                         name="name"
                         value={formData.name}
-                        onChange={(e) => setFormData({ name: e.target.value })}
+                        onChange={(e) => setFormData({ name: capitalizeFirstLetter(e.target.value) })}
                         placeholder="Ex: Toyota, Ford, Honda"
                         required
                         icon={Tag}

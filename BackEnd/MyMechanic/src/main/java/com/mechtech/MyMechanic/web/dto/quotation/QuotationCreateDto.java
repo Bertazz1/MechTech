@@ -19,7 +19,6 @@ public class QuotationCreateDto {
     @Size(max = 300)
     private String description;
 
-    @NotNull(message = "Data de entrada não pode ser nula")
     private LocalDateTime entryTime;
 
     @NotNull(message = "ID do veículo não pode ser nulo")

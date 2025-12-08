@@ -28,7 +28,7 @@ public class PartService extends AbstractTenantAwareService<Part, Long, PartRepo
     @Transactional
     public Part createPart(Part part) {
         try {
-            part.setTenantId(TenantContext.getTenantId());
+            part.setTenant(TenantContext.getTenant());
             return repository.save(part);
         } catch (DataIntegrityViolationException ex) {
             throw new UniqueConstraintViolationException("Codigo ja registrado: " + part.getCode());

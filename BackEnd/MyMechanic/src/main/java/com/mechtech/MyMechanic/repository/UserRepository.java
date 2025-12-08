@@ -25,10 +25,4 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
     Optional<User> findByPasswordResetToken(String token);
 
     Optional<User> findByEmail(@NotBlank(message = "O e-mail é obrigatório") @Email(message = "E-mail inválido") String email);
-
-    @Query(value = "SELECT * FROM users WHERE email = :email", nativeQuery = true)
-    Optional<User> findByEmailIgnoringTenant(@Param("email") String email);
-
-    @Query(value = "SELECT * FROM users", nativeQuery = true)
-    Page<User> findAllIgnoringTenant(Pageable pageable);
 }

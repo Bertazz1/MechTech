@@ -23,12 +23,18 @@ public class Role extends AbstractEntity implements Serializable, TenantOwned {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "tenant_id", nullable = false, updatable = false)
-    private String tenantId;
+    @ManyToOne
+    @JoinColumn(name = "tenant_id", nullable = false, updatable = false)
+    private Tenant tenant;
 
     @Column(name = "name", nullable = false, length = 100)
     private String name;
 
     @Column(name = "receives_commission", nullable = false)
     private boolean receivesCommission = false;
+
+    @Override
+    public Tenant getTenant() {
+        return this.tenant;
+    }
 }

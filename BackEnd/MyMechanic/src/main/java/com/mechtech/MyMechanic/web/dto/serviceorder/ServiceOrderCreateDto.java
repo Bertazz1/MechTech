@@ -29,8 +29,7 @@ public class ServiceOrderCreateDto {
     @Valid
     private List<ServiceOrderServiceDto> serviceItems;
 
-    @Valid
-    private List<ServiceOrderEmployeeDto> employees;
+
 
     private Integer initialMileage;
 

@@ -25,8 +25,9 @@ public class VehicleModel extends AbstractEntity implements Serializable, Tenant
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "tenant_id", nullable = false, updatable = false)
-    private String tenantId;
+    @ManyToOne
+    @JoinColumn(name = "tenant_id", nullable = false, updatable = false)
+    private Tenant tenant;
 
     @Column(name = "name", nullable = false, length = 100)
     private String name;
@@ -34,6 +35,9 @@ public class VehicleModel extends AbstractEntity implements Serializable, Tenant
     @ManyToOne
     @JoinColumn(name = "brand_id", nullable = false)
     private VehicleBrand brand;
+
+    @Override
+    public Tenant getTenant() {
+        return this.tenant;
+    }
 }
-
-

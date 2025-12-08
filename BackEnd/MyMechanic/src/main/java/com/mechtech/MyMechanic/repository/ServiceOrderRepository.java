@@ -21,8 +21,6 @@ public interface ServiceOrderRepository extends JpaRepository<ServiceOrder, Long
 
     // Buscar ordens completas no período para cálculo de comissão
     @Query("SELECT DISTINCT so FROM ServiceOrder so " +
-            "JOIN FETCH so.employees soe " +
-            "JOIN FETCH soe.employee " +
             "LEFT JOIN FETCH so.serviceItems " +
             "WHERE so.status = 'COMPLETO' AND so.exitDate BETWEEN :start AND :end")
     List<ServiceOrder> findCompletedOrdersBetween(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
@@ -32,8 +30,6 @@ public interface ServiceOrderRepository extends JpaRepository<ServiceOrder, Long
             "LEFT JOIN FETCH pi.part " +
             "LEFT JOIN FETCH so.serviceItems si " +
             "LEFT JOIN FETCH si.repairService " +
-            "LEFT JOIN FETCH so.employees ei " +
-            "LEFT JOIN FETCH ei.employee " +
             "WHERE so.id = :id")
     Optional<ServiceOrder> findByIdWithItems(@Param("id") Long id);
 }

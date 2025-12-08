@@ -8,15 +8,17 @@ import lombok.Setter;
 import java.math.BigDecimal;
 
 @Getter
-    @Setter
-    public class ServiceOrderServiceDto {
-        @NotNull
-        private Long id; // ID do RepairService
+@Setter
+public class ServiceOrderServiceDto {
+    @NotNull
+    private Long id; // ID do RepairService
 
-        @Positive(message = "A quantidade deve ser um número positivo")
-        private int quantity;
+    @Positive(message = "A quantidade deve ser um número positivo")
+    private int quantity;
 
-        @Positive(message = "O custo deve ser um número positivo")
-        private BigDecimal unitCost;
-    }
+    @Positive(message = "O custo deve ser um número positivo")
+    private BigDecimal unitCost;
+
+    private Long employeeId;
+}
 

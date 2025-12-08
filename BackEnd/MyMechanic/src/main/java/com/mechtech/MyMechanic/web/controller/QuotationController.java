@@ -23,7 +23,6 @@ import java.util.List;
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/v1/quotations")
-@PreAuthorize("hasRole('ADMIN') or @securityService.isTenantMember(#id)")
 public class QuotationController {
     private final QuotationService quotationService;
     private final QuotationMapper quotationMapper;

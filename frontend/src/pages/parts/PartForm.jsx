@@ -4,6 +4,7 @@ import { partService } from '../../services/partService';
 import Input from '../../components/common/Input';
 import Button from '../../components/common/Button';
 import toast from 'react-hot-toast';
+import { capitalizeFirstLetter } from '../../utils/textUtils';
 
 const PartForm = () => {
   const { id } = useParams();
@@ -33,10 +34,12 @@ const PartForm = () => {
   };
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    const { name, value } = e.target;
+    if (name === 'name' || name === 'supplier') {
+        setFormData({ ...formData, [name]: capitalizeFirstLetter(value) });
+    } else {
+        setFormData({ ...formData, [name]: value });
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -60,7 +63,7 @@ const PartForm = () => {
   };
 
   return (
-    <div>
+    <div className="max-w-2xl mx-auto">
       <h1 className="text-3xl font-bold text-gray-800 mb-6">
         {id ? 'Editar Peça' : 'Nova Peça'}
       </h1>

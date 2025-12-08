@@ -29,7 +29,7 @@ public class RoleService extends AbstractTenantAwareService<Role, Long, RoleRepo
 
     @Transactional
     public Role createRole(Role role) {
-        role.setTenantId(TenantContext.getTenantId());
+        role.setTenant(TenantContext.getTenant());
         return repository.save(role);
     }
 

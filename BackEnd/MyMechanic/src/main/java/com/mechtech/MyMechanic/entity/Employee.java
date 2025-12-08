@@ -33,8 +33,9 @@ public class Employee extends AbstractEntity implements Serializable, TenantOwne
     @GeneratedValue
     private Long id;
 
-    @Column(name = "tenant_id", nullable = false, updatable = false)
-    private String tenantId;
+    @ManyToOne
+    @JoinColumn(name = "tenant_id", nullable = false, updatable = false)
+    private Tenant tenant;
 
     @Column(name = "name", nullable = false, length = 100)
     private String name;
@@ -58,9 +59,6 @@ public class Employee extends AbstractEntity implements Serializable, TenantOwne
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "address_id", referencedColumnName = "id")
     private Address address;
-
-    @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<ServiceOrderEmployee> serviceOrders = new HashSet<>();
 
     @CreatedDate
     @Column(name = "created_at")
@@ -91,4 +89,8 @@ public class Employee extends AbstractEntity implements Serializable, TenantOwne
     }
 
 
+    @Override
+    public Tenant getTenant() {
+        return this.tenant;
+    }
 }

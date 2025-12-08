@@ -1,13 +1,15 @@
 package com.mechtech.MyMechanic.multiTenants;
 
-public class TenantContext {
-    private static final ThreadLocal<String> currentTenant = new ThreadLocal<>();
+import com.mechtech.MyMechanic.entity.Tenant;
 
-    public static void setTenantId(String tenantId) {
-        currentTenant.set(tenantId);
+public class TenantContext {
+    private static final ThreadLocal<Tenant> currentTenant = new ThreadLocal<>();
+
+    public static void setTenant(Tenant tenant) {
+        currentTenant.set(tenant);
     }
 
-    public static String getTenantId() {
+    public static Tenant getTenant() {
         return currentTenant.get();
     }
 

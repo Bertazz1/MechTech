@@ -14,5 +14,7 @@ public class ServiceOrderServiceItemResponseDto {
     private Long serviceId;
     private String serviceName;
     private int quantity;
-    private BigDecimal unitCost; // Custo no momento da OS
+    private BigDecimal unitCost;
+    private Long employeeId;
+    private String employeeName;
 }

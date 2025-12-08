@@ -4,7 +4,7 @@ import { quotationService } from '../../services/quotationService';
 import SearchBar from '../../components/common/SearchBar';
 import Button from '../../components/common/Button';
 import toast from 'react-hot-toast';
-import { Plus, Edit, Trash2, FileText, ArrowRight, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { Plus, Edit, Trash2, Printer, ArrowRight, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { confirmDelete, confirmAction, showAlert } from '../../utils/alert';
 import { parseApiError } from '../../utils/errorUtils';
 
@@ -103,14 +103,9 @@ const QuotationList = () => {
         try {
             const blob = await quotationService.downloadPDF(id);
             const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `orcamento-${id}.pdf`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            window.URL.revokeObjectURL(url);
-            toast.success('PDF gerado com sucesso');
+            window.open(url, '_blank');
+            setTimeout(() => window.URL.revokeObjectURL(url), 1000);
+
         } catch (error) {
             toast.error('Erro ao gerar PDF');
         }
@@ -208,10 +203,10 @@ const QuotationList = () => {
                                             <div className="flex justify-end gap-2">
                                                 <button
                                                     onClick={() => handleDownloadPDF(quotation.id)}
-                                                    className="text-blue-600 hover:text-blue-900 p-1 hover:bg-blue-50 rounded"
-                                                    title="Gerar PDF"
+                                                    className="text-gray-500 hover:text-gray-800 p-1 hover:bg-gray-100 rounded"
+                                                    title="Gerar PDF "
                                                 >
-                                                    <FileText className="w-5 h-5" />
+                                                    <Printer className="w-5 h-5" />
                                                 </button>
 
                                                 {statusKey === 'AWAITING_CONVERSION' && (

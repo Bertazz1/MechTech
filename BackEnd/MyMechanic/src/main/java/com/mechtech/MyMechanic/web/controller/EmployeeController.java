@@ -23,7 +23,6 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/v1/employees")
-@PreAuthorize("hasRole('ADMIN') or @securityService.isTenantMember(#id)")
 public class EmployeeController {
 
     private final EmployeeService employeeService;

@@ -63,5 +63,9 @@ public class PartMapper {
         if (dto.getCode() != null) {
             part.setCode(dto.getCode());
         }
+        if (dto.getSupplier() != null) {
+            part.setSupplier(dto.getSupplier());
+        }
+
     }
 }

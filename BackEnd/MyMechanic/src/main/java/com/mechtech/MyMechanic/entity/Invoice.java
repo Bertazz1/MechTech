@@ -26,8 +26,9 @@ public class Invoice extends AbstractEntity implements Serializable, TenantOwned
     @GeneratedValue
     private Long id;
 
-    @Column(name = "tenant_id", nullable = false, updatable = false)
-    private String tenantId;
+    @ManyToOne
+    @JoinColumn(name = "tenant_id", nullable = false, updatable = false)
+    private Tenant tenant;
 
     @Column(name = "invoice_number", nullable = false, unique = true)
     private String invoiceNumber;
@@ -63,7 +64,8 @@ public class Invoice extends AbstractEntity implements Serializable, TenantOwned
     public enum PaymentStatus {
         PENDING,
         PAID,
-        OVERDUE
+        OVERDUE,
+        CANCELED
     }
 
     @Override
@@ -83,5 +85,8 @@ public class Invoice extends AbstractEntity implements Serializable, TenantOwned
     @Column(name = "updated_by")
     private String updatedBy;
 
+    @Override
+    public Tenant getTenant() {
+        return this.tenant;
+    }
 }
-

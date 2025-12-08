@@ -24,7 +24,6 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/v1/vehicle-models")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('ADMIN') or @securityService.isTenantMember(#id)")
 public class VehicleModelController {
 
     private final VehicleModelService vehicleModelService;

@@ -16,6 +16,7 @@ import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -60,10 +61,12 @@ public class QuotationService extends AbstractTenantAwareService<Quotation, Long
             throw new IllegalArgumentException("Orçamento sem itens");
         }
         Vehicle vehicle = vehicleService.findById(vehicleId);
-        quotation.setTenantId(vehicle.getTenantId());
+        quotation.setTenant(vehicle.getTenant());
         quotation.setVehicle(vehicle);
         quotation.setClient(vehicle.getClient());
         quotation.setStatus(Quotation.QuotationStatus.AWAITING_CONVERSION);
+        quotation.setEntryTime(LocalDateTime.now());
+
 
         Set<QuotationPartItem> partItems = new HashSet<>();
         if (!partItemsDto.isEmpty()) {

@@ -37,8 +37,9 @@ public class ServiceOrder extends AbstractEntity implements Serializable, Tenant
     @Column(name = "id")
   private Long id;
 
-    @Column(name = "tenant_id", nullable = false, updatable = false)
-    private String tenantId;
+    @ManyToOne
+    @JoinColumn(name = "tenant_id", nullable = false, updatable = false)
+    private Tenant tenant;
 
     @Column(name = "entry_date", nullable = false)
   private LocalDateTime entryDate;
@@ -77,9 +78,6 @@ public class ServiceOrder extends AbstractEntity implements Serializable, Tenant
 
   @OneToMany(mappedBy = "serviceOrder", cascade = CascadeType.ALL, orphanRemoval = true)
   private Set<ServiceOrderServiceItem> serviceItems = new HashSet<>();
-
-  @OneToMany(mappedBy = "serviceOrder", cascade = CascadeType.ALL, orphanRemoval = true)
-  private Set<ServiceOrderEmployee> employees = new HashSet<>();
 
 
   @OneToOne(mappedBy = "serviceOrder", cascade = CascadeType.ALL)
@@ -135,4 +133,9 @@ public class ServiceOrder extends AbstractEntity implements Serializable, Tenant
     }
     this.totalCost = total;
   }
+
+    @Override
+    public Tenant getTenant() {
+        return this.tenant;
+    }
 }

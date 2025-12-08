@@ -2,6 +2,8 @@ package com.mechtech.MyMechanic.web.controller;
 
 import com.mechtech.MyMechanic.service.ReportService;
 import com.mechtech.MyMechanic.web.dto.report.CommissionReportDto;
+import com.mechtech.MyMechanic.web.dto.report.ServiceOrderFilter;
+import com.mechtech.MyMechanic.web.dto.report.ServiceOrderReportDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +19,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/reports")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('ADMIN') or @securityService.isTenantMember(#id)")
 public class ReportController {
 
     private final ReportService reportService;
@@ -28,5 +29,13 @@ public class ReportController {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
         return ResponseEntity.ok(reportService.getCommissionReport(startDate, endDate));
+    }
+
+    @Operation(summary = "Relatório detalhado de Ordens de Serviço")
+    @GetMapping("/service-orders")
+    public ResponseEntity<List<ServiceOrderReportDto>> getServiceOrdersReport(
+            @ModelAttribute ServiceOrderFilter filter) { // ModelAttribute mapeia query params para o objeto DTO
+
+        return ResponseEntity.ok(reportService.generateServiceOrderReport(filter));
     }
 }

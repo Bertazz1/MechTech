@@ -20,7 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Objects;
 import java.util.Optional;
 
-import static com.mechtech.MyMechanic.multiTenants.TenantContext.getTenantId;
+import static com.mechtech.MyMechanic.multiTenants.TenantContext.getTenant;
 
 @Service
 public class VehicleService extends AbstractTenantAwareService<Vehicle, Long, VehicleRepository> {
@@ -41,7 +41,7 @@ public class VehicleService extends AbstractTenantAwareService<Vehicle, Long, Ve
     @Transactional
     public Vehicle createVehicle(VehicleCreateDto dto) {
         Vehicle newVehicle = vehicleMapper.toVehicle(dto, clientService.findById(dto.getClientId()), vehicleModelService.findById(dto.getModelId()) );
-        newVehicle.setTenantId(getTenantId());
+        newVehicle.setTenant(getTenant());
         try {
             validateVehicle(newVehicle);
             return repository.save(newVehicle);

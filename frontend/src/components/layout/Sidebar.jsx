@@ -34,6 +34,7 @@ const Sidebar = () => {
         { path: '/quotations', label: 'Orçamentos', icon: FileText },
         { path: '/invoices', label: 'Faturas', icon: Receipt },
         { path: '/reports/commissions', label: 'Comissões', icon: DollarSign },
+        { path: '/reports/service-orders', label: 'Relatório Geral OS', icon: FileText },
         { path: '/clients', label: 'Clientes', icon: Users },
         { path: '/vehicles', label: 'Veículos', icon: Car },
         { path: '/vehicle-brands', label: 'Marcas', icon: Tag },

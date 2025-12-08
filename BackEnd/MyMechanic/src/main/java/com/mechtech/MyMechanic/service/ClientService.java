@@ -39,7 +39,7 @@ public class ClientService extends AbstractTenantAwareService<Client, Long, Clie
         validateClient(client);
 
         try {
-            client.setTenantId(TenantContext.getTenantId());
+            client.setTenant(TenantContext.getTenant());
             return repository.save(client);
         } catch (Exception ex) {
             throw new UniqueConstraintViolationException(

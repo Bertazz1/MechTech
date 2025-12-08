@@ -36,8 +36,9 @@ public class RepairService extends AbstractEntity implements Serializable, Tenan
     @Id @GeneratedValue
     private Long id;
 
-    @Column(name = "tenant_id", nullable = false, updatable = false)
-    private String tenantId;
+    @ManyToOne
+    @JoinColumn(name = "tenant_id", nullable = false, updatable = false)
+    private Tenant tenant;
 
     @Column(name = "name", nullable = false, length = 100)
     private String name;
@@ -83,4 +84,8 @@ public class RepairService extends AbstractEntity implements Serializable, Tenan
     @Column(name = "updated_by")
     private String updatedBy;
 
+    @Override
+    public Tenant getTenant() {
+        return this.tenant;
+    }
 }
