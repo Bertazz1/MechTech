@@ -1,0 +1,66 @@
+services:
+  # 1. Banco de Dados
+  db:
+    image: postgres:15-alpine
+    container_name: mechtech_db
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - mechtech-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # 2. Backend (Java Spring Boot)
+  backend:
+    build: 
+      context: ./BackEnd/MyMechanic
+    container_name: mechtech_backend
+    ports:
+      - "8080:8080"
+    environment:
+      # Conexão com o Banco (Usa o nome do serviço 'db' e as vars do .env)
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${POSTGRES_DB}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      
+      # Variáveis de Aplicação
+      JWT_SECRET: ${JWT_SECRET}
+      MAIL_HOST: ${MAIL_HOST}
+      MAIL_PORT: ${MAIL_PORT}
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
+      
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - mechtech-net
+
+  # 3. Frontend (React + Nginx)
+  frontend:
+    build: 
+      context: ./frontend
+    container_name: mechtech_frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - mechtech-net
+
+volumes:
+  postgres_data:
+
+networks:
+  mechtech-net:
+    driver: bridge
