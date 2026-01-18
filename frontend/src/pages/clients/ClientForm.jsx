@@ -19,7 +19,7 @@ const ClientForm = () => {
         name: '',
         email: '',
         phone: '',
-        cpf: '',
+        cpfCnpj: '',
         street: '',
         city: '',
         state: '',
@@ -42,7 +42,7 @@ const ClientForm = () => {
                 name: data.name,
                 email: data.email,
                 phone: data.phone,
-                cpf: data.cpf ? formatCPF(data.cpf) : '',
+                cpfCnpj: data.cpfCnpj ? formatCpfCnpj(data.cpfCnpj) : '',
                 street: data.address?.street || '',
                 city: data.address?.city || '',
                 state: data.address?.state || '',
@@ -59,13 +59,23 @@ const ClientForm = () => {
         }
     };
 
-    const formatCPF = (value) => {
-        return value
-            .replace(/\D/g, '')
-            .replace(/(\d{3})(\d)/, '$1.$2')
-            .replace(/(\d{3})(\d)/, '$1.$2')
-            .replace(/(\d{3})(\d{1,2})/, '$1-$2')
-            .replace(/(-\d{2})\d+?$/, '$1');
+    const formatCpfCnpj = (value) => {
+        const cleanValue = value.replace(/\D/g, '');
+
+        if (cleanValue.length <= 11) {
+            return cleanValue
+                .replace(/(\d{3})(\d)/, '$1.$2')
+                .replace(/(\d{3})(\d)/, '$1.$2')
+                .replace(/(\d{3})(\d{1,2})/, '$1-$2')
+                .replace(/(-\d{2})\d+?$/, '$1');
+        } else {
+            return cleanValue
+                .replace(/^(\d{2})(\d)/, '$1.$2')
+                .replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3')
+                .replace(/\.(\d{3})(\d)/, '.$1/$2')
+                .replace(/(\d{4})(\d)/, '$1-$2')
+                .substr(0, 18);
+        }
     };
 
     const formatCEP = (value) => {
@@ -110,8 +120,8 @@ const ClientForm = () => {
             setFieldErrors(prev => ({ ...prev, [name]: null }));
         }
 
-        if (name === 'cpf') {
-            setFormData({ ...formData, [name]: formatCPF(value) });
+        if (name === 'cpfCnpj') {
+            setFormData({ ...formData, [name]: formatCpfCnpj(value) });
         } else if (name === 'zipCode') {
             setFormData({ ...formData, [name]: formatCEP(value) });
         } else if (name === 'name') {
@@ -140,7 +150,7 @@ const ClientForm = () => {
             name: formData.name,
             email: formData.email,
             phone: formData.phone.replace(/\D/g, ''),
-            cpf: formData.cpf.replace(/\D/g, ''),
+            cpfCnpj: formData.cpfCnpj.replace(/\D/g, ''),
             address: addressData
         };
 
@@ -200,7 +210,6 @@ const ClientForm = () => {
                             value={formData.email}
                             onChange={handleChange}
                             error={fieldErrors.email}
-                            required
                         />
 
                         <Input
@@ -213,13 +222,12 @@ const ClientForm = () => {
                         />
 
                         <Input
-                            label="CPF"
-                            name="cpf"
-                            value={formData.cpf}
+                            label="CPF/CNPJ"
+                            name="cpfCnpj"
+                            value={formData.cpfCnpj}
                             onChange={handleChange}
-                            placeholder="000.000.000-00"
+                            placeholder="000.000.000-00 ou 00.000.000/0000-00"
                             error={fieldErrors.cpf}
-                            required
                         />
                     </div>
 

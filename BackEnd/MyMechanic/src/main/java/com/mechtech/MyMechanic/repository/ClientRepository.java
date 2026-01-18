@@ -15,7 +15,7 @@ public interface ClientRepository extends JpaRepository<Client, Long>, JpaSpecif
 
     Optional<Client> findByVehicles_Id(Long vehicleId);
 
-    Optional<Client> findByCpf(@Pattern(regexp = "^\\d{11}$", message = "CPF deve conter 11 dígitos.") String cpf);
+    Optional<Client> findByCpfCnpj(String cpfCnpj);
 
     Optional<Client> findByPhone(@Pattern(regexp = "^\\d{10,11}$", message = "O telefone deve conter 10 ou 11 dígitos, incluindo o DDD.") String phone);
 }

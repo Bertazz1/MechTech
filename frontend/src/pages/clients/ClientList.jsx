@@ -85,7 +85,7 @@ const ClientList = () => {
                 <Button onClick={() => navigate('/clients/new')} className="flex items-center gap-2"><Plus className="w-5 h-5" /> Novo Cliente</Button>
             </div>
             <div className="mb-6">
-                <SearchBar onSearch={handleSearch} placeholder="Buscar por nome, email ou CPF..." />
+                <SearchBar onSearch={handleSearch} placeholder="Buscar por nome, email ou CPF/CNPJ..." />
             </div>
             {loading ? <div className="text-center py-8">Carregando...</div> : (
                 <div className="bg-white rounded-lg shadow-md overflow-hidden">
@@ -93,7 +93,7 @@ const ClientList = () => {
                         <thead className="bg-gray-50">
                         <tr>
                             <SortableTh label="Nome" sortKey="name" />
-                            <SortableTh label="CPF" sortKey="cpf" />
+                            <SortableTh label="CPF/CNPJ" sortKey="cpfCnpj" />
                             <SortableTh label="Email" sortKey="email" />
                             <SortableTh label="Telefone" sortKey="phone" />
                             <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
@@ -106,7 +106,7 @@ const ClientList = () => {
                             clients?.map((client) => (
                                 <tr key={client.id} className="hover:bg-gray-50">
                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{client.name}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{client.cpf}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{client.cpfCnpj}</td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{client.email}</td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{client.phone}</td>
                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">

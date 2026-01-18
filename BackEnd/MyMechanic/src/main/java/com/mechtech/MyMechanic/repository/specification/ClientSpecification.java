@@ -18,7 +18,7 @@ public class ClientSpecification {
 
             predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("name")), likePattern));
             predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("email")), likePattern));
-            predicates.add(criteriaBuilder.like(root.get("cpf"), likePattern));
+            predicates.add(criteriaBuilder.like(root.get("cpfCnpj"), likePattern));
             return criteriaBuilder.or(predicates.toArray(new Predicate[0]));
         };
     }

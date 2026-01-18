@@ -49,4 +49,17 @@ public final class ValidationUtils {
             throw new BusinessRuleException("CPF contém caracteres não numéricos: " + cpf);
         }
     }
+
+    public static void validadeCnpj (String cnpj){
+        if (cnpj == null) {
+            throw new BusinessRuleException("CNPJ não pode ser nulo.");
+        }
+
+        String cnpjLimpo = cnpj.replaceAll("[^0-9]", "");
+
+        if (cnpjLimpo.length() != 14 || cnpjLimpo.matches("(\\d)\\1{13}")) {
+            throw new BusinessRuleException("CNPJ inválido: " + cnpj);
+
+        }
+    }
 }

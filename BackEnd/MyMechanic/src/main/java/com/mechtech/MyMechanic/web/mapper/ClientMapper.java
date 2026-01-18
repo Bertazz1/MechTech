@@ -32,7 +32,7 @@ public class ClientMapper {
         client.setEmail(dto.getEmail());
         client.setPhone(dto.getPhone());
         client.setAddress(addressMapper.toAddress(dto.getAddress()));
-        client.setCpf(dto.getCpf());
+        client.setCpfCnpj(dto.getCpfCnpj());
 
         return client;
     }
@@ -47,7 +47,7 @@ public class ClientMapper {
         dto.setEmail(client.getEmail());
         dto.setPhone(client.getPhone());
         dto.setAddress(addressMapper.toDto(client.getAddress()));
-        dto.setCpf(client.getCpf());
+        dto.setCpfCnpj(client.getCpfCnpj());
         return dto;
     }
 
@@ -64,8 +64,8 @@ public class ClientMapper {
         if (dto.getPhone() != null) {
             client.setPhone(dto.getPhone());
         }
-        if (dto.getCpf() != null) {
-            client.setCpf(dto.getCpf());
+        if (dto.getCpfCnpj() != null) {
+            client.setCpfCnpj(dto.getCpfCnpj());
         }
         if (dto.getAddress() != null) {
             if (client.getAddress() == null) {
@@ -92,7 +92,7 @@ public class ClientMapper {
         dto.setName(projection.getName());
         dto.setEmail(projection.getEmail());
         dto.setPhone(projection.getPhone());
-        dto.setCpf(projection.getCpf());
+        dto.setCpfCnpj(projection.getCpfCnpj());
         dto.setAddress(addressMapper.toDto(projection.getAddress()));
         return dto;
 

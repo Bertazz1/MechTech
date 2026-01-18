@@ -9,7 +9,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.Filter;
-import org.hibernate.validator.constraints.br.CPF;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedBy;
@@ -45,16 +44,15 @@ public class Client extends AbstractEntity implements Serializable, TenantOwned 
     private String name;
 
     @Email
-    @Column(name = "email", nullable = false, unique = true, length = 150)
+    @Column(name = "email", unique = true, length = 150)
     private String email;
 
     @Column(name = "phone", nullable = false, unique = true)
     @Pattern(regexp = "^\\d{10,11}$", message = "O telefone deve conter 10 ou 11 dígitos, incluindo o DDD.")
     private String phone;
 
-    @Column(name = "cpf", nullable = false, unique = true, length = 11)
-    @Pattern(regexp = "^\\d{11}$", message = "CPF deve conter 11 dígitos.")
-    private String cpf;
+    @Column(name = "cpf_cnpj", unique = true, length = 14)
+    private String cpfCnpj;
 
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "address_id", referencedColumnName = "id")

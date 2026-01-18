@@ -1,6 +1,7 @@
 package com.mechtech.MyMechanic.service;
 
 import com.mechtech.MyMechanic.entity.Client;
+import com.mechtech.MyMechanic.exception.BusinessRuleException;
 import com.mechtech.MyMechanic.exception.EntityNotFoundException;
 import com.mechtech.MyMechanic.exception.UniqueConstraintViolationException;
 import com.mechtech.MyMechanic.multiTenants.TenantContext;
@@ -35,9 +36,18 @@ public class ClientService extends AbstractTenantAwareService<Client, Long, Clie
 
     @Transactional
     public Client createClient(Client client) {
-        ValidationUtils.validateCpf(client.getCpf());
-        validateClient(client);
 
+        if (client.getCpfCnpj() != null) {
+            if (client.getCpfCnpj().length() == 11) {
+                ValidationUtils.validateCpf(client.getCpfCnpj());
+            } else if (client.getCpfCnpj().length() == 14) {
+                ValidationUtils.validadeCnpj(client.getCpfCnpj());
+            } else {
+                throw new BusinessRuleException("CPF/CNPJ inválido: " + client.getCpfCnpj());
+            }
+
+        }
+        validateClient(client);
         try {
             client.setTenant(TenantContext.getTenant());
             return repository.save(client);
@@ -64,14 +74,17 @@ public class ClientService extends AbstractTenantAwareService<Client, Long, Clie
     @Transactional
     public Client updateClient(Long id, Client clientUpdateData) {
         Client existingClient = findById(id);
-        if (clientUpdateData.getCpf() != null) {
-            ValidationUtils.validateCpf(clientUpdateData.getCpf());
+        if (clientUpdateData.getCpfCnpj() != null) {
+            ValidationUtils.validateCpf(clientUpdateData.getCpfCnpj());
+            existingClient.setCpfCnpj(clientUpdateData.getCpfCnpj());
         }
+        if (clientUpdateData.getEmail() != null) {
+            existingClient.setEmail(clientUpdateData.getEmail());
+        }
+
         existingClient.setName(clientUpdateData.getName());
-        existingClient.setEmail(clientUpdateData.getEmail());
         existingClient.setPhone(clientUpdateData.getPhone());
         existingClient.setAddress(clientUpdateData.getAddress());
-        existingClient.setCpf(clientUpdateData.getCpf());
 
 
         validateClient(existingClient);
@@ -104,15 +117,18 @@ public class ClientService extends AbstractTenantAwareService<Client, Long, Clie
     }
 
     private void validateClient(Client client){
-        Optional<Client> existingCpfClient = clientRepository.findByCpf(client.getCpf());
+
+        if (client.getCpfCnpj() != null) {
+        Optional<Client> existingCpfClient = clientRepository.findByCpfCnpj(client.getCpfCnpj());
         if (existingCpfClient.isPresent() && !existingCpfClient.get().getId().equals(client.getId())){
             throw new UniqueConstraintViolationException("CPF já cadastrado");
-        }
+        }}
 
+        if (client.getEmail() != null) {
         Optional<Client> existingEmailClient = clientRepository.findByEmail(client.getEmail());
         if (existingEmailClient.isPresent() && !existingEmailClient.get().getId().equals(client.getId())){
             throw new UniqueConstraintViolationException("Email já cadastrado");
-        }
+        }}
 
         Optional<Client> existingPhoneClient = clientRepository.findByPhone(client.getPhone());
         if (existingPhoneClient.isPresent() && !existingPhoneClient.get().getId().equals(client.getId())){

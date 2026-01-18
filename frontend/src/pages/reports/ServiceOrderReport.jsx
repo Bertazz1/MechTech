@@ -86,7 +86,7 @@ const ServiceOrderReport = () => {
                     label: `${modelName} - ${v.licensePlate}`,
                     subLabel: clientName ? `Dono: ${clientName}` : '',
                     // Objeto com dados do cliente para preenchimento automático
-                    clientData: clientId ? { id: clientId, name: clientName, cpf: v.client?.cpf } : null
+                    clientData: clientId ? { id: clientId, name: clientName, cpfCnpj: v.client?.cpfCnpj } : null
                 };
             });
         } catch (e) { return []; }

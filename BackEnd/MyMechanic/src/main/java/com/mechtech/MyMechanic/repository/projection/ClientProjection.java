@@ -13,7 +13,7 @@ public interface ClientProjection {
 
     String getPhone();
 
-    String getCpf();
+    String getCpfCnpj();
 
     Address getAddress();
 }
