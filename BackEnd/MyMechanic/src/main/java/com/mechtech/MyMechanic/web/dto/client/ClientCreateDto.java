@@ -13,7 +13,7 @@ public class ClientCreateDto {
     @Size(max = 100)
     private String name;
 
-    @NotBlank
+
     @Email
     @Size(max = 150)
     private String email;
@@ -25,7 +25,7 @@ public class ClientCreateDto {
     @Valid
     private AddressDto address;
 
-    @NotBlank
+
     private String cpfCnpj;
 
 

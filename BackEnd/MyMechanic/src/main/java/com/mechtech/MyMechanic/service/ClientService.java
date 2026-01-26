@@ -37,7 +37,7 @@ public class ClientService extends AbstractTenantAwareService<Client, Long, Clie
     @Transactional
     public Client createClient(Client client) {
 
-        if (client.getCpfCnpj() != null) {
+        if (client.getCpfCnpj() != null && !client.getCpfCnpj().isEmpty()) {
             if (client.getCpfCnpj().length() == 11) {
                 ValidationUtils.validateCpf(client.getCpfCnpj());
             } else if (client.getCpfCnpj().length() == 14) {
